@@ -19,7 +19,7 @@
           </svg>
         </a>
         <span v-if="!isCollapsed" class="font-bold text-lg tracking-tight" :class="layout.isDarkMode ? 'text-white' : 'text-[#212B36]'">
-          Minimals
+          <!-- Minimals -->
         </span>
       </div>
     </div>
