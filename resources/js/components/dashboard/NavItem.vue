@@ -44,7 +44,7 @@
           :class="[
             isCollapsed ? 'flex-col items-center justify-center py-2.5 px-1 w-full' : (level === 0 ? 'flex-row items-center px-4 py-2 w-full' : 'flex-row items-center py-2 pr-4'),
             item.active && level === 0
-              ? 'text-[var(--nav-item-root-active-color)] bg-[var(--nav-item-root-active-bg)] hover:bg-[var(--nav-item-root-active-hover-bg)] font-bold'
+              ? 'text-(--nav-item-root-active-color) bg-(--nav-item-root-active-bg) hover:bg-(--nav-item-root-active-hover-bg) font-bold'
               : (item.active && level > 0 
                   ? (layout.isDarkMode ? 'text-white bg-white/10 hover:bg-white/10 font-bold' : 'text-gray-900 bg-gray-500/10 hover:bg-gray-500/10 font-bold') 
                   : (layout.isDarkMode ? 'text-gray-400 hover:bg-white/5' : 'text-gray-600 hover:bg-gray-500/5')),

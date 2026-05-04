@@ -34,7 +34,7 @@ const stats = [
       </div>
 
       <!-- Stats Grid -->
-      <div class="grid grid-cols-1 md:grid-cols-3 gap-6">
+      <!-- <div class="grid grid-cols-1 md:grid-cols-3 gap-6">
         <div 
           v-for="stat in stats" 
           :key="stat.name"
@@ -55,13 +55,13 @@ const stats = [
             <span class="opacity-50 font-medium">last 7 days</span>
           </div>
         </div>
-      </div>
+      </div> -->
 
       <!-- Placeholder for more content -->
-      <div class="grid grid-cols-1 lg:grid-cols-2 gap-6">
+      <!-- <div class="grid grid-cols-1 lg:grid-cols-2 gap-6">
          <div class="h-80 rounded-3xl bg-paper-light dark:bg-paper-dark shadow-card dark:shadow-card-dark border border-transparent"></div>
          <div class="h-80 rounded-3xl bg-paper-light dark:bg-paper-dark shadow-card dark:shadow-card-dark border border-transparent"></div>
-      </div>
+      </div> -->
     </div>
   </MainLayout>
 </template>

@@ -20,8 +20,8 @@
     <!-- Right: Icons & Search -->
     <div class="flex items-center gap-1 sm:gap-2 lg:gap-4">
       <!-- Search: Icon on small screens, Badge on large screens -->
-      <button v-ripple class="flex items-center gap-2 p-2 lg:px-3 lg:py-1.5 rounded-full lg:rounded-lg bg-gray-500/10 hover:bg-gray-500/10 transition-colors group">
-        <Search :size="20" class="text-gray-500 group-hover:text-primary" />
+      <button v-ripple class="flex items-center gap-2 p-2 lg:px-3 lg:py-1.5 rounded-full lg:rounded-lg bg-gray-500/10 hover:bg-gray-500/30 transition-colors duration-200">
+        <Search :size="20" class="text-gray-500 hover:text-primary" />
         <div class="hidden lg:flex items-center gap-1 px-1.5 py-0.5 rounded bg-gray-500/15 text-[10px] font-bold text-gray-500 border border-gray-500/10">
           <span class="text-[12px]">⌘</span>K
         </div>
