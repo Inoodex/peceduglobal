@@ -1,0 +1,75 @@
+<template>
+  <header
+    :class="[
+      'fixed top-0 right-0 h-20 transition-all duration-300 z-40 flex items-center justify-between px-4 lg:px-6 glass',
+      layout.isDarkMode ? 'bg-bg-dark/80 text-white' : 'bg-bg-light/80 text-text-primary-light',
+      layout.isSidebarCollapsed ? 'left-0 lg:left-[88px]' : 'left-0 lg:left-[280px]'
+    ]"
+  >
+    <!-- Left: Mobile Menu Toggle (Only visible on small screens) -->
+    <div class="flex items-center gap-4">
+      <button 
+        v-ripple
+        @click="layout.toggleMobileMenu"
+        class="p-2 rounded-full hover:bg-gray-500/10 transition-colors lg:hidden"
+      >
+        <Menu :size="24" class="text-gray-500" />
+      </button>
+    </div>
+
+    <!-- Right: Icons & Search -->
+    <div class="flex items-center gap-1 sm:gap-2 lg:gap-4">
+      <!-- Search: Icon on small screens, Badge on large screens -->
+      <button v-ripple class="flex items-center gap-2 p-2 lg:px-3 lg:py-1.5 rounded-full lg:rounded-lg bg-gray-500/10 hover:bg-gray-500/10 transition-colors group">
+        <Search :size="20" class="text-gray-500 group-hover:text-primary" />
+        <div class="hidden lg:flex items-center gap-1 px-1.5 py-0.5 rounded bg-gray-500/15 text-[10px] font-bold text-gray-500 border border-gray-500/10">
+          <span class="text-[12px]">⌘</span>K
+        </div>
+      </button>
+
+      <!-- Notifications -->
+      <button v-ripple class="p-2 rounded-full hover:bg-gray-500/10 transition-colors relative">
+        <Bell :size="22" class="text-gray-500" />
+        <span class="absolute top-1 right-1 w-4 h-4 bg-red-500 text-white text-[10px] font-bold flex items-center justify-center rounded-full border-2 border-bg-dark">
+          4
+        </span>
+      </button>
+
+      <!-- Settings -->
+      <button 
+        v-ripple
+        @click="layout.toggleSettings"
+        class="p-2 rounded-full hover:bg-gray-500/10 transition-colors animate-spin-slow"
+      >
+        <Settings :size="22" class="text-gray-500" />
+      </button>
+
+      <!-- User Profile -->
+      <div v-ripple class="ml-1 sm:ml-2 w-10 h-10 rounded-full border-2 border-primary/20 p-0.5 cursor-pointer hover:bg-primary/10 transition-colors">
+        <img 
+          src="https://api.dicebear.com/7.x/avataaars/svg?seed=Felix" 
+          alt="User" 
+          class="w-full h-full rounded-full bg-gray-200"
+        />
+      </div>
+    </div>
+  </header>
+</template>
+
+<script setup>
+import { useLayoutStore } from '@/stores/layout';
+import { Search, Bell, Users, Settings, Menu } from 'lucide-vue-next';
+
+const layout = useLayoutStore();
+</script>
+
+<style scoped>
+.animate-spin-slow {
+  animation: spin 8s linear infinite;
+}
+
+@keyframes spin {
+  from { transform: rotate(0deg); }
+  to { transform: rotate(360deg); }
+}
+</style>
