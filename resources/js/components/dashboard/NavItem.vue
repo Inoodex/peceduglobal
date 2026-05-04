@@ -2,44 +2,67 @@
   <div class="relative w-full">
     <!-- Tree Branch Lines for children (drawn by the child itself) -->
     <template v-if="level > 0 && !isCollapsed">
-      <!-- 1. The curve into this item's button -->
+      <!-- 1. Top half of the vertical trunk (always drawn) -->
+      <!-- Starts 4px above the item to flawlessly span the space-y-1 gap -->
       <div 
-        class="absolute border-l border-b border-gray-500/20 pointer-events-none"
+        class="absolute border-l border-gray-500/40 pointer-events-none z-10"
         :style="{
           left: `${branchLeft}px`,
           top: '-4px',
-          height: '24px',
-          width: '15px', /* Exactly bridges branchLeft to itemMarginLeft */
-          borderBottomLeftRadius: '8px'
+          height: '24px' /* Reaches exactly the center of this item's button (20px) */
         }"
       ></div>
-      
-      <!-- 2. The trunk continuing down to the next sibling (only if NOT last) -->
+
+      <!-- 2. Bottom half of the vertical trunk (drawn if NOT last) -->
+      <!-- Stretches from the center of this button down to the absolute bottom of the container, spanning any sub-children -->
       <div 
         v-if="!isLast"
-        class="absolute border-l border-gray-500/20 pointer-events-none"
+        class="absolute border-l border-gray-500/40 pointer-events-none z-10"
         :style="{
           left: `${branchLeft}px`,
           top: '20px',
-          bottom: '-4px'
+          bottom: '0px'
+        }"
+      ></div>
+
+      <!-- 3. Horizontal connection line -->
+      <div 
+        class="absolute border-t border-gray-500/40 pointer-events-none z-10"
+        :style="{
+          left: `${branchLeft}px`,
+          top: '20px',
+          width: '12px'
+        }"
+      ></div>
+      
+      <!-- 4. Tiny Dot at the end of the line -->
+      <div 
+        class="absolute rounded-full pointer-events-none z-10 transition-colors"
+        :class="item.active ? 'bg-primary' : 'bg-gray-500/40'"
+        :style="{
+          left: `${branchLeft + 11}px`,
+          top: '18.5px',
+          width: '4px',
+          height: '4px'
         }"
       ></div>
     </template>
 
+    <!-- The Button -->
     <button
       v-ripple
       @click="toggle"
       class="flex transition-all duration-200 relative group rounded-md"
       :class="[
-        isCollapsed ? 'flex-col items-center justify-center py-2.5 px-1 w-full' : (level === 0 ? 'flex-row items-center px-4 py-2 w-full' : 'flex-row items-center px-3 py-2'),
+        isCollapsed ? 'flex-col items-center justify-center py-2.5 px-1 w-full' : (level === 0 ? 'flex-row items-center px-4 py-2 w-full' : 'flex-row items-center py-2 pr-4'),
         item.active && level === 0
           ? 'text-[var(--nav-item-root-active-color)] bg-[var(--nav-item-root-active-bg)] hover:bg-[var(--nav-item-root-active-hover-bg)] font-bold'
           : (item.active && level > 0 
-              ? (layout.isDarkMode ? 'text-white bg-white/5 hover:bg-white/10 font-bold' : 'text-gray-900 bg-gray-500/5 hover:bg-gray-500/10 font-bold') 
-              : (layout.isDarkMode ? 'text-gray-500 hover:bg-white/5' : 'text-gray-600 hover:bg-gray-500/5')),
+              ? (layout.isDarkMode ? 'text-white bg-white/10 hover:bg-white/10 font-bold' : 'text-gray-900 bg-gray-500/10 hover:bg-gray-500/10 font-bold') 
+              : (layout.isDarkMode ? 'text-gray-400 hover:bg-white/5' : 'text-gray-600 hover:bg-gray-500/5')),
         level > 0 ? 'h-10 text-sm' : ''
       ]"
-      :style="level > 0 && !isCollapsed ? { marginLeft: `${itemMarginLeft}px`, width: `calc(100% - ${itemMarginLeft}px)` } : {}"
+      :style="level > 0 && !isCollapsed ? { marginLeft: `${itemMarginLeft}px`, width: `calc(100% - ${itemMarginLeft}px)`, paddingLeft: '11px' } : {}"
     >
       <!-- Icon (only level 0) -->
       <div v-if="level === 0" class="flex items-center justify-center w-[22px] mr-4">
@@ -76,17 +99,26 @@
       />
     </button>
 
-    <!-- Children -->
-    <div v-if="!isCollapsed && hasChildren && isOpen" class="relative mt-1 space-y-1">
-      <NavItem
-        v-for="(child, idx) in item.children"
-        :key="child.name"
-        :item="child"
-        :level="level + 1"
-        :is-collapsed="isCollapsed"
-        :is-last="idx === item.children.length - 1"
-      />
-    </div>
+    <!-- Children with Smooth Slide Transition -->
+    <Transition
+      @before-enter="onBeforeEnter"
+      @enter="onEnter"
+      @before-leave="onBeforeLeave"
+      @leave="onLeave"
+    >
+      <div v-if="!isCollapsed && hasChildren && isOpen" class="relative overflow-hidden">
+        <div class="pt-1 space-y-1">
+          <NavItem
+            v-for="(child, idx) in item.children"
+            :key="child.name"
+            :item="child"
+            :level="level + 1"
+            :is-collapsed="isCollapsed"
+            :is-last="idx === item.children.length - 1"
+          />
+        </div>
+      </div>
+    </Transition>
   </div>
 </template>
 
@@ -123,11 +155,36 @@ const toggle = () => {
 };
 
 // Math for tree lines:
-// branchLeft is horizontally aligned to the center of the previous level's logical parent point.
+// Child draws horizontal branch
 const branchLeft = computed(() => 27 + ((props.level - 1) * 20));
 
-// itemMarginLeft places the background box precisely at the end of the branch curve width (15px)
-const itemMarginLeft = computed(() => 42 + ((props.level - 1) * 20));
+// itemMarginLeft perfectly spaces the background box after the dot
+const itemMarginLeft = computed(() => branchLeft.value + 16);
+
+// --- Transition Hooks for Smooth Slide Up/Down (Minimals/MUI Style) ---
+const onBeforeEnter = (el) => {
+  el.style.height = '0';
+};
+const onEnter = (el, done) => {
+  // MUI Collapse standard easing
+  el.style.transition = 'height 250ms cubic-bezier(0.4, 0, 0.2, 1)';
+  el.style.height = el.scrollHeight + 'px';
+  el.addEventListener('transitionend', () => {
+    el.style.height = 'auto'; // Reset so inner content can dynamically resize later if needed
+    done();
+  }, { once: true });
+};
+const onBeforeLeave = (el) => {
+  el.style.height = el.scrollHeight + 'px';
+};
+const onLeave = (el, done) => {
+  // Slightly faster exit like MUI
+  el.style.transition = 'height 200ms cubic-bezier(0.4, 0, 0.2, 1)';
+  // Force a reflow so the browser catches the starting height before sliding down
+  void el.offsetHeight;
+  el.style.height = '0';
+  el.addEventListener('transitionend', done, { once: true });
+};
 </script>
 
 <style scoped>

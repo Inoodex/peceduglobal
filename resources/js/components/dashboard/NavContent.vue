@@ -80,12 +80,12 @@ const navigation = [
         active: true,
         open: true,
         children: [
-          { name: 'Profile', active: true },
+          { name: 'Profile', },
           { name: 'Cards' },
           { name: 'List' },
           { name: 'Create' },
           { name: 'Edit' },
-          { name: 'Account' }
+          { name: 'Account', active: true }
         ]
       },
     ]

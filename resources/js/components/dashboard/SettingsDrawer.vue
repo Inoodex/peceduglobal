@@ -13,16 +13,16 @@
         <h6 class="text-lg font-bold">Settings</h6>
         <div class="flex items-center gap-1">
           <!-- Fullscreen -->
-          <button v-ripple class="p-2 rounded-full hover:bg-gray-500/10 text-gray-500 transition-colors">
+          <button  class="p-2 rounded-full hover:bg-gray-500/10 text-gray-500 transition-colors">
             <Maximize :size="18" />
           </button>
           <!-- Reset -->
-          <button v-ripple class="p-2 rounded-full hover:bg-gray-500/10 text-gray-500 transition-colors relative">
+          <button  class="p-2 rounded-full hover:bg-gray-500/10 text-gray-500 transition-colors relative">
             <RotateCcw :size="18" />
             <span class="absolute top-2 right-2 w-2 h-2 bg-orange-500 rounded-full border border-[#161C24]"></span>
           </button>
           <!-- Close -->
-          <button v-ripple @click="layout.toggleSettings" class="p-2 rounded-full hover:bg-gray-500/10 text-gray-500 transition-colors">
+          <button  @click="layout.toggleSettings" class="p-2 rounded-full hover:bg-gray-500/10 text-gray-500 transition-colors">
             <X :size="18" />
           </button>
         </div>
@@ -34,7 +34,7 @@
         <!-- Toggle Sections (Mode, Contrast, RTL, Compact) -->
         <div class="grid grid-cols-2 gap-4">
           <!-- Mode Toggle -->
-          <button v-ripple @click="layout.toggleDarkMode" class="p-4 rounded-2xl border border-gray-500/10 bg-gray-500/5 text-left transition-all hover:bg-gray-500/10 relative">
+          <button  @click="layout.toggleDarkMode" class="p-4 rounded-2xl border border-gray-500/10 bg-gray-500/5 text-left transition-all hover:bg-gray-500/10 relative">
             <div class="flex justify-between items-center mb-4">
                <Moon :size="22" class="text-gray-400" />
                <!-- Switch -->
@@ -46,7 +46,7 @@
           </button>
 
           <!-- Contrast Toggle -->
-          <button v-ripple class="p-4 rounded-2xl border border-gray-500/10 bg-gray-500/5 text-left opacity-50 relative">
+          <button  class="p-4 rounded-2xl border border-gray-500/10 bg-gray-500/5 text-left opacity-50 relative">
             <div class="flex justify-between items-center mb-4">
                <Contrast :size="22" class="text-gray-400" />
                <div class="w-9 h-5 rounded-full p-0.5 bg-gray-400">
@@ -57,7 +57,7 @@
           </button>
 
           <!-- RTL Toggle -->
-          <button v-ripple class="p-4 rounded-2xl border border-gray-500/10 bg-gray-500/5 text-left opacity-50 relative">
+          <button  class="p-4 rounded-2xl border border-gray-500/10 bg-gray-500/5 text-left opacity-50 relative">
             <div class="flex justify-between items-center mb-4">
                <AlignRight :size="22" class="text-gray-400" />
                <div class="w-9 h-5 rounded-full p-0.5 bg-gray-400">
@@ -68,7 +68,7 @@
           </button>
 
           <!-- Compact Toggle -->
-          <button v-ripple @click="layout.toggleSidebar" class="p-4 rounded-2xl border border-gray-500/10 bg-gray-500/5 text-left relative">
+          <button  @click="layout.toggleSidebar" class="p-4 rounded-2xl border border-gray-500/10 bg-gray-500/5 text-left relative">
             <div class="flex justify-between items-center mb-4">
                <Maximize2 :size="22" class="text-gray-400" />
                <div :class="['w-9 h-5 rounded-full p-0.5 transition-colors', layout.isSidebarCollapsed ? 'bg-primary' : 'bg-gray-400']">
@@ -94,7 +94,7 @@
                  <h4 class="text-[11px] font-bold text-gray-500 mb-4 uppercase tracking-wider">Layout</h4>
                  <div class="grid grid-cols-3 gap-3">
                     <!-- Standard (Vertical) -->
-                    <div v-ripple class="aspect-[4/3] rounded-lg border-2 border-primary bg-primary/5 p-1 flex gap-1 cursor-pointer">
+                    <div  class="aspect-[4/3] rounded-lg border-2 border-primary bg-primary/5 p-1 flex gap-1 cursor-pointer">
                        <div class="w-1/3 h-full bg-primary rounded-sm opacity-60"></div>
                        <div class="flex-1 flex flex-col gap-1">
                           <div class="h-1.5 w-full bg-primary/40 rounded-sm"></div>
@@ -102,12 +102,12 @@
                        </div>
                     </div>
                     <!-- Mini -->
-                    <div v-ripple class="aspect-[4/3] rounded-lg border border-gray-500/10 bg-gray-500/5 p-1 flex flex-col gap-1 cursor-pointer opacity-40">
+                    <div  class="aspect-[4/3] rounded-lg border border-gray-500/10 bg-gray-500/5 p-1 flex flex-col gap-1 cursor-pointer opacity-40">
                        <div class="h-1.5 w-full bg-gray-500/20 rounded-sm"></div>
                        <div class="flex-1 bg-gray-500/10 rounded-sm"></div>
                     </div>
                     <!-- Top -->
-                    <div v-ripple class="aspect-[4/3] rounded-lg border border-gray-500/10 bg-gray-500/5 p-1 flex gap-1 cursor-pointer opacity-40">
+                    <div  class="aspect-[4/3] rounded-lg border border-gray-500/10 bg-gray-500/5 p-1 flex gap-1 cursor-pointer opacity-40">
                        <div class="w-1.5 h-full bg-gray-500/20 rounded-sm"></div>
                        <div class="flex-1 bg-gray-500/10 rounded-sm"></div>
                     </div>
@@ -117,11 +117,11 @@
               <div>
                  <h4 class="text-[11px] font-bold text-gray-500 mb-4 uppercase tracking-wider">Color</h4>
                  <div class="grid grid-cols-2 gap-4">
-                    <div v-ripple class="p-3 rounded-xl border-2 border-primary bg-primary/5 flex items-center gap-3 cursor-pointer">
+                    <div  class="p-3 rounded-xl border-2 border-primary bg-primary/5 flex items-center gap-3 cursor-pointer">
                        <Layout :size="20" class="text-primary" />
                        <span class="text-[13px] font-bold text-primary">Integrate</span>
                     </div>
-                    <div v-ripple class="p-3 rounded-xl border border-gray-500/10 bg-gray-500/5 flex items-center gap-3 cursor-pointer opacity-50">
+                    <div  class="p-3 rounded-xl border border-gray-500/10 bg-gray-500/5 flex items-center gap-3 cursor-pointer opacity-50">
                        <Layout :size="20" class="text-gray-400" />
                        <span class="text-[13px] font-bold text-gray-400">Apparent</span>
                     </div>
@@ -136,7 +136,7 @@
               Presets
            </div>
            <div class="border border-gray-500/10 rounded-2xl p-6 grid grid-cols-3 gap-5">
-              <div v-for="color in presets" :key="color.hex" v-ripple
+              <div v-for="color in presets" :key="color.hex" 
                 class="aspect-square rounded-xl flex items-center justify-center cursor-pointer transition-all hover:scale-105"
                 :class="layout.themeColor === color.hex ? 'bg-primary/10 border-2 border-primary shadow-lg shadow-primary/20' : 'bg-gray-500/5 border border-transparent'"
               >
@@ -161,7 +161,7 @@
               <div>
                  <h4 class="text-[11px] font-bold text-gray-500 mb-4 uppercase tracking-wider">Family</h4>
                  <div class="grid grid-cols-2 gap-4">
-                    <div v-for="font in fonts" :key="font" v-ripple
+                    <div v-for="font in fonts" :key="font" 
                       class="p-4 rounded-2xl border flex flex-col items-center gap-2 cursor-pointer transition-all"
                       :class="font === 'Public Sans' ? 'border-primary bg-primary/5' : 'border-gray-500/10 bg-gray-500/5 opacity-50'"
                     >
