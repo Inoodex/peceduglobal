@@ -1,7 +1,7 @@
 <template>
   <div class="flex flex-col h-full">
     <!-- Logo Section -->
-    <div 
+    <div
       class="py-5 flex items-center transition-all duration-300"
       :class="isCollapsed ? 'justify-center' : 'px-6 justify-between'"
     >
@@ -27,13 +27,13 @@
     <!-- Navigation -->
     <div class="flex-1 px-2 overflow-y-auto hide-scrollbar">
       <div v-for="(section, idx) in navigation" :key="idx" class="mb-2">
-        <h3 
+        <h3
           v-if="!isCollapsed"
           class="px-4 mb-2 text-[10px] font-bold uppercase tracking-wider text-gray-500 opacity-60"
         >
           {{ section.title }}
         </h3>
-        
+
         <div class="space-y-1 relative">
           <NavItem
             v-for="item in section.items"
@@ -50,9 +50,10 @@
 <script setup>
 import { useLayoutStore } from '@/stores/layout';
 import NavItem from './NavItem.vue';
-import { 
+import {
   LayoutDashboard,
-  Users
+  Users,
+  BookOpen
 } from 'lucide-vue-next';
 
 defineProps({
@@ -74,18 +75,34 @@ const navigation = [
   {
     title: 'Management',
     items: [
-      { 
-        name: 'User', 
-        icon: Users, 
+      {
+        name: 'User',
+        icon: Users,
+        active: false,
+        open: false,
+        children: [
+          { name: 'Profile', active: false },
+          { name: 'Cards', active: false },
+          { name: 'List', active: false },
+          { name: 'Create', active: false },
+          { name: 'Edit', active: false },
+          { name: 'Account', active: false }
+        ]
+      },
+    ]
+  }
+  ,{
+    title: 'about',
+    items: [
+      {
+        name: 'Blog',
+        icon: BookOpen,
         active: true,
         open: true,
         children: [
-          { name: 'Profile', },
-          { name: 'Cards' },
-          { name: 'List' },
-          { name: 'Create' },
-          { name: 'Edit' },
-          { name: 'Account', active: true }
+          { name: 'blog-list', path: '/blog-post' },
+          { name: 'blog-create', path: '/blog-post-create' },
+          { name: 'Categories', path: '/blog-category' },
         ]
       },
     ]

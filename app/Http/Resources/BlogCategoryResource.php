@@ -12,8 +12,18 @@ class BlogCategoryResource extends JsonResource
      *
      * @return array<string, mixed>
      */
-    public function toArray(Request $request): array
+    public function toArray($request): array
     {
-        return parent::toArray($request);
+        return [
+            'id' => $this->id,
+            'name' => $this->name,
+            'slug' => $this->slug,
+            'description' => $this->description,
+            'status' => $this->status,
+            'display_order' => $this->display_order,
+            'posts_count' => $this->whenCounted('posts', $this->posts_count, 0),
+            'created_at' => $this->created_at,
+            'updated_at' => $this->updated_at,
+        ];
     }
 }

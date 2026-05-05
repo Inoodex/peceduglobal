@@ -20,6 +20,38 @@ const routes = [
         component: () => import('../views/DashboardView.vue'),
         meta: { auth: true }
     },
+    // Blog Routes
+    {
+        path: '/blog-post',
+        name:'blog-list',
+        component:()=>import('../views/Dashboard/Blog/blog-Post/index.vue')
+    },
+    {
+        path: '/blog-post-create',
+        name:'blog-post-create',
+        component:()=>import('../views/Dashboard/Blog/blog-Post/create.vue')
+    },
+    {
+        path: '/blog-post/:id/edit',
+        name:'blog-post-edit',
+        component:()=>import('../views/Dashboard/Blog/blog-Post/edit.vue')
+    },
+    // Blog Category Routes
+    {
+        path: '/blog-category',
+        name:'blog-category-list',
+        component:()=>import('../views/Dashboard/Blog/blog-category/index.vue')
+    },
+    {
+        path: '/blog-category-create',
+        name:'blog-category-create',
+        component:()=>import('../views/Dashboard/Blog/blog-category/create.vue')
+    },
+    {
+        path: '/blog-category/:id/edit',
+        name:'blog-category-edit',
+        component:()=>import('../views/Dashboard/Blog/blog-category/edit.vue')
+    },
     {
         path: '/',
         redirect: '/dashboard'

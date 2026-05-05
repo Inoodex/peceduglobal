@@ -1,6 +1,8 @@
 <?php
 
 use App\Http\Controllers\Api\AuthController;
+use App\Http\Controllers\Api\BlogCategoryController;
+use App\Http\Controllers\Api\BlogPostController;
 use Illuminate\Support\Facades\Route;
 
 Route::group(['prefix' => 'auth'], function () {
@@ -14,6 +16,7 @@ Route::group(['prefix' => 'auth'], function () {
         // Blog routes
         Route::apiResource('blog-categories', BlogCategoryController::class);
         Route::apiResource('blog-posts', BlogPostController::class);
+        Route::post('blog-posts/upload-image', [BlogPostController::class, 'uploadImage']);
     });
 });
 
