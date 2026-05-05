@@ -65,6 +65,7 @@ defineProps({
 
 const layout = useLayoutStore();
 
+// Updated navigation to include education‑consultancy sections
 const navigation = [
   {
     title: 'Overview',
@@ -90,8 +91,44 @@ const navigation = [
         ]
       },
     ]
-  }
-  ,{
+  },
+  {
+    title: 'Content',
+    items: [
+      {
+        name: 'Page Manager',
+        icon: BookOpen,
+        active: false,
+        open: false,
+        children: [
+          { name: 'Pages', path: '/admin/pages' },
+          { name: 'Blocks', path: '/admin/blocks' },
+          { name: 'Elements', path: '/admin/elements' }
+        ]
+      },
+      {
+        name: 'Education',
+        icon: BookOpen,
+        active: false,
+        open: false,
+        children: [
+          { name: 'Universities', path: '/admin/universities' },
+          { name: 'Scholarships', path: '/admin/scholarships' }
+        ]
+      },
+      {
+        name: 'Students',
+        icon: BookOpen,
+        active: false,
+        open: false,
+        children: [
+          { name: 'Profiles', path: '/student/profile' },
+          { name: 'Applications', path: '/student/applications' }
+        ]
+      }
+    ]
+  },
+  {
     title: 'about',
     items: [
       {
