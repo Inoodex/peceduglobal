@@ -119,51 +119,15 @@
             <!-- Cover -->
             <div>
               <label class="block text-sm font-medium text-gray-700 dark:text-gray-300 mb-1.5">Cover</label>
-              <div
-                class="relative border-2 border-dashed border-gray-300 dark:border-gray-600 rounded-2xl p-8 text-center hover:border-gray-400 dark:hover:border-gray-500 transition-colors cursor-pointer bg-gray-50 dark:bg-[#141A21]/50"
-                @click="$refs.fileInput.click()"
-                @dragover.prevent
-                @drop.prevent="handleFileDrop"
-              >
-                <input
-                  ref="fileInput"
-                  type="file"
-                  accept="image/*"
-                  class="hidden"
-                  @change="handleFileSelect"
-                />
-
-                <div v-if="!form.featured_image_url" class="space-y-3">
-                  <div class="w-20 h-20 mx-auto bg-gray-100 dark:bg-gray-800 rounded-2xl flex items-center justify-center">
-                    <ImageIcon class="w-10 h-10 text-gray-400" />
-                  </div>
-                  <div>
-                    <p class="text-gray-900 dark:text-white font-medium">Drop or select a file</p>
-                    <p class="text-sm text-gray-500 dark:text-gray-400 mt-1">
-                      Drag a file here, or <span class="text-primary hover:underline">browse</span> your device
-                    </p>
-                  </div>
-                </div>
-
-                <div v-else class="relative">
-                  <img :src="form.featured_image_url" class="max-h-48 mx-auto rounded-xl object-cover" :class="{ 'opacity-50': uploadingImage }" />
-                  <!-- Uploading Indicator -->
-                  <div v-if="uploadingImage" class="absolute inset-0 flex items-center justify-center">
-                    <div class="bg-gray-900/70 text-white px-4 py-2 rounded-lg flex items-center gap-2">
-                      <div class="w-4 h-4 border-2 border-white border-t-transparent rounded-full animate-spin"></div>
-                      <span class="text-sm">Uploading...</span>
-                    </div>
-                  </div>
-                  <button
-                    v-if="!uploadingImage"
-                    type="button"
-                    @click.stop="form.featured_image_url = ''; form.featured_image_alt = ''"
-                    class="absolute top-2 right-2 p-1.5 bg-gray-900/50 hover:bg-gray-900 text-white rounded-lg transition-colors"
-                  >
-                    <X class="w-4 h-4" />
-                  </button>
-                </div>
-              </div>
+              <FileUpload
+                v-model="form.featured_image_url"
+                v-model:alt-text="form.featured_image_alt"
+                :uploading="uploadingImage"
+                placeholder="Drop or select a file"
+                alt-placeholder="Featured image alt text"
+                @select="handleFileUpload"
+                @remove="form.featured_image_url = ''; form.featured_image_alt = ''"
+              />
             </div>
           </div>
         </div>
@@ -293,9 +257,9 @@ import {
   List,
   ListOrdered,
   Link,
-  Image as ImageIcon,
-  X
+  Image as ImageIcon
 } from 'lucide-vue-next';
+import FileUpload from '@/components/FileUpload.vue';
 
 export default {
   name: 'BlogEdit',
@@ -313,7 +277,7 @@ export default {
     ListOrdered,
     Link,
     ImageIcon,
-    X
+    FileUpload
   },
   setup() {
     const layout = useLayoutStore();
@@ -355,19 +319,7 @@ export default {
     toggleSection(section) {
       this.sections[section] = !this.sections[section];
     },
-    async handleFileSelect(event) {
-      const file = event.target.files[0];
-      if (file) {
-        await this.uploadImage(file);
-      }
-    },
-    async handleFileDrop(event) {
-      const file = event.dataTransfer.files[0];
-      if (file && file.type.startsWith('image/')) {
-        await this.uploadImage(file);
-      }
-    },
-    async uploadImage(file) {
+    async handleFileUpload(file) {
       // Show preview immediately
       this.form.featured_image_url = URL.createObjectURL(file);
       this.selectedImageFile = file;

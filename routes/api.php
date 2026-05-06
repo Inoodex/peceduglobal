@@ -1,8 +1,15 @@
 <?php
 
+use App\Http\Controllers\Api\Admin\CMS\BlockController;
+use App\Http\Controllers\Api\Admin\CMS\ElementController;
+use App\Http\Controllers\Api\Admin\CMS\PageController;
+use App\Http\Controllers\Api\Admin\CountryController;
+use App\Http\Controllers\Api\Admin\Education\UniversityController;
 use App\Http\Controllers\Api\AuthController;
 use App\Http\Controllers\Api\BlogCategoryController;
 use App\Http\Controllers\Api\BlogPostController;
+use App\Http\Controllers\Api\Student\ApplicationController;
+use App\Http\Controllers\Api\Student\ProfileController;
 use Illuminate\Support\Facades\Route;
 
 Route::group(['prefix' => 'auth'], function () {
@@ -20,22 +27,23 @@ Route::group(['prefix' => 'auth'], function () {
 
         // Admin CMS Routes
         Route::prefix('admin')->group(function () {
-            Route::apiResource('pages', \App\Http\Controllers\Api\Admin\CMS\PageController::class);
-            Route::apiResource('blocks', \App\Http\Controllers\Api\Admin\CMS\BlockController::class);
-            Route::apiResource('elements', \App\Http\Controllers\Api\Admin\CMS\ElementController::class);
-            
+            Route::apiResource('pages', PageController::class);
+            Route::apiResource('blocks', BlockController::class);
+            Route::apiResource('elements', ElementController::class);
+            Route::apiResource('countries', CountryController::class);
+
             // Education Routes
-            Route::apiResource('universities', \App\Http\Controllers\Api\Admin\Education\UniversityController::class);
-            Route::apiResource('scholarships', \App\Http\Controllers\Api\Admin\Education\ScholarshipController::class);
+            Route::apiResource('universities', UniversityController::class);
+            // Route::apiResource('scholarships', ScholarshipController::class);
         });
 
         // Student Routes
         Route::prefix('student')->group(function () {
-            Route::get('profile', [\App\Http\Controllers\Api\Student\ProfileController::class, 'show']);
-            Route::put('profile', [\App\Http\Controllers\Api\Student\ProfileController::class, 'update']);
-            Route::get('applications', [\App\Http\Controllers\Api\Student\ApplicationController::class, 'index']);
-            Route::post('applications', [\App\Http\Controllers\Api\Student\ApplicationController::class, 'store']);
-            Route::get('applications/{application}', [\App\Http\Controllers\Api\Student\ApplicationController::class, 'show']);
+            Route::get('profile', [ProfileController::class, 'show']);
+            Route::put('profile', [ProfileController::class, 'update']);
+            Route::get('applications', [ApplicationController::class, 'index']);
+            Route::post('applications', [ApplicationController::class, 'store']);
+            Route::get('applications/{application}', [ApplicationController::class, 'show']);
         });
     });
 });

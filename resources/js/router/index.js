@@ -52,6 +52,63 @@ const routes = [
         name:'blog-category-edit',
         component:()=>import('../views/Dashboard/Blog/blog-category/edit.vue')
     },
+    // Page Manager Routes
+    {
+        path: '/dashboard/page-manager',
+        name: 'page-manager',
+        component: () => import('../views/Dashboard/PageManager/index.vue'),
+        meta: { auth: true }
+    },
+    {
+        path: '/dashboard/page-manager/create',
+        name: 'page-manager-create',
+        component: () => import('../views/Dashboard/PageManager/create.vue'),
+        meta: { auth: true }
+    },
+    {
+        path: '/dashboard/page-manager/edit/:id',
+        name: 'page-manager-edit',
+        component: () => import('../views/Dashboard/PageManager/edit.vue'),
+        meta: { auth: true }
+    },
+    // Block Manager Routes
+    {
+        path: '/dashboard/block-manager',
+        name: 'block-manager',
+        component: () => import('../views/Dashboard/BlockManager/index.vue'),
+        meta: { auth: true }
+    },
+    {
+        path: '/dashboard/block-manager/create',
+        name: 'block-manager-create',
+        component: () => import('../views/Dashboard/BlockManager/create.vue'),
+        meta: { auth: true }
+    },
+    {
+        path: '/dashboard/block-manager/edit/:id',
+        name: 'block-manager-edit',
+        component: () => import('../views/Dashboard/BlockManager/edit.vue'),
+        meta: { auth: true }
+    },
+    // Country Manager Routes
+    {
+        path: '/dashboard/country-manager',
+        name: 'country-manager',
+        component: () => import('../views/Dashboard/CountryManager/index.vue'),
+        meta: { auth: true }
+    },
+    {
+        path: '/dashboard/country-manager/create',
+        name: 'country-manager-create',
+        component: () => import('../views/Dashboard/CountryManager/create.vue'),
+        meta: { auth: true }
+    },
+    {
+        path: '/dashboard/country-manager/edit/:id',
+        name: 'country-manager-edit',
+        component: () => import('../views/Dashboard/CountryManager/edit.vue'),
+        meta: { auth: true }
+    },
     {
         path: '/',
         redirect: '/dashboard'

@@ -101,9 +101,18 @@ const navigation = [
         active: false,
         open: false,
         children: [
-          { name: 'Pages', path: '/admin/pages' },
-          { name: 'Blocks', path: '/admin/blocks' },
+          { name: 'Pages', path: '/dashboard/page-manager' },
+          { name: 'Blocks', path: '/dashboard/block-manager' },
           { name: 'Elements', path: '/admin/elements' }
+        ]
+      },
+      {
+        name: 'Country Manager',
+        icon: BookOpen,
+        active: false,
+        open: false,
+        children: [
+          { name: 'Countries', path: '/dashboard/country-manager' }
         ]
       },
       {
@@ -137,9 +146,9 @@ const navigation = [
         active: true,
         open: true,
         children: [
-          { name: 'blog-list', path: '/blog-post' },
-          { name: 'blog-create', path: '/blog-post-create' },
-          { name: 'Categories', path: '/blog-category' },
+          { name: 'Posts', path: '/blog-post' },
+          { name: 'Create Post', path: '/blog-post-create' },
+          { name: 'Categories', path: '/blog-category' }
         ]
       },
     ]
