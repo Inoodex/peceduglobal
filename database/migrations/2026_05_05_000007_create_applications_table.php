@@ -14,6 +14,8 @@ return new class extends Migration
             $table->foreignId('university_id')->constrained()->cascadeOnDelete();
             $table->string('course_name');
             $table->enum('status', ['pending', 'review', 'accepted', 'rejected'])->default('pending');
+            $table->string('status')->default('pending'); // pending, processing, submitted, accepted, rejected
+            $table->text('remarks')->nullable();
             $table->timestamps();
         });
     }

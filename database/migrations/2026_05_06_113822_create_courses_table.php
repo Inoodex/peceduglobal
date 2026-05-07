@@ -17,7 +17,10 @@ return new class extends Migration
             $table->foreignId('country_id')->nullable()->constrained()->nullOnDelete();
             $table->string('name');
             $table->string('slug')->unique();
+            $table->string('level')->nullable(); // e.g., Undergraduate, Postgraduate, PhD
+            $table->string('intake')->nullable(); // e.g., Fall, Spring, Summer
             $table->string('duration')->nullable(); // e.g., 3 Years, 4 Years
+            $table->string('ielts_requirement')->nullable();
             $table->decimal('tuition_fee', 12, 2)->nullable();
             $table->text('requirements')->nullable();
             $table->boolean('is_popular')->default(false);

@@ -42,12 +42,12 @@
             </thead>
             <tbody class="divide-y divide-gray-200 dark:divide-gray-700/50">
               <tr v-if="loading" class="hover:bg-gray-50 dark:hover:bg-gray-800/50 transition-colors">
-                <td colspan="3" class="px-6 py-12 text-center text-gray-500 dark:text-gray-400">
+                <td colspan="5" class="px-6 py-12 text-center text-gray-500 dark:text-gray-400">
                   <div class="flex items-center justify-center gap-2"><Loader2 class="w-5 h-5 animate-spin" /> Loading pages...</div>
                 </td>
               </tr>
               <tr v-else-if="filteredPages.length === 0" class="hover:bg-gray-50 dark:hover:bg-gray-800/50 transition-colors">
-                <td colspan="3" class="px-6 py-12 text-center text-gray-500 dark:text-gray-400">No pages found</td>
+                <td colspan="5" class="px-6 py-12 text-center text-gray-500 dark:text-gray-400">No pages found</td>
               </tr>
               <tr v-for="page in filteredPages" :key="page.id" :class="['hover:bg-gray-50 dark:hover:bg-gray-800/50 transition-colors', page.parent_id && 'bg-gray-50/50 dark:bg-gray-800/20']">
                 <td class="px-6 py-4">

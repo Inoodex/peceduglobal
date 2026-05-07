@@ -14,6 +14,8 @@ return new class extends Migration
             $table->string('name');
             $table->string('slug')->unique();
             $table->string('logo')->nullable();
+            $table->string('banner')->nullable();
+            $table->json('social_links')->nullable();
             $table->string('location')->nullable();
             $table->string('ranking')->nullable();
             $table->string('tuition_range')->nullable();
