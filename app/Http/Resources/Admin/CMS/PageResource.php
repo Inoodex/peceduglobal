@@ -1,6 +1,6 @@
 <?php
 
-namespace App\Http\Resources\Admin;
+namespace App\Http\Resources\Admin\CMS;
 
 use Illuminate\Http\Resources\Json\JsonResource;
 
@@ -12,6 +12,10 @@ class PageResource extends JsonResource
             'id' => $this->id,
             'title' => $this->title,
             'slug' => $this->slug,
+            'country_id' => $this->country_id,
+            'country' => $this->whenLoaded('country'),
+            'parent_id' => $this->parent_id,
+            'parent' => $this->whenLoaded('parent'),
             'meta_title' => $this->meta_title,
             'meta_description' => $this->meta_description,
             'thumbnail' => $this->thumbnail,

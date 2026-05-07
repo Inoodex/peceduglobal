@@ -14,6 +14,12 @@ return new class extends Migration
             $table->string('name');
             $table->string('slug')->unique();
             $table->string('logo')->nullable();
+            $table->string('location')->nullable();
+            $table->string('ranking')->nullable();
+            $table->string('tuition_range')->nullable();
+            $table->string('intake_months')->nullable();
+            $table->text('description')->nullable();
+            $table->string('website')->nullable();
             $table->boolean('is_popular')->default(false);
             $table->boolean('is_partner')->default(false);
             $table->timestamps();

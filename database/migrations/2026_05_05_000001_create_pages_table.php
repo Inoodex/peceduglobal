@@ -12,6 +12,8 @@ return new class extends Migration
             $table->id();
             $table->string('title'); // e.g., "Study in UK", "Scholarships"
             $table->string('slug')->unique();
+            $table->foreignId('country_id')->nullable()->constrained()->nullOnDelete();
+            $table->foreignId('parent_id')->nullable()->constrained('pages')->nullOnDelete();
             $table->string('meta_title')->nullable();
             $table->text('meta_description')->nullable();
             $table->string('thumbnail')->nullable();
