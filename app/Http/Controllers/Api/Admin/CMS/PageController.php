@@ -15,7 +15,6 @@ class PageController extends Controller
     public function index(): JsonResponse
     {
         $pages = Page::with(['country', 'parent', 'children'])
-                    ->whereNull('parent_id')
                     ->latest()
                     ->paginate(15);
         
