@@ -7,13 +7,34 @@ use App\Http\Requests\Admin\StoreBlockRequest;
 use App\Http\Resources\Admin\CMS\BlockResource;
 use App\Models\PageBlock;
 use Illuminate\Http\JsonResponse;
+use Illuminate\Http\Request;
 use Illuminate\Http\Response;
 
 class BlockController extends Controller
 {
-    public function index(): JsonResponse
+    public function index(Request $request): JsonResponse
     {
-        $blocks = PageBlock::with(['elements', 'page'])->latest()->paginate(15);
+        $query = PageBlock::with(['elements', 'page']);
+
+        if ($request->has('country_id')) {
+            $query->whereHas('page', function($q) use ($request) {
+                $q->where('country_id', $request->country_id);
+            });
+        }
+
+        if ($request->has('page_id')) {
+            $query->where('page_id', $request->page_id);
+        }
+
+        if ($request->has('search')) {
+            $search = $request->search;
+            $query->where(function($q) use ($search) {
+                $q->where('block_type', 'like', "%{$search}%")
+                  ->orWhere('section_title', 'like', "%{$search}%");
+            });
+        }
+
+        $blocks = $query->latest()->paginate(15);
         return response()->json([
             'success' => true,
             'data' => BlockResource::collection($blocks),

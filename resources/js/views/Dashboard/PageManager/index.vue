@@ -18,12 +18,20 @@
 
       <!-- Filters Card -->
       <div class="bg-white dark:bg-[#1C252E] rounded-2xl border border-gray-200 dark:border-gray-700/50 p-4 mb-4">
-        <div class="flex flex-col sm:flex-row gap-4">
-          <div class="flex-1 relative">
+        <div class="grid grid-cols-1 md:grid-cols-3 gap-4">
+          <div class="relative">
             <Search class="absolute left-3 top-1/2 -translate-y-1/2 w-5 h-5 text-gray-400" />
             <input v-model="searchQuery" type="text" placeholder="Search page..." class="w-full bg-gray-50 dark:bg-[#141A21] border border-gray-200 dark:border-gray-700 rounded-xl pl-10 pr-4 py-2.5 text-gray-900 dark:text-white placeholder-gray-400 focus:outline-none focus:ring-2 focus:ring-primary/20 focus:border-primary transition-all" />
           </div>
-          <button v-if="searchQuery" @click="searchQuery = ''" class="px-4 py-2 text-gray-600 dark:text-gray-400 hover:text-gray-900 dark:hover:text-white transition-colors">Clear</button>
+          <div class="relative">
+            <select v-model="selectedCountry" class="w-full bg-gray-50 dark:bg-[#141A21] border border-gray-200 dark:border-gray-700 rounded-xl px-4 py-2.5 text-gray-900 dark:text-white focus:outline-none focus:ring-2 focus:ring-primary/20 focus:border-primary transition-all">
+              <option disabled value="">Select country page</option>
+              <option v-for="country in countries" :key="country.id" :value="country.id">{{ country.iso_code }} - {{ country.name }}</option>
+            </select>
+          </div>
+          <div class="flex items-center gap-2">
+            <button v-if="searchQuery || selectedCountry" @click="clearFilters" class="px-4 py-2 text-gray-600 dark:text-gray-400 hover:text-gray-900 dark:hover:text-white transition-colors">Clear</button>
+          </div>
         </div>
       </div>
 
@@ -124,6 +132,8 @@ export default {
       pages: [],
       loading: false,
       searchQuery: '',
+      selectedCountry: '',
+      countries: [],
       deleteModal: { show: false, page: null, loading: false },
     };
   },
@@ -137,18 +147,38 @@ export default {
       );
     },
   },
-  mounted() { this.fetchPages(); },
+  mounted() { 
+    this.fetchCountries();
+    this.fetchPages();
+  },
+  watch: {
+    selectedCountry() { this.fetchPages(); },
+  },
   methods: {
+    async fetchCountries() {
+      try {
+        const response = await axios.get('/auth/admin/countries');
+        this.countries = response.data.data?.data || response.data.data || [];
+      } catch (e) {
+        console.error('Failed to load countries', e);
+      }
+    },
     async fetchPages() {
       this.loading = true;
       try {
-        const response = await axios.get('/auth/admin/pages');
+        const params = {};
+        if (this.selectedCountry) params.country_id = this.selectedCountry;
+        const response = await axios.get('/auth/admin/pages', { params });
         this.pages = response.data.data?.data || response.data.data || [];
       } catch (e) {
         console.error('Failed to load pages', e);
       } finally {
         this.loading = false;
       }
+    },
+    clearFilters() {
+      this.searchQuery = '';
+      this.selectedCountry = '';
     },
     confirmDelete(page) {
       this.deleteModal.page = page;

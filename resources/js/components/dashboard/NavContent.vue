@@ -103,7 +103,7 @@ const navigation = [
         children: [
           { name: 'Pages', path: '/dashboard/page-manager' },
           { name: 'Blocks', path: '/dashboard/block-manager' },
-          { name: 'Elements', path: '/admin/elements' }
+          { name: 'Elements', path: '/dashboard/element-manager' }
         ]
       },
       {

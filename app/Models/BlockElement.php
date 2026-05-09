@@ -19,7 +19,7 @@ class BlockElement extends Model
         'sort_order',
     ];
 
-    public function block(): BelongsTo
+    public function pageBlock(): BelongsTo
     {
         return $this->belongsTo(PageBlock::class, 'page_block_id');
     }

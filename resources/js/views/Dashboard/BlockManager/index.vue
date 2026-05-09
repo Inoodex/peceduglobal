@@ -18,12 +18,28 @@
 
       <!-- Filters Card -->
       <div class="bg-white dark:bg-[#1C252E] rounded-2xl border border-gray-200 dark:border-gray-700/50 p-4 mb-4">
-        <div class="flex flex-col sm:flex-row gap-4">
-          <div class="flex-1 relative">
+        <div class="grid grid-cols-1 md:grid-cols-4 gap-4">
+          <div class="relative">
             <Search class="absolute left-3 top-1/2 -translate-y-1/2 w-5 h-5 text-gray-400" />
             <input v-model="searchQuery" type="text" placeholder="Search blocks..." class="w-full bg-gray-50 dark:bg-[#141A21] border border-gray-200 dark:border-gray-700 rounded-xl pl-10 pr-4 py-2.5 text-gray-900 dark:text-white placeholder-gray-400 focus:outline-none focus:ring-2 focus:ring-primary/20 focus:border-primary transition-all" />
           </div>
-          <button v-if="searchQuery" @click="searchQuery = ''" class="px-4 py-2 text-gray-600 dark:text-gray-400 hover:text-gray-900 dark:hover:text-white transition-colors">Clear</button>
+          <div class="relative">
+            <select v-model="selectedCountry" class="w-full bg-gray-50 dark:bg-[#141A21] border border-gray-200 dark:border-gray-700 rounded-xl px-4 py-2.5 text-gray-900 dark:text-white focus:outline-none focus:ring-2 focus:ring-primary/20 focus:border-primary transition-all">
+              <option disabled value="">Select country</option>
+              <option value="">All Countries</option>
+              <option v-for="country in countries" :key="country.id" :value="country.id">{{ country.iso_code }} - {{ country.name }}</option>
+            </select>
+          </div>
+          <div class="relative">
+            <select v-model="selectedPage" class="w-full bg-gray-50 dark:bg-[#141A21] border border-gray-200 dark:border-gray-700 rounded-xl px-4 py-2.5 text-gray-900 dark:text-white focus:outline-none focus:ring-2 focus:ring-primary/20 focus:border-primary transition-all">
+              <option disabled value="">Select page</option>
+              <option value="">All Pages</option>
+              <option v-for="page in pages" :key="page.id" :value="page.id">{{ page.country?.iso_code }} - {{ page.title }}</option>
+            </select>
+          </div>
+          <div class="flex gap-2">
+            <button v-if="searchQuery || selectedCountry || selectedPage" @click="clearFilters" class="px-4 py-2 text-gray-600 dark:text-gray-400 hover:text-gray-900 dark:hover:text-white transition-colors">Clear All</button>
+          </div>
         </div>
       </div>
 
@@ -65,7 +81,9 @@
                 </td>
                 <td class="px-6 py-4">
                   <span v-if="block.page" class="inline-flex items-center gap-1 px-2 py-1 rounded-lg bg-blue-100 dark:bg-blue-900/30 text-blue-700 dark:text-blue-300 text-xs font-medium">
-                    {{ block.page.title }}
+                    <span class="font-bold">{{ block.page.country?.iso_code }}</span>
+                    <span class="opacity-70">|</span>
+                    <span>{{ block.page.title }}</span>
                   </span>
                   <span v-else class="text-sm text-gray-400">-</span>
                 </td>
@@ -120,6 +138,10 @@ export default {
       blocks: [],
       loading: false,
       searchQuery: '',
+      selectedCountry: '',
+      selectedPage: '',
+      countries: [],
+      pages: [],
       deleteModal: { show: false, block: null, loading: false },
     };
   },
@@ -133,12 +155,50 @@ export default {
       );
     },
   },
-  mounted() { this.fetchBlocks(); },
+  mounted() {
+    this.fetchCountries();
+    this.fetchPages();
+    this.fetchBlocks();
+  },
+  watch: {
+    selectedCountry() {
+      this.selectedPage = '';
+      this.fetchPages(this.selectedCountry);
+      this.fetchBlocks();
+    },
+    selectedPage() { this.fetchBlocks(); },
+  },
   methods: {
+    async fetchCountries() {
+      try {
+        const response = await axios.get('/auth/admin/countries');
+        this.countries = response.data.data?.data || response.data.data || [];
+      } catch (e) {
+        console.error('Failed to load countries', e);
+      }
+    },
+    async fetchPages(countryId = '') {
+      try {
+        const params = {};
+        if (countryId) params.country_id = countryId;
+        const response = await axios.get('/auth/admin/pages', { params });
+        this.pages = response.data.data?.data || response.data.data || [];
+      } catch (e) {
+        console.error('Failed to load pages', e);
+      }
+    },
+    clearFilters() {
+      this.searchQuery = '';
+      this.selectedCountry = '';
+      this.selectedPage = '';
+    },
     async fetchBlocks() {
       this.loading = true;
       try {
-        const response = await axios.get('/auth/admin/blocks');
+        const params = {};
+        if (this.selectedCountry) params.country_id = this.selectedCountry;
+        if (this.selectedPage) params.page_id = this.selectedPage;
+        const response = await axios.get('/auth/admin/blocks', { params });
         this.blocks = response.data.data?.data || response.data.data || [];
       } catch (e) {
         console.error('Failed to load blocks', e);
@@ -153,7 +213,7 @@ export default {
     async deleteBlock() {
       this.deleteModal.loading = true;
       try {
-        await axios.delete(`/api/admin/blocks/${this.deleteModal.block.id}`);
+        await axios.delete(`/auth/admin/blocks/${this.deleteModal.block.id}`);
         this.blocks = this.blocks.filter(b => b.id !== this.deleteModal.block.id);
         this.deleteModal.show = false;
         this.deleteModal.block = null;

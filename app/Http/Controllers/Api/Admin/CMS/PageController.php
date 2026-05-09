@@ -7,16 +7,29 @@ use App\Http\Requests\Admin\StorePageRequest;
 use App\Http\Resources\Admin\CMS\PageResource;
 use App\Models\Page;
 use Illuminate\Http\JsonResponse;
+use Illuminate\Http\Request;
 use Illuminate\Http\Response;
 use Illuminate\Support\Str;
 
 class PageController extends Controller
 {
-    public function index(): JsonResponse
+    public function index(Request $request): JsonResponse
     {
-        $pages = Page::with(['country', 'parent', 'children'])
-                    ->latest()
-                    ->paginate(15);
+        $query = Page::with(['country', 'parent', 'children'])->latest();
+
+        if ($request->filled('country_id')) {
+            $query->where('country_id', $request->country_id);
+        }
+
+        if ($request->filled('search')) {
+            $search = $request->search;
+            $query->where(function ($q) use ($search) {
+                $q->where('title', 'like', "%{$search}%")
+                  ->orWhere('slug', 'like', "%{$search}%");
+            });
+        }
+
+        $pages = $query->paginate(15);
         
         return response()->json([
             'success' => true,

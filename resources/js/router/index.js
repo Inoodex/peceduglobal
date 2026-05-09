@@ -90,6 +90,25 @@ const routes = [
         component: () => import('../views/Dashboard/BlockManager/edit.vue'),
         meta: { auth: true }
     },
+    // Element Manager Routes
+    {
+        path: '/dashboard/element-manager',
+        name: 'element-manager',
+        component: () => import('../views/Dashboard/ElementManager/index.vue'),
+        meta: { auth: true }
+    },
+    {
+        path: '/dashboard/element-manager/create',
+        name: 'element-manager-create',
+        component: () => import('../views/Dashboard/ElementManager/create.vue'),
+        meta: { auth: true }
+    },
+    {
+        path: '/dashboard/element-manager/edit/:id',
+        name: 'element-manager-edit',
+        component: () => import('../views/Dashboard/ElementManager/edit.vue'),
+        meta: { auth: true }
+    },
     // Country Manager Routes
     {
         path: '/dashboard/country-manager',
