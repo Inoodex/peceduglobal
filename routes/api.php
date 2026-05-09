@@ -29,6 +29,7 @@ Route::group(['prefix' => 'auth'], function () {
         Route::prefix('admin')->group(function () {
             Route::apiResource('pages', PageController::class);
             Route::apiResource('blocks', BlockController::class);
+            Route::post('blocks/reorder', [BlockController::class, 'updateOrder']);
             Route::apiResource('elements', ElementController::class);
             Route::apiResource('countries', CountryController::class);
 

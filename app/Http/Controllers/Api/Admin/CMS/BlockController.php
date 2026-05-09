@@ -34,10 +34,31 @@ class BlockController extends Controller
             });
         }
 
-        $blocks = $query->latest()->paginate(15);
+        $blocks = $query->orderBy('sort_order', 'asc')->latest()->paginate(15);
         return response()->json([
             'success' => true,
             'data' => BlockResource::collection($blocks),
+        ], Response::HTTP_OK);
+    }
+
+    public function updateOrder(Request $request): JsonResponse
+    {
+        $orders = $request->input('orders'); // Expecting array of {id, sort_order}
+
+        if (!is_array($orders)) {
+            return response()->json([
+                'success' => false,
+                'message' => 'Invalid orders data provided.'
+            ], Response::HTTP_BAD_REQUEST);
+        }
+
+        foreach ($orders as $order) {
+            PageBlock::where('id', $order['id'])->update(['sort_order' => $order['sort_order']]);
+        }
+
+        return response()->json([
+            'success' => true,
+            'message' => 'Blocks order updated successfully.'
         ], Response::HTTP_OK);
     }
 

@@ -89,6 +89,10 @@
                 </td>
                 <td class="px-6 py-4 text-right">
                   <div class="flex items-center justify-end gap-2">
+                    <div class="flex items-center gap-1 mr-2">
+                      <button @click="moveBlock(block, -1)" class="p-1 text-gray-400 hover:text-primary transition-colors" title="Move Up"><ArrowUp class="w-3 h-3" /></button>
+                      <button @click="moveBlock(block, 1)" class="p-1 text-gray-400 hover:text-primary transition-colors" title="Move Down"><ArrowDown class="w-3 h-3" /></button>
+                    </div>
                     <button @click="$router.push(`/dashboard/block-manager/edit/${block.id}`)" class="p-2 text-gray-500 hover:text-primary hover:bg-primary/10 rounded-lg transition-colors" title="Edit"><Pencil class="w-4 h-4" /></button>
                     <button @click="confirmDelete(block)" class="p-2 text-gray-500 hover:text-red-500 hover:bg-red-50 dark:hover:bg-red-900/20 rounded-lg transition-colors" title="Delete"><Trash2 class="w-4 h-4" /></button>
                   </div>
@@ -127,12 +131,12 @@
 import axios from '@/plugins/axios';
 import MainLayout from '@/layouts/MainLayout.vue';
 import {
-  ChevronRight, Plus, Search, Loader2, Pencil, Trash2, AlertTriangle,
+  ChevronRight, Plus, Search, Loader2, Pencil, Trash2, AlertTriangle, ArrowUp, ArrowDown,
 } from 'lucide-vue-next';
 
 export default {
   name: 'BlockList',
-  components: { MainLayout, ChevronRight, Plus, Search, Loader2, Pencil, Trash2, AlertTriangle },
+  components: { MainLayout, ChevronRight, Plus, Search, Loader2, Pencil, Trash2, AlertTriangle, ArrowUp, ArrowDown },
   data() {
     return {
       blocks: [],
@@ -221,6 +225,29 @@ export default {
         console.error('Failed to delete block', e);
       } finally {
         this.deleteModal.loading = false;
+      }
+    },
+    async moveBlock(block, direction) {
+      const index = this.blocks.findIndex(b => b.id === block.id);
+      const newIndex = index + direction;
+
+      if (newIndex < 0 || newIndex >= this.blocks.length) return;
+
+      // Swap elements in local array for immediate UI feedback
+      const updatedBlocks = [...this.blocks];
+      [updatedBlocks[index], updatedBlocks[newIndex]] = [updatedBlocks[newIndex], updatedBlocks[index]];
+      this.blocks = updatedBlocks;
+
+      try {
+        const orders = this.blocks.map((b, i) => ({
+          id: b.id,
+          sort_order: i
+        }));
+        await axios.post('/auth/admin/blocks/reorder', { orders });
+      } catch (e) {
+        console.error('Failed to update block order', e);
+        // Revert on failure
+        this.fetchBlocks();
       }
     },
   },
