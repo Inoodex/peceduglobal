@@ -1,6 +1,6 @@
 <?php
 
-namespace App\Http\Resources\Admin;
+namespace App\Http\Resources\Admin\CMS;
 
 use Illuminate\Http\Resources\Json\JsonResource;
 
@@ -11,6 +11,7 @@ class BlockResource extends JsonResource
         return [
             'id' => $this->id,
             'page_id' => $this->page_id,
+            'page' => new PageResource($this->whenLoaded('page')),
             'block_type' => $this->block_type,
             'section_title' => $this->section_title,
             'section_description' => $this->section_description,

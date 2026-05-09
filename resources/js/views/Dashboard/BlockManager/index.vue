@@ -130,7 +130,7 @@ export default {
     async fetchBlocks() {
       this.loading = true;
       try {
-        const response = await axios.get('/api/admin/blocks');
+        const response = await axios.get('/auth/admin/blocks');
         this.blocks = response.data.data?.data || response.data.data || [];
       } catch (e) {
         console.error('Failed to load blocks', e);

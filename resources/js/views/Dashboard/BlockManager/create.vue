@@ -94,7 +94,7 @@ export default {
     },
     async fetchPages() {
       try {
-        const response = await axios.get('/api/admin/pages');
+        const response = await axios.get('/auth/admin/pages');
         this.pages = response.data.data?.data || response.data.data || [];
       } catch (error) {
         console.error('Error fetching pages:', error);
@@ -103,7 +103,7 @@ export default {
     async save() {
       this.saving = true;
       try {
-        await axios.post('/api/admin/blocks', this.form);
+        await axios.post('/auth/admin/blocks', this.form);
         this.$router.push('/dashboard/block-manager');
       } catch (error) {
         console.error('Error saving block:', error);

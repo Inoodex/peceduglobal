@@ -4,7 +4,7 @@ namespace App\Http\Controllers\Api\Admin\CMS;
 
 use App\Http\Controllers\Controller;
 use App\Http\Requests\Admin\StoreBlockRequest;
-use App\Http\Resources\Admin\BlockResource;
+use App\Http\Resources\Admin\CMS\BlockResource;
 use App\Models\PageBlock;
 use Illuminate\Http\JsonResponse;
 use Illuminate\Http\Response;
