@@ -35,25 +35,33 @@
               <tr class="text-left">
                 <th class="px-6 py-4 text-xs font-semibold text-gray-500 dark:text-gray-400 uppercase tracking-wider">Block Type</th>
                 <th class="px-6 py-4 text-xs font-semibold text-gray-500 dark:text-gray-400 uppercase tracking-wider">Section Title</th>
+                <th class="px-6 py-4 text-xs font-semibold text-gray-500 dark:text-gray-400 uppercase tracking-wider">Description</th>
                 <th class="px-6 py-4 text-xs font-semibold text-gray-500 dark:text-gray-400 uppercase tracking-wider">Page</th>
                 <th class="px-6 py-4 text-right text-xs font-semibold text-gray-500 dark:text-gray-400 uppercase tracking-wider">Actions</th>
               </tr>
             </thead>
             <tbody class="divide-y divide-gray-200 dark:divide-gray-700/50">
               <tr v-if="loading" class="hover:bg-gray-50 dark:hover:bg-gray-800/50 transition-colors">
-                <td colspan="4" class="px-6 py-12 text-center text-gray-500 dark:text-gray-400">
+                <td colspan="5" class="px-6 py-12 text-center text-gray-500 dark:text-gray-400">
                   <div class="flex items-center justify-center gap-2"><Loader2 class="w-5 h-5 animate-spin" /> Loading blocks...</div>
                 </td>
               </tr>
               <tr v-else-if="filteredBlocks.length === 0" class="hover:bg-gray-50 dark:hover:bg-gray-800/50 transition-colors">
-                <td colspan="4" class="px-6 py-12 text-center text-gray-500 dark:text-gray-400">No blocks found</td>
+                <td colspan="5" class="px-6 py-12 text-center text-gray-500 dark:text-gray-400">No blocks found</td>
               </tr>
               <tr v-for="block in filteredBlocks" :key="block.id" class="hover:bg-gray-50 dark:hover:bg-gray-800/50 transition-colors">
                 <td class="px-6 py-4">
                   <span class="text-sm font-medium text-gray-900 dark:text-white">{{ block.block_type }}</span>
                 </td>
                 <td class="px-6 py-4">
-                  <span class="text-sm text-gray-600 dark:text-gray-400">{{ block.section_title || 'N/A' }}</span>
+                  <span class="text-sm text-gray-600 dark:text-gray-400 truncate max-w-xs block">
+                    {{ block.section_title || 'N/A' }}
+                  </span>
+                </td>
+                <td class="px-6 py-4">
+                  <span class="text-sm text-gray-600 dark:text-gray-400 truncate max-w-xs block">
+                    {{ block.section_description || 'N/A' }}
+                  </span>
                 </td>
                 <td class="px-6 py-4">
                   <span v-if="block.page" class="inline-flex items-center gap-1 px-2 py-1 rounded-lg bg-blue-100 dark:bg-blue-900/30 text-blue-700 dark:text-blue-300 text-xs font-medium">

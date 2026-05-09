@@ -13,7 +13,7 @@ class BlockController extends Controller
 {
     public function index(): JsonResponse
     {
-        $blocks = PageBlock::with('elements')->latest()->paginate(15);
+        $blocks = PageBlock::with(['elements', 'page'])->latest()->paginate(15);
         return response()->json([
             'success' => true,
             'data' => BlockResource::collection($blocks),
@@ -38,6 +38,26 @@ class BlockController extends Controller
         return response()->json([
             'success' => true,
             'message' => 'Block deleted successfully.'
+        ], Response::HTTP_OK);
+    }
+
+    public function show(PageBlock $block): JsonResponse
+    {
+        return response()->json([
+            'success' => true,
+            'data' => new BlockResource($block),
+        ], Response::HTTP_OK);
+    }
+
+    public function update(StoreBlockRequest $request, PageBlock $block): JsonResponse
+    {
+        $validated = $request->validated();
+        $block->update($validated);
+
+        return response()->json([
+            'success' => true,
+            'data' => new BlockResource($block),
+            'message' => 'Block updated successfully.'
         ], Response::HTTP_OK);
     }
 }

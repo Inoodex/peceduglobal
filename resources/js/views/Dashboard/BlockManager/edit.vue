@@ -1,6 +1,12 @@
 <template>
   <MainLayout>
-    <div class="max-w-3xl mx-auto pb-20">
+    <div v-if="loading && !form.page_id" class="flex items-center justify-center min-h-screen">
+      <div class="flex flex-col items-center gap-2">
+        <Loader2 class="w-8 h-8 animate-spin text-primary" />
+        <p class="text-gray-500 dark:text-gray-400">Loading block data...</p>
+      </div>
+    </div>
+    <div v-else class="max-w-3xl mx-auto pb-20">
       <!-- Header -->
       <div class="mb-6">
         <h1 class="text-2xl font-bold text-gray-900 dark:text-white mb-2">Edit Block</h1>
@@ -23,18 +29,18 @@
             <ChevronDown class="w-5 h-5 text-gray-400 transition-transform" :class="{ 'rotate-180': sections.details }" />
           </button>
           <div v-show="sections.details" class="p-4 pt-0 border-t border-gray-200 dark:border-gray-700/50 space-y-4">
-            <div>
+            <div v-if="form">
               <label class="block text-sm font-medium text-gray-700 dark:text-gray-300 mb-1.5">Target Page <span class="text-red-500">*</span></label>
               <select v-model="form.page_id" class="w-full bg-gray-50 dark:bg-[#141A21] border border-gray-200 dark:border-gray-700 rounded-xl px-4 py-2.5 text-gray-900 dark:text-white focus:outline-none focus:ring-2 focus:ring-primary/20 focus:border-primary transition-all" required>
                 <option value="">Select Page</option>
                 <option v-for="page in pages" :key="page.id" :value="page.id">{{ page.title }}</option>
               </select>
             </div>
-            <div>
+            <div v-if="form">
               <label class="block text-sm font-medium text-gray-700 dark:text-gray-300 mb-1.5">Block Type <span class="text-red-500">*</span></label>
               <input v-model="form.block_type" type="text" placeholder="e.g. Hero, Features" class="w-full bg-gray-50 dark:bg-[#141A21] border border-gray-200 dark:border-gray-700 rounded-xl px-4 py-2.5 text-gray-900 dark:text-white placeholder-gray-400 focus:outline-none focus:ring-2 focus:ring-primary/20 focus:border-primary transition-all" required />
             </div>
-            <div class="grid grid-cols-1 md:grid-cols-2 gap-4">
+            <div v-if="form" class="grid grid-cols-1 md:grid-cols-2 gap-4">
               <div>
                 <label class="block text-sm font-medium text-gray-700 dark:text-gray-300 mb-1.5">Section Title</label>
                 <input v-model="form.section_title" type="text" placeholder="Section title" class="w-full bg-gray-50 dark:bg-[#141A21] border border-gray-200 dark:border-gray-700 rounded-xl px-4 py-2.5 text-gray-900 dark:text-white placeholder-gray-400 focus:outline-none focus:ring-2 focus:ring-primary/20 focus:border-primary transition-all" />
@@ -44,7 +50,7 @@
                 <input v-model="form.sort_order" type="number" class="w-full bg-gray-50 dark:bg-[#141A21] border border-gray-200 dark:border-gray-700 rounded-xl px-4 py-2.5 text-gray-900 dark:text-white placeholder-gray-400 focus:outline-none focus:ring-2 focus:ring-primary/20 focus:border-primary transition-all" />
               </div>
             </div>
-            <div>
+            <div v-if="form">
               <label class="block text-sm font-medium text-gray-700 dark:text-gray-300 mb-1.5">Section Description</label>
               <textarea v-model="form.section_description" rows="4" placeholder="Enter description..." class="w-full bg-gray-50 dark:bg-[#141A21] border border la-gray-200 dark:border-gray-700 rounded-xl px-4 py-2.5 text-gray-900 dark:text-white placeholder-gray-400 focus:outline-none focus:ring-2 focus:ring-primary/20 focus:border-primary transition-all"></textarea>
             </div>
@@ -76,13 +82,7 @@ export default {
       sections: { details: true },
       loading: false,
       pages: [],
-      form: {
-        page_id: '',
-        block_type: '',
-        section_title: '',
-        section_description: '',
-        sort_order: 0
-      },
+      form: null,
     };
   },
   mounted() {
@@ -102,17 +102,20 @@ export default {
       }
     },
     async fetchBlock() {
+      this.loading = true;
       try {
-        const response = await axios.get(`/api/admin/blocks/${this.$route.params.id}`);
+        const response = await axios.get(`/auth/admin/blocks/${this.$route.params.id}`);
         this.form = response.data.data;
       } catch (error) {
-        console.error('Error fetching block:',al);
+        console.error('Error fetching block:', error);
+      } finally {
+        this.loading = false;
       }
     },
     async save() {
       this.loading = true;
       try {
-        await axios.put(`/api/admin/blocks/${this.$route.params.id}`, this.form);
+        await axios.put(`/auth/admin/blocks/${this.$route.params.id}`, this.form);
         this.$router.push('/dashboard/block-manager');
       } catch (error) {
         console.error('Error updating block:', error);

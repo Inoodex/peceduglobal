@@ -73,25 +73,25 @@ const navigation = [
       { name: 'Dashboard', icon: LayoutDashboard, active: false },
     ]
   },
-  {
-    title: 'Management',
-    items: [
-      {
-        name: 'User',
-        icon: Users,
-        active: false,
-        open: false,
-        children: [
-          { name: 'Profile', active: false },
-          { name: 'Cards', active: false },
-          { name: 'List', active: false },
-          { name: 'Create', active: false },
-          { name: 'Edit', active: false },
-          { name: 'Account', active: false }
-        ]
-      },
-    ]
-  },
+  // {
+  //   title: 'Management',
+  //   items: [
+  //     {
+  //       name: 'User',
+  //       icon: Users,
+  //       active: false,
+  //       open: false,
+  //       children: [
+  //         { name: 'Profile', active: false },
+  //         { name: 'Cards', active: false },
+  //         { name: 'List', active: false },
+  //         { name: 'Create', active: false },
+  //         { name: 'Edit', active: false },
+  //         { name: 'Account', active: false }
+  //       ]
+  //     },
+  //   ]
+  // },
   {
     title: 'Content',
     items: [
