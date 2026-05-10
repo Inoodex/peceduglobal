@@ -13,6 +13,8 @@ use App\Http\Controllers\Api\BlogPostController;
 use App\Http\Controllers\Api\Admin\EditorUploadController;
 use App\Http\Controllers\Api\Student\ApplicationController;
 use App\Http\Controllers\Api\Student\ProfileController;
+use App\Http\Controllers\Api\Admin\UserController;
+use App\Http\Controllers\Api\Admin\PermissionController;
 use Illuminate\Support\Facades\Route;
 
 Route::group(['prefix' => 'auth'], function () {
@@ -28,8 +30,17 @@ Route::group(['prefix' => 'auth'], function () {
         Route::apiResource('blog-posts', BlogPostController::class);
         Route::post('blog-posts/upload-image', [BlogPostController::class, 'uploadImage']);
 
-        // Admin CMS Routes
-        Route::prefix('admin')->group(function () {
+        // Admin Routes (Protected by role)
+        Route::prefix('admin')->middleware('role:admin')->group(function () {
+            // User Management
+            Route::get('users', [UserController::class, 'index']);
+            Route::put('users/{user}/role', [UserController::class, 'updateRole']);
+            Route::put('users/{user}/permissions', [UserController::class, 'updatePermissions']);
+
+            // Permission Management
+            Route::apiResource('permissions', PermissionController::class)->only(['index', 'store', 'destroy']);
+
+            // CMS Routes
             Route::apiResource('pages', PageController::class);
             Route::apiResource('blocks', BlockController::class);
             Route::post('blocks/reorder', [BlockController::class, 'updateOrder']);
@@ -44,8 +55,8 @@ Route::group(['prefix' => 'auth'], function () {
             // Route::apiResource('scholarships', ScholarshipController::class);
         });
 
-        // Student Routes
-        Route::prefix('student')->group(function () {
+        // Student Routes (Protected by role)
+        Route::prefix('student')->middleware('role:student')->group(function () {
             Route::get('profile', [ProfileController::class, 'show']);
             Route::put('profile', [ProfileController::class, 'update']);
             Route::get('applications', [ApplicationController::class, 'index']);

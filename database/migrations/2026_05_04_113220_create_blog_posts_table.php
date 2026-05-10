@@ -10,9 +10,9 @@ return new class extends Migration
     {
         Schema::create('blog_posts', function (Blueprint $table) {
             $table->id();
-            $table->foreignId('author_id')->constrained('users')->cascadeOnDelete();
+            $table->foreignUuid('author_id')->constrained('users')->cascadeOnDelete();
             $table->foreignUuid('blog_category_id')->constrained('blog_categories')->cascadeOnDelete();
-            $table->foreignId('reviewed_by')->nullable()->constrained('users')->nullOnDelete();
+            $table->foreignUuid('reviewed_by')->nullable()->constrained('users')->nullOnDelete();
 
             $table->string('title');
             $table->string('slug')->unique();

@@ -57,57 +57,57 @@ const routes = [
         path: '/dashboard/page-manager',
         name: 'page-manager',
         component: () => import('../views/Dashboard/PageManager/index.vue'),
-        meta: { auth: true }
+        meta: { auth: true, role: 'admin' }
     },
     {
         path: '/dashboard/page-manager/create',
         name: 'page-manager-create',
         component: () => import('../views/Dashboard/PageManager/create.vue'),
-        meta: { auth: true }
+        meta: { auth: true, role: 'admin' }
     },
     {
         path: '/dashboard/page-manager/edit/:id',
         name: 'page-manager-edit',
         component: () => import('../views/Dashboard/PageManager/edit.vue'),
-        meta: { auth: true }
+        meta: { auth: true, role: 'admin' }
     },
     // Block Manager Routes
     {
         path: '/dashboard/block-manager',
         name: 'block-manager',
         component: () => import('../views/Dashboard/BlockManager/index.vue'),
-        meta: { auth: true }
+        meta: { auth: true, role: 'admin' }
     },
     {
         path: '/dashboard/block-manager/create',
         name: 'block-manager-create',
         component: () => import('../views/Dashboard/BlockManager/create.vue'),
-        meta: { auth: true }
+        meta: { auth: true, role: 'admin' }
     },
     {
         path: '/dashboard/block-manager/edit/:id',
         name: 'block-manager-edit',
         component: () => import('../views/Dashboard/BlockManager/edit.vue'),
-        meta: { auth: true }
+        meta: { auth: true, role: 'admin' }
     },
     // Element Manager Routes
     {
         path: '/dashboard/element-manager',
         name: 'element-manager',
         component: () => import('../views/Dashboard/ElementManager/index.vue'),
-        meta: { auth: true }
+        meta: { auth: true, role: 'admin' }
     },
     {
         path: '/dashboard/element-manager/create',
         name: 'element-manager-create',
         component: () => import('../views/Dashboard/ElementManager/create.vue'),
-        meta: { auth: true }
+        meta: { auth: true, role: 'admin' }
     },
     {
         path: '/dashboard/element-manager/edit/:id',
         name: 'element-manager-edit',
         component: () => import('../views/Dashboard/ElementManager/edit.vue'),
-        meta: { auth: true }
+        meta: { auth: true, role: 'admin' }
     },
     // Country Manager Routes
     {
@@ -173,6 +173,12 @@ const routes = [
         meta: { auth: true }
     },
     {
+        path: '/dashboard/user-management',
+        name: 'user-management',
+        component: () => import('../views/Dashboard/UserManagement.vue'),
+        meta: { auth: true, role: 'admin' }
+    },
+    {
         path: '/',
         redirect: '/dashboard'
     }
@@ -193,6 +199,9 @@ router.beforeEach(async (to, from, next) => {
     if (to.meta.auth && !authStore.isAuthenticated) {
         next('/login');
     } else if (to.meta.guest && authStore.isAuthenticated) {
+        next('/dashboard');
+    } else if (to.meta.role && authStore.user?.role !== to.meta.role && authStore.user?.role !== 'admin') {
+        // If route requires admin role and user is not admin
         next('/dashboard');
     } else {
         next();

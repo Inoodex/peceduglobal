@@ -4,18 +4,42 @@ namespace App\Models;
 
 // use Illuminate\Contracts\Auth\MustVerifyEmail;
 use PHPOpenSourceSaver\JWTAuth\Contracts\JWTSubject;
+use Illuminate\Database\Eloquent\Concerns\HasUuids;
 use Illuminate\Database\Eloquent\Attributes\Fillable;
 use Illuminate\Database\Eloquent\Attributes\Hidden;
 use Illuminate\Database\Eloquent\Factories\HasFactory;
 use Illuminate\Foundation\Auth\User as Authenticatable;
 use Illuminate\Notifications\Notifiable;
 
-#[Fillable(['name', 'email', 'password'])]
+#[Fillable([
+    'full_name', 
+    'email', 
+    'password', 
+    'role', 
+    'permissions',
+    'phone', 
+    'country_of_origin', 
+    'nationality', 
+    'profile_photo_url', 
+    'is_verified', 
+    'is_active', 
+    'last_login_at'
+])]
 #[Hidden(['password', 'remember_token'])]
 class User extends Authenticatable implements JWTSubject
 {
     /** @use HasFactory<UserFactory> */
-    use HasFactory, Notifiable;
+    use HasUuids, HasFactory, Notifiable;
+
+    /**
+     * Check if user has a specific permission
+     */
+    public function hasPermission(string $permission): bool
+    {
+        if ($this->role === 'admin') return true; // Admin has all permissions
+        if (!$this->permissions) return false;
+        return in_array($permission, $this->permissions);
+    }
 
     /**
      * Get the identifier that will be stored in the subject claim of the JWT.
@@ -47,6 +71,7 @@ class User extends Authenticatable implements JWTSubject
         return [
             'email_verified_at' => 'datetime',
             'password' => 'hashed',
+            'permissions' => 'array',
         ];
     }
 }

@@ -12,6 +12,7 @@ const form = ref({
     last_name: '',
     email: '',
     password: '',
+    role: 'student',
 });
 
 const showPassword = ref(false);
@@ -170,6 +171,23 @@ const handleSubmit = async () => {
                                 <EyeOff v-else class="w-4 h-4" />
                             </button>
                         </div>
+                    </div>
+
+                    <!-- Role selection -->
+                    <div>
+                        <label for="role" class="block text-xs font-medium text-gray-700 mb-1.5">
+                            Register as
+                        </label>
+                        <select
+                            id="role"
+                            v-model="form.role"
+                            name="role"
+                            required
+                            class="w-full px-3.5 py-2.5 border border-gray-200 rounded-lg focus:outline-none focus:ring-2 focus:ring-slate-900 focus:border-transparent text-gray-900 text-sm"
+                        >
+                            <option value="student">Student</option>
+                            <option value="counselor">Counselor</option>
+                        </select>
                     </div>
 
                     <!-- Sign up button -->

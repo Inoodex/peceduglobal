@@ -48,7 +48,9 @@
 </template>
 
 <script setup>
+import { computed } from 'vue';
 import { useLayoutStore } from '@/stores/layout';
+import { useAuthStore } from '@/stores/auth';
 import NavItem from './NavItem.vue';
 import {
   LayoutDashboard,
@@ -69,41 +71,24 @@ defineProps({
 
 const layout = useLayoutStore();
 
-// Updated navigation to include education‑consultancy sections
-const navigation = [
+const auth = useAuthStore();
+
+// Navigation with role-based access
+const navigationData = [
   {
     title: 'Overview',
+    roles: ['admin', 'counselor', 'student'],
     items: [
-      { name: 'Dashboard', icon: LayoutDashboard, path: '/dashboard', active: false },
+      { name: 'Dashboard', icon: LayoutDashboard, path: '/dashboard' },
     ]
   },
-  // {
-  //   title: 'Management',
-  //   items: [
-  //     {
-  //       name: 'User',
-  //       icon: Users,
-  //       active: false,
-  //       open: false,
-  //       children: [
-  //         { name: 'Profile', active: false },
-  //         { name: 'Cards', active: false },
-  //         { name: 'List', active: false },
-  //         { name: 'Create', active: false },
-  //         { name: 'Edit', active: false },
-  //         { name: 'Account', active: false }
-  //       ]
-  //     },
-  //   ]
-  // },
   {
     title: 'Content',
+    roles: ['admin', 'counselor'],
     items: [
       {
         name: 'Page Manager',
         icon: BookOpen,
-        active: false,
-        open: false,
         children: [
           { name: 'Pages', path: '/dashboard/page-manager' },
           { name: 'Blocks', path: '/dashboard/block-manager' },
@@ -113,8 +98,6 @@ const navigation = [
       {
         name: 'Country Manager',
         icon: Globe,
-        active: false,
-        open: false,
         children: [
           { name: 'Countries', path: '/dashboard/country-manager' }
         ]
@@ -122,35 +105,46 @@ const navigation = [
       {
         name: 'Education',
         icon: School,
-        active: false,
-        open: false,
         children: [
           { name: 'Universities', path: '/dashboard/university-manager' },
           { name: 'Courses', path: '/dashboard/course-manager' },
           { name: 'Course Levels', path: '/dashboard/course-level-manager' },
-          // { name: 'Scholarships', path: '/dashboard/scholarship-manager' }
         ]
       },
+    ]
+  },
+  {
+    title: 'Students',
+    roles: ['admin', 'student'],
+    items: [
       {
-        name: 'Students',
+        name: 'Profiles',
         icon: GraduationCap,
-        active: false,
-        open: false,
         children: [
-          { name: 'Profiles', path: '/student/profile' },
+          { name: 'My Profile', path: '/student/profile' },
           { name: 'Applications', path: '/student/applications' }
         ]
       }
     ]
   },
   {
-    title: 'about',
+    title: 'Management',
+    roles: ['admin'],
+    items: [
+      {
+        name: 'User Management',
+        icon: Users,
+        path: '/dashboard/user-management'
+      },
+    ]
+  },
+  {
+    title: 'Blog',
+    roles: ['admin', 'counselor'],
     items: [
       {
         name: 'Blog',
         icon: BookOpen,
-        active: false,
-        open: false,
         children: [
           { name: 'Posts', path: '/blog-post' },
           { name: 'Create Post', path: '/blog-post-create' },
@@ -160,6 +154,17 @@ const navigation = [
     ]
   }
 ];
+
+// Computed navigation based on user role
+const navigation = computed(() => {
+  const userRole = auth.user?.role || 'student';
+  return navigationData
+    .filter(section => !section.roles || section.roles.includes(userRole))
+    .map(section => ({
+      ...section,
+      items: section.items.filter(item => !item.roles || item.roles.includes(userRole))
+    }));
+});
 </script>
 
 <style scoped>
