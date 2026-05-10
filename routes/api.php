@@ -10,6 +10,7 @@ use App\Http\Controllers\Api\Admin\Education\CourseLevelController;
 use App\Http\Controllers\Api\AuthController;
 use App\Http\Controllers\Api\BlogCategoryController;
 use App\Http\Controllers\Api\BlogPostController;
+use App\Http\Controllers\Api\Admin\EditorUploadController;
 use App\Http\Controllers\Api\Student\ApplicationController;
 use App\Http\Controllers\Api\Student\ProfileController;
 use Illuminate\Support\Facades\Route;
@@ -39,6 +40,7 @@ Route::group(['prefix' => 'auth'], function () {
             Route::apiResource('universities', UniversityController::class);
             Route::apiResource('courses', CourseController::class);
             Route::apiResource('course-levels', CourseLevelController::class);
+            Route::post('editor/upload', [EditorUploadController::class, 'upload']);
             // Route::apiResource('scholarships', ScholarshipController::class);
         });
 

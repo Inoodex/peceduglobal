@@ -75,7 +75,7 @@
                 </div>
                 <div>
                   <label class="block text-sm font-medium text-gray-700 dark:text-gray-300 mb-1.5">Other Requirements</label>
-                  <textarea v-model="form.requirements" rows="4" placeholder="List academic or other entry requirements..." class="w-full bg-gray-50 dark:bg-[#141A21] border border-gray-200 dark:border-gray-700 rounded-xl px-4 py-2.5 text-gray-900 dark:text-white focus:ring-2 focus:ring-primary/20 focus:border-primary outline-none transition-all"></textarea>
+                  <AppEditor v-model="form.requirements" />
                 </div>
               </div>
             </div>
@@ -116,6 +116,7 @@ import { ref, computed, onMounted } from 'vue';
 import { useRoute, useRouter } from 'vue-router';
 import axios from '@/plugins/axios';
 import MainLayout from '@/layouts/MainLayout.vue';
+import AppEditor from '@/components/AppEditor.vue';
 import { ChevronRight, Loader2 } from 'lucide-vue-next';
 
 const route = useRoute();

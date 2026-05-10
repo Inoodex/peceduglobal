@@ -46,7 +46,7 @@
             </div>
             <div>
               <label class="block text-sm font-medium text-gray-700 dark:text-gray-300 mb-1.5">Section Description</label>
-              <textarea v-model="form.section_description" rows="4" placeholder="Enter description..." class="w-full bg-gray-50 dark:bg-[#141A21] border border-gray-200 dark:border-gray-700 rounded-xl px-4 py-2.5 text-gray-900 dark:text-white placeholder-gray-400 focus:outline-none focus:ring-2 focus:ring-primary/20 focus:border-primary transition-all"></textarea>
+              <AppEditor v-model="form.section_description" />
             </div>
           </div>
         </div>
@@ -66,11 +66,12 @@
 <script>
 import axios from '@/plugins/axios';
 import MainLayout from '@/layouts/MainLayout.vue';
+import AppEditor from '@/components/AppEditor.vue';
 import { ChevronRight, ChevronDown, Loader2 } from 'lucide-vue-next';
 
 export default {
   name: 'BlockCreate',
-  components: { MainLayout, ChevronRight, ChevronDown, Loader2 },
+  components: { MainLayout, AppEditor, ChevronRight, ChevronDown, Loader2 },
   data() {
     return {
       sections: { details: true },

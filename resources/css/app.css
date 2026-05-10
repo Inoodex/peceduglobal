@@ -11,6 +11,10 @@
   --font-sans: 'Public Sans', ui-sans-serif, system-ui, sans-serif;
   --color-primary: #00A76F;
   --color-primary-hover: #007867;
+  --color-primary-light: #5BE49B;
+  --color-primary-lighter: #C8FAD6;
+  --color-primary-dark: #007867;
+  --color-primary-darker: #004B50;
 
   /* Light Mode Colors */
   --color-bg-light: #FFFFFF;
