@@ -53,7 +53,11 @@ import NavItem from './NavItem.vue';
 import {
   LayoutDashboard,
   Users,
-  BookOpen
+  BookOpen,
+  School,
+  Globe,
+  GraduationCap,
+  FileText
 } from 'lucide-vue-next';
 
 defineProps({
@@ -70,7 +74,7 @@ const navigation = [
   {
     title: 'Overview',
     items: [
-      { name: 'Dashboard', icon: LayoutDashboard, active: false },
+      { name: 'Dashboard', icon: LayoutDashboard, path: '/dashboard', active: false },
     ]
   },
   // {
@@ -108,7 +112,7 @@ const navigation = [
       },
       {
         name: 'Country Manager',
-        icon: BookOpen,
+        icon: Globe,
         active: false,
         open: false,
         children: [
@@ -117,17 +121,17 @@ const navigation = [
       },
       {
         name: 'Education',
-        icon: BookOpen,
+        icon: School,
         active: false,
         open: false,
         children: [
-          { name: 'Universities', path: '/admin/universities' },
-          { name: 'Scholarships', path: '/admin/scholarships' }
+          { name: 'Universities', path: '/dashboard/university-manager' },
+          // { name: 'Scholarships', path: '/dashboard/scholarship-manager' }
         ]
       },
       {
         name: 'Students',
-        icon: BookOpen,
+        icon: GraduationCap,
         active: false,
         open: false,
         children: [

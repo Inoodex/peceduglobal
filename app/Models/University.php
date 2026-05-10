@@ -15,6 +15,8 @@ class University extends Model
         'name',
         'slug',
         'logo',
+        'banner',
+        'social_links',
         'location',
         'ranking',
         'tuition_range',
@@ -29,4 +31,10 @@ class University extends Model
     {
         return $this->belongsTo(Country::class);
     }
+
+    protected $casts = [
+        'social_links' => 'array',
+        'is_popular' => 'boolean',
+        'is_partner' => 'boolean',
+    ];
 }

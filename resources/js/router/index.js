@@ -128,6 +128,25 @@ const routes = [
         component: () => import('../views/Dashboard/CountryManager/edit.vue'),
         meta: { auth: true }
     },
+    // University Manager Routes
+    {
+        path: '/dashboard/university-manager',
+        name: 'university-manager',
+        component: () => import('../views/Dashboard/Education/University/index.vue'),
+        meta: { auth: true }
+    },
+    {
+        path: '/dashboard/university-manager/create',
+        name: 'university-manager-create',
+        component: () => import('../views/Dashboard/Education/University/create.vue'),
+        meta: { auth: true }
+    },
+    {
+        path: '/dashboard/university-manager/edit/:id',
+        name: 'university-manager-edit',
+        component: () => import('../views/Dashboard/Education/University/create.vue'),
+        meta: { auth: true }
+    },
     {
         path: '/',
         redirect: '/dashboard'
