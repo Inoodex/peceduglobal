@@ -22,11 +22,11 @@
       ></div>
 
       <!-- 4. Tiny Dot at the end of the line -->
-      <div
-        class="absolute rounded-full pointer-events-none z-10 transition-colors"
-        :class="item.active ? 'bg-primary' : 'bg-gray-500/40'"
-        :style="{ left: `${branchLeft + 11}px`, top: '18.5px', width: '4px', height: '4px' }"
-      ></div>
+        <div
+          class="absolute rounded-full pointer-events-none z-10 transition-colors"
+          :class="isActive ? 'bg-primary' : 'bg-gray-500/40'"
+          :style="{ left: `${branchLeft + 11}px`, top: '18.5px', width: '4px', height: '4px' }"
+        ></div>
     </template>
 
     <!-- Hover Popover Wrapper -->
@@ -40,21 +40,27 @@
           @click="toggle"
           @mouseenter="onMouseEnter"
           @mouseleave="onMouseLeave"
-          class="flex transition-all duration-200 relative group rounded-md"
+          class="flex transition-all duration-300 relative group rounded-md overflow-hidden"
           :class="[
             isCollapsed ? 'flex-col items-center justify-center py-2.5 px-1 w-full' : (level === 0 ? 'flex-row items-center px-4 py-2 w-full' : 'flex-row items-center py-2 pr-4'),
-            item.active && level === 0
+            isActive && level === 0
               ? 'text-(--nav-item-root-active-color) bg-(--nav-item-root-active-bg) hover:bg-(--nav-item-root-active-hover-bg) font-bold'
-              : (item.active && level > 0
+              : (isActive && level > 0
                   ? (layout.isDarkMode ? 'text-white bg-white/10 hover:bg-white/10 font-bold' : 'text-gray-900 bg-gray-500/10 hover:bg-gray-500/10 font-bold')
                   : (layout.isDarkMode ? 'text-gray-400 hover:bg-white/5' : 'text-gray-600 hover:bg-gray-500/5')),
             level > 0 ? 'h-10 text-sm' : ''
           ]"
           :style="level > 0 && !isCollapsed ? { marginLeft: `${itemMarginLeft}px`, width: `calc(100% - ${itemMarginLeft}px)`, paddingLeft: '11px' } : {}"
         >
+          <!-- Active Indicator Bar (Animated) -->
+          <div 
+            class="absolute right-0 top-1/2 -translate-y-1/2 w-1.5 bg-primary rounded-l-full transition-all duration-300 ease-in-out"
+            :class="isActive ? 'h-6 opacity-100' : 'h-0 opacity-0'"
+          ></div>
+
           <!-- Icon (only level 0) -->
-          <div v-if="level === 0" class="relative flex items-center justify-center w-[22px]" :class="isCollapsed ? '' : 'mr-4'">
-            <component v-if="item.icon" :is="item.icon" :size="isCollapsed ? 22 : 22" :stroke-width="item.active ? 2.5 : 2" />
+          <div v-if="level === 0" class="relative flex items-center justify-center w-[22px] transition-transform duration-300" :class="[isCollapsed ? '' : 'mr-4', isActive ? 'scale-110' : '']">
+            <component v-if="item.icon" :is="item.icon" :size="isCollapsed ? 22 : 22" :stroke-width="isActive ? 2.5 : 2" />
 
             <!-- Compact Mode Chevron indicator (right side of icon) -->
             <ChevronRight
@@ -68,8 +74,8 @@
             class="transition-all text-center flex-1"
             :class="[
               isCollapsed ? 'text-[10px] mt-1 font-bold mr-0' : 'text-sm text-left',
-              item.active && level > 0 ? 'font-bold' : '',
-              item.active && level === 0 ? 'font-bold' : ''
+              isActive && level > 0 ? 'font-bold' : '',
+              isActive && level === 0 ? 'font-bold' : ''
             ]"
           >
             {{ item.name }}
@@ -98,7 +104,7 @@
             :key="child.name"
             @click.stop="navigate(child.path)"
             class="w-full text-left px-3 py-2 text-[14px] font-medium transition-colors rounded-lg"
-            :class="child.active
+            :class="child.path && (route.path === child.path || route.path.startsWith(child.path + '/'))
               ? (layout.isDarkMode ? 'text-white bg-gray-500/20 font-semibold' : 'text-gray-900 bg-gray-500/10 font-semibold')
               : (layout.isDarkMode ? 'text-gray-400 hover:text-white hover:bg-gray-500/10' : 'text-gray-600 hover:text-gray-900 hover:bg-gray-500/5')"
           >
@@ -137,8 +143,8 @@ export default { name: 'NavItem' }
 </script>
 
 <script setup>
-import { ref, computed } from 'vue';
-import { useRouter } from 'vue-router';
+import { ref, computed, watch } from 'vue';
+import { useRouter, useRoute } from 'vue-router';
 import { ChevronRight } from 'lucide-vue-next';
 import { useLayoutStore } from '@/stores/layout';
 import CollapseTransition from './CollapseTransition.vue';
@@ -153,8 +159,35 @@ const props = defineProps({
 
 const layout = useLayoutStore();
 const router = useRouter();
-const isOpen = ref(props.item.open || false);
+const route = useRoute();
+
+// Helper function to check if the current route matches the item path
+const isActive = computed(() => {
+  if (props.item.path) {
+    // If path is exactly '/dashboard', use exact match to avoid highlighting it on sub-pages
+    if (props.item.path === '/dashboard') {
+      return route.path === props.item.path;
+    }
+    return route.path === props.item.path || route.path.startsWith(props.item.path + '/');
+  }
+  if (props.item.children) {
+    return props.item.children.some(child => {
+      if (!child.path) return false;
+      return route.path === child.path || route.path.startsWith(child.path + '/');
+    });
+  }
+  return false;
+});
+
 const hasChildren = computed(() => props.item.children && props.item.children.length > 0);
+const isOpen = ref(props.item.open || false);
+
+// Watch for route changes to automatically open parent menus
+watch(() => route.path, () => {
+  if (isActive.value && hasChildren.value) {
+    isOpen.value = true;
+  }
+}, { immediate: true });
 
 const toggle = () => {
   if (hasChildren.value) {

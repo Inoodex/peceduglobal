@@ -149,8 +149,8 @@ const navigation = [
       {
         name: 'Blog',
         icon: BookOpen,
-        active: true,
-        open: true,
+        active: false,
+        open: false,
         children: [
           { name: 'Posts', path: '/blog-post' },
           { name: 'Create Post', path: '/blog-post-create' },
