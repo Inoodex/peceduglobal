@@ -12,10 +12,13 @@ class Course extends Model
 
     protected $fillable = [
         'university_id',
+        'course_level_id',
         'country_id',
         'name',
         'slug',
+        'intake',
         'duration',
+        'ielts_requirement',
         'tuition_fee',
         'requirements',
         'is_popular',
@@ -24,6 +27,11 @@ class Course extends Model
     protected $casts = [
         'is_popular' => 'boolean',
     ];
+
+    public function courseLevel(): BelongsTo
+    {
+        return $this->belongsTo(CourseLevel::class);
+    }
 
     public function university(): BelongsTo
     {

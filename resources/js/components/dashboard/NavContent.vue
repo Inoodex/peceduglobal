@@ -126,6 +126,8 @@ const navigation = [
         open: false,
         children: [
           { name: 'Universities', path: '/dashboard/university-manager' },
+          { name: 'Courses', path: '/dashboard/course-manager' },
+          { name: 'Course Levels', path: '/dashboard/course-level-manager' },
           // { name: 'Scholarships', path: '/dashboard/scholarship-manager' }
         ]
       },

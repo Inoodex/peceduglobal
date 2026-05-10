@@ -11,8 +11,11 @@ return new class extends Migration
      */
     public function up(): void
     {
-        Schema::table('page_blocks', function (Blueprint $table) {
-            $table->integer('sort_order')->default(0)->after('page_id');
+        Schema::create('course_levels', function (Blueprint $table) {
+            $table->id();
+            $table->string('name');
+            $table->string('slug')->unique();
+            $table->timestamps();
         });
     }
 
@@ -21,8 +24,6 @@ return new class extends Migration
      */
     public function down(): void
     {
-        Schema::table('page_blocks', function (Blueprint $table) {
-            $table->dropColumn('sort_order');
-        });
+        Schema::dropIfExists('course_levels');
     }
 };

@@ -5,6 +5,8 @@ use App\Http\Controllers\Api\Admin\CMS\ElementController;
 use App\Http\Controllers\Api\Admin\CMS\PageController;
 use App\Http\Controllers\Api\Admin\CountryController;
 use App\Http\Controllers\Api\Admin\Education\UniversityController;
+use App\Http\Controllers\Api\Admin\Education\CourseController;
+use App\Http\Controllers\Api\Admin\Education\CourseLevelController;
 use App\Http\Controllers\Api\AuthController;
 use App\Http\Controllers\Api\BlogCategoryController;
 use App\Http\Controllers\Api\BlogPostController;
@@ -35,6 +37,8 @@ Route::group(['prefix' => 'auth'], function () {
 
             // Education Routes
             Route::apiResource('universities', UniversityController::class);
+            Route::apiResource('courses', CourseController::class);
+            Route::apiResource('course-levels', CourseLevelController::class);
             // Route::apiResource('scholarships', ScholarshipController::class);
         });
 

@@ -147,6 +147,31 @@ const routes = [
         component: () => import('../views/Dashboard/Education/University/create.vue'),
         meta: { auth: true }
     },
+    // Course Manager Routes
+    {
+        path: '/dashboard/course-manager',
+        name: 'course-manager',
+        component: () => import('../views/Dashboard/Education/Course/index.vue'),
+        meta: { auth: true }
+    },
+    {
+        path: '/dashboard/course-manager/create',
+        name: 'course-manager-create',
+        component: () => import('../views/Dashboard/Education/Course/create.vue'),
+        meta: { auth: true }
+    },
+    {
+        path: '/dashboard/course-manager/edit/:id',
+        name: 'course-manager-edit',
+        component: () => import('../views/Dashboard/Education/Course/create.vue'),
+        meta: { auth: true }
+    },
+    {
+        path: '/dashboard/course-level-manager',
+        name: 'course-level-manager',
+        component: () => import('../views/Dashboard/Education/CourseLevel/index.vue'),
+        meta: { auth: true }
+    },
     {
         path: '/',
         redirect: '/dashboard'
