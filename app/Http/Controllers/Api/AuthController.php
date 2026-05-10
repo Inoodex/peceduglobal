@@ -77,7 +77,7 @@ class AuthController extends Controller
         return response()->json([
             'success' => true,
             'message' => 'Login successful',
-            'data' => $guard->user(),
+            'data' => $guard->user()->load('permissions'),
             'token' => $token
         ]);
     }
@@ -94,7 +94,7 @@ class AuthController extends Controller
         return response()->json([
             'success' => true,
             'message' => 'User profile retrieved',
-            'data' => $guard->user()
+            'data' => $guard->user()->load('permissions')
         ]);
     }
 
@@ -128,7 +128,7 @@ class AuthController extends Controller
         return response()->json([
             'success' => true,
             'message' => 'Token refreshed',
-            'data' => $guard->user(),
+            'data' => $guard->user()->load('permissions'),
             'token' => $guard->refresh()
         ]);
     }

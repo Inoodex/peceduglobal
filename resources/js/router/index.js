@@ -24,153 +24,159 @@ const routes = [
     {
         path: '/blog-post',
         name:'blog-list',
-        component:()=>import('../views/Dashboard/Blog/blog-Post/index.vue')
+        component:()=>import('../views/Dashboard/Blog/blog-Post/index.vue'),
+        meta: { auth: true, permission: 'manage_blogs' }
     },
     {
         path: '/blog-post-create',
         name:'blog-post-create',
-        component:()=>import('../views/Dashboard/Blog/blog-Post/create.vue')
+        component:()=>import('../views/Dashboard/Blog/blog-Post/create.vue'),
+        meta: { auth: true, permission: 'manage_blogs' }
     },
     {
         path: '/blog-post/:id/edit',
         name:'blog-post-edit',
-        component:()=>import('../views/Dashboard/Blog/blog-Post/edit.vue')
+        component:()=>import('../views/Dashboard/Blog/blog-Post/edit.vue'),
+        meta: { auth: true, permission: 'manage_blogs' }
     },
     // Blog Category Routes
     {
         path: '/blog-category',
         name:'blog-category-list',
-        component:()=>import('../views/Dashboard/Blog/blog-category/index.vue')
+        component:()=>import('../views/Dashboard/Blog/blog-category/index.vue'),
+        meta: { auth: true, permission: 'manage_blogs' }
     },
     {
         path: '/blog-category-create',
         name:'blog-category-create',
-        component:()=>import('../views/Dashboard/Blog/blog-category/create.vue')
+        component:()=>import('../views/Dashboard/Blog/blog-category/create.vue'),
+        meta: { auth: true, permission: 'manage_blogs' }
     },
     {
         path: '/blog-category/:id/edit',
         name:'blog-category-edit',
-        component:()=>import('../views/Dashboard/Blog/blog-category/edit.vue')
+        component:()=>import('../views/Dashboard/Blog/blog-category/edit.vue'),
+        meta: { auth: true, permission: 'manage_blogs' }
     },
     // Page Manager Routes
     {
         path: '/dashboard/page-manager',
         name: 'page-manager',
         component: () => import('../views/Dashboard/PageManager/index.vue'),
-        meta: { auth: true, role: 'admin' }
+        meta: { auth: true, permission: 'manage_pages' }
     },
     {
         path: '/dashboard/page-manager/create',
         name: 'page-manager-create',
         component: () => import('../views/Dashboard/PageManager/create.vue'),
-        meta: { auth: true, role: 'admin' }
+        meta: { auth: true, permission: 'manage_pages' }
     },
     {
         path: '/dashboard/page-manager/edit/:id',
         name: 'page-manager-edit',
         component: () => import('../views/Dashboard/PageManager/edit.vue'),
-        meta: { auth: true, role: 'admin' }
+        meta: { auth: true, permission: 'manage_pages' }
     },
     // Block Manager Routes
     {
         path: '/dashboard/block-manager',
         name: 'block-manager',
         component: () => import('../views/Dashboard/BlockManager/index.vue'),
-        meta: { auth: true, role: 'admin' }
+        meta: { auth: true, permission: 'manage_pages' }
     },
     {
         path: '/dashboard/block-manager/create',
         name: 'block-manager-create',
         component: () => import('../views/Dashboard/BlockManager/create.vue'),
-        meta: { auth: true, role: 'admin' }
+        meta: { auth: true, permission: 'manage_pages' }
     },
     {
         path: '/dashboard/block-manager/edit/:id',
         name: 'block-manager-edit',
         component: () => import('../views/Dashboard/BlockManager/edit.vue'),
-        meta: { auth: true, role: 'admin' }
+        meta: { auth: true, permission: 'manage_pages' }
     },
     // Element Manager Routes
     {
         path: '/dashboard/element-manager',
         name: 'element-manager',
         component: () => import('../views/Dashboard/ElementManager/index.vue'),
-        meta: { auth: true, role: 'admin' }
+        meta: { auth: true, permission: 'manage_pages' }
     },
     {
         path: '/dashboard/element-manager/create',
         name: 'element-manager-create',
         component: () => import('../views/Dashboard/ElementManager/create.vue'),
-        meta: { auth: true, role: 'admin' }
+        meta: { auth: true, permission: 'manage_pages' }
     },
     {
         path: '/dashboard/element-manager/edit/:id',
         name: 'element-manager-edit',
         component: () => import('../views/Dashboard/ElementManager/edit.vue'),
-        meta: { auth: true, role: 'admin' }
+        meta: { auth: true, permission: 'manage_pages' }
     },
     // Country Manager Routes
     {
         path: '/dashboard/country-manager',
         name: 'country-manager',
         component: () => import('../views/Dashboard/CountryManager/index.vue'),
-        meta: { auth: true }
+        meta: { auth: true, permission: 'manage_countries' }
     },
     {
         path: '/dashboard/country-manager/create',
         name: 'country-manager-create',
         component: () => import('../views/Dashboard/CountryManager/create.vue'),
-        meta: { auth: true }
+        meta: { auth: true, permission: 'manage_countries' }
     },
     {
         path: '/dashboard/country-manager/edit/:id',
         name: 'country-manager-edit',
         component: () => import('../views/Dashboard/CountryManager/edit.vue'),
-        meta: { auth: true }
+        meta: { auth: true, permission: 'manage_countries' }
     },
     // University Manager Routes
     {
         path: '/dashboard/university-manager',
         name: 'university-manager',
         component: () => import('../views/Dashboard/Education/University/index.vue'),
-        meta: { auth: true }
+        meta: { auth: true, permission: 'manage_education' }
     },
     {
         path: '/dashboard/university-manager/create',
         name: 'university-manager-create',
         component: () => import('../views/Dashboard/Education/University/create.vue'),
-        meta: { auth: true }
+        meta: { auth: true, permission: 'manage_education' }
     },
     {
         path: '/dashboard/university-manager/edit/:id',
         name: 'university-manager-edit',
         component: () => import('../views/Dashboard/Education/University/create.vue'),
-        meta: { auth: true }
+        meta: { auth: true, permission: 'manage_education' }
     },
     // Course Manager Routes
     {
         path: '/dashboard/course-manager',
         name: 'course-manager',
         component: () => import('../views/Dashboard/Education/Course/index.vue'),
-        meta: { auth: true }
+        meta: { auth: true, permission: 'manage_education' }
     },
     {
         path: '/dashboard/course-manager/create',
         name: 'course-manager-create',
         component: () => import('../views/Dashboard/Education/Course/create.vue'),
-        meta: { auth: true }
+        meta: { auth: true, permission: 'manage_education' }
     },
     {
         path: '/dashboard/course-manager/edit/:id',
         name: 'course-manager-edit',
         component: () => import('../views/Dashboard/Education/Course/create.vue'),
-        meta: { auth: true }
+        meta: { auth: true, permission: 'manage_education' }
     },
     {
         path: '/dashboard/course-level-manager',
         name: 'course-level-manager',
         component: () => import('../views/Dashboard/Education/CourseLevel/index.vue'),
-        meta: { auth: true }
+        meta: { auth: true, permission: 'manage_education' }
     },
     {
         path: '/dashboard/user-management',
@@ -200,8 +206,15 @@ router.beforeEach(async (to, from, next) => {
         next('/login');
     } else if (to.meta.guest && authStore.isAuthenticated) {
         next('/dashboard');
+    } else if (to.meta.permission) {
+        const userRole = authStore.user?.role;
+        const userPermissions = authStore.user?.permissions?.map((perm) => perm.slug) || [];
+        if (userRole !== 'admin' && !userPermissions.includes(to.meta.permission)) {
+            next('/dashboard');
+            return;
+        }
+        next();
     } else if (to.meta.role && authStore.user?.role !== to.meta.role && authStore.user?.role !== 'admin') {
-        // If route requires admin role and user is not admin
         next('/dashboard');
     } else {
         next();

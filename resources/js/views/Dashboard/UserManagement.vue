@@ -72,10 +72,10 @@
               <div class="flex flex-wrap gap-1.5">
                 <span 
                   v-for="perm in (user.permissions || [])" 
-                  :key="perm"
+                  :key="perm.id"
                   class="px-2 py-0.5 bg-gray-100 dark:bg-gray-800 text-gray-600 dark:text-gray-400 rounded text-[10px] font-medium"
                 >
-                  {{ perm.replace(/_/g, ' ').toUpperCase() }}
+                  {{ perm.name }}
                 </span>
                 <span v-if="!user.permissions || user.permissions.length === 0" class="text-[10px] text-gray-400 italic">No custom permissions</span>
               </div>
@@ -183,12 +183,12 @@
               <div 
                 v-for="perm in availablePermissions" 
                 :key="perm.id"
-                @click="togglePermission(perm.slug)"
+                @click="togglePermission(perm.id)"
                 class="flex items-center justify-between p-3 rounded-xl border border-gray-100 dark:border-gray-800 hover:bg-gray-50 dark:hover:bg-gray-800/50 cursor-pointer transition-colors"
-                :class="hasPermission(perm.slug) ? 'border-primary/30 bg-primary/5' : ''"
+                :class="hasPermission(perm.id) ? 'border-primary/30 bg-primary/5' : ''"
               >
                 <div class="flex items-center gap-3">
-                  <div class="w-8 h-8 rounded-lg flex items-center justify-center" :class="hasPermission(perm.slug) ? 'bg-primary/20 text-primary' : 'bg-gray-100 dark:bg-gray-800 text-gray-400'">
+                  <div class="w-8 h-8 rounded-lg flex items-center justify-center" :class="hasPermission(perm.id) ? 'bg-primary/20 text-primary' : 'bg-gray-100 dark:bg-gray-800 text-gray-400'">
                     <Lock :size="18" />
                   </div>
                   <div>
@@ -196,8 +196,8 @@
                     <p class="text-[11px] text-gray-500">{{ perm.description }}</p>
                   </div>
                 </div>
-                <div class="w-10 h-5 rounded-full relative bg-gray-300 dark:bg-gray-700 transition-colors" :class="{ 'bg-primary': hasPermission(perm.slug) }">
-                   <div class="absolute top-0.5 left-0.5 w-4 h-4 bg-white rounded-full transition-transform" :class="{ 'translate-x-5': hasPermission(perm.slug) }"></div>
+                <div class="w-10 h-5 rounded-full relative bg-gray-300 dark:bg-gray-700 transition-colors" :class="{ 'bg-primary': hasPermission(perm.id) }">
+                   <div class="absolute top-0.5 left-0.5 w-4 h-4 bg-white rounded-full transition-transform" :class="{ 'translate-x-5': hasPermission(perm.id) }"></div>
                 </div>
               </div>
             </div>
@@ -278,7 +278,7 @@ const fetchData = async () => {
   try {
     const [usersRes, permsRes] = await Promise.all([
       axios.get('/auth/admin/users'),
-      axios.get('/auth/permissions')
+      axios.get('/auth/admin/permissions')
     ]);
     users.value = usersRes.data.data;
     availablePermissions.value = permsRes.data.data;
@@ -308,18 +308,23 @@ const getRoleClass = (role) => {
 
 const editUser = (user) => {
   editingUser.value = JSON.parse(JSON.stringify(user));
-  if (!editingUser.value.permissions) editingUser.value.permissions = [];
+  // Extract permission IDs from the full permission objects
+  if (editingUser.value.permissions && Array.isArray(editingUser.value.permissions)) {
+    editingUser.value.permissions = editingUser.value.permissions.map(p => p.id);
+  } else {
+    editingUser.value.permissions = [];
+  }
   isModalOpen.value = true;
 };
 
-const hasPermission = (slug) => {
-  return editingUser.value?.permissions?.includes(slug);
+const hasPermission = (id) => {
+  return editingUser.value?.permissions?.includes(id);
 };
 
-const togglePermission = (slug) => {
-  const index = editingUser.value.permissions.indexOf(slug);
+const togglePermission = (id) => {
+  const index = editingUser.value.permissions.indexOf(id);
   if (index === -1) {
-    editingUser.value.permissions.push(slug);
+    editingUser.value.permissions.push(id);
   } else {
     editingUser.value.permissions.splice(index, 1);
   }
@@ -342,7 +347,7 @@ const saveUserChanges = async () => {
 const saveNewPermission = async () => {
   savingPerm.value = true;
   try {
-    await axios.post('/auth/permissions', newPerm.value);
+    await axios.post('/auth/admin/permissions', newPerm.value);
     newPerm.value = { name: '', description: '' };
     isPermModalOpen.value = false;
     await fetchData();
@@ -356,7 +361,7 @@ const saveNewPermission = async () => {
 const deletePermission = async (id) => {
   if (!confirm('Are you sure you want to delete this permission?')) return;
   try {
-    await axios.delete(`/auth/permissions/${id}`);
+    await axios.delete(`/auth/admin/permissions/${id}`);
     await fetchData();
   } catch (error) {
     console.error('Failed to delete permission', error);

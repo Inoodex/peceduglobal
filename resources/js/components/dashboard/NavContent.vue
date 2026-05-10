@@ -89,6 +89,7 @@ const navigationData = [
       {
         name: 'Page Manager',
         icon: BookOpen,
+        permission: 'manage_pages',
         children: [
           { name: 'Pages', path: '/dashboard/page-manager' },
           { name: 'Blocks', path: '/dashboard/block-manager' },
@@ -98,6 +99,7 @@ const navigationData = [
       {
         name: 'Country Manager',
         icon: Globe,
+        permission: 'manage_countries',
         children: [
           { name: 'Countries', path: '/dashboard/country-manager' }
         ]
@@ -105,6 +107,7 @@ const navigationData = [
       {
         name: 'Education',
         icon: School,
+        permission: 'manage_education',
         children: [
           { name: 'Universities', path: '/dashboard/university-manager' },
           { name: 'Courses', path: '/dashboard/course-manager' },
@@ -115,7 +118,7 @@ const navigationData = [
   },
   {
     title: 'Students',
-    roles: ['admin', 'student'],
+    roles: ['admin', 'counselor', 'student'],
     items: [
       {
         name: 'Profiles',
@@ -145,6 +148,7 @@ const navigationData = [
       {
         name: 'Blog',
         icon: BookOpen,
+        permission: 'manage_blogs',
         children: [
           { name: 'Posts', path: '/blog-post' },
           { name: 'Create Post', path: '/blog-post-create' },
@@ -155,15 +159,29 @@ const navigationData = [
   }
 ];
 
-// Computed navigation based on user role
+const hasUserPermission = (permission) => {
+  if (!permission) return true;
+  if (auth.user?.role === 'admin') return true;
+  const userPermissions = auth.user?.permissions?.map((perm) => perm.slug) || [];
+  return userPermissions.includes(permission);
+};
+
+const canAccessItem = (item, userRole) => {
+  if (item.roles && !item.roles.includes(userRole)) {
+    return false;
+  }
+  return hasUserPermission(item.permission);
+};
+
 const navigation = computed(() => {
   const userRole = auth.user?.role || 'student';
   return navigationData
     .filter(section => !section.roles || section.roles.includes(userRole))
     .map(section => ({
       ...section,
-      items: section.items.filter(item => !item.roles || item.roles.includes(userRole))
-    }));
+      items: section.items.filter(item => canAccessItem(item, userRole))
+    }))
+    .filter(section => section.items.length > 0);
 });
 </script>
 

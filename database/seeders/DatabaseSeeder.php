@@ -13,32 +13,59 @@ class DatabaseSeeder extends Seeder
      */
     public function run(): void
     {
-        // Create Admin Account
-        User::create([
-            'full_name' => 'Super Admin',
-            'email' => 'admin@gmail.com',
-            'password' => Hash::make('password'),
-            'role' => 'admin',
-            'is_verified' => true,
-        ]);
+        // 1. Create Essential Permissions
+        $permissions = [
+            ['name' => 'Manage Users', 'slug' => 'manage_users', 'description' => 'Can create, edit and delete users'],
+            ['name' => 'Manage Pages', 'slug' => 'manage_pages', 'description' => 'Can manage website pages'],
+            ['name' => 'Manage Blogs', 'slug' => 'manage_blogs', 'description' => 'Can manage blog posts'],
+            ['name' => 'Manage Countries', 'slug' => 'manage_countries', 'description' => 'Can manage countries'],
+            ['name' => 'Manage Education', 'slug' => 'manage_education', 'description' => 'Can manage universities and courses'],
+            ['name' => 'View Applications', 'slug' => 'view_applications', 'description' => 'Can view student applications'],
+            ['name' => 'Edit Student Info', 'slug' => 'edit_student', 'description' => 'Can update student profiles'],
+        ];
 
-        // Create a Test Counselor
-        User::create([
-            'full_name' => 'Test Counselor',
-            'email' => 'counselor@gmail.com',
-            'password' => Hash::make('password'),
-            'role' => 'counselor',
-            'is_verified' => true,
-            'permissions' => ['pages.view', 'blogs.manage'] // Example permissions
-        ]);
+        foreach ($permissions as $perm) {
+            \App\Models\Permission::updateOrCreate(
+                ['slug' => $perm['slug']],
+                ['name' => $perm['name'], 'description' => $perm['description']]
+            );
+        }
 
-        // Create a Test Student
-        User::create([
-            'full_name' => 'Test Student',
-            'email' => 'student@gmail.com',
-            'password' => Hash::make('password'),
-            'role' => 'student',
-            'is_verified' => true,
-        ]);
+        // 2. Create Admin Account
+        $admin = User::updateOrCreate(
+            ['email' => 'admin@gmail.com'],
+            [
+                'full_name' => 'Super Admin',
+                'password' => Hash::make('password'),
+                'role' => 'admin',
+                'is_verified' => true,
+            ]
+        );
+
+        // 3. Create a Test Counselor
+        $counselor = User::updateOrCreate(
+            ['email' => 'counselor@gmail.com'],
+            [
+                'full_name' => 'Test Counselor',
+                'password' => Hash::make('password'),
+                'role' => 'counselor',
+                'is_verified' => true,
+            ]
+        );
+
+        // Assign some permissions to Counselor
+        $counselorPerms = \App\Models\Permission::whereIn('slug', ['view_applications', 'edit_student'])->pluck('id');
+        $counselor->permissions()->sync($counselorPerms);
+
+        // 4. Create a Test Student
+        User::updateOrCreate(
+            ['email' => 'student@gmail.com'],
+            [
+                'full_name' => 'Test Student',
+                'password' => Hash::make('password'),
+                'role' => 'student',
+                'is_verified' => true,
+            ]
+        );
     }
 }

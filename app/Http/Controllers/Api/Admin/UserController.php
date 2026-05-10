@@ -44,7 +44,7 @@ class UserController extends Controller
     {
         $validator = Validator::make($request->all(), [
             'permissions' => 'required|array',
-            'permissions.*' => 'string',
+            'permissions.*' => 'integer', // Expecting permission IDs now
         ]);
 
         if ($validator->fails()) {
@@ -55,14 +55,13 @@ class UserController extends Controller
             ], 422);
         }
 
-        $user->update([
-            'permissions' => $request->permissions
-        ]);
+        // Sync permissions using the pivot table
+        $user->permissions()->sync($request->permissions);
 
         return response()->json([
             'success' => true,
             'message' => 'User permissions updated successfully',
-            'data' => $user
+            'data' => $user->load('permissions')
         ]);
     }
 
@@ -71,7 +70,7 @@ class UserController extends Controller
      */
     public function index()
     {
-        $users = User::all();
+        $users = User::with('permissions')->get();
         return response()->json([
             'success' => true,
             'data' => $users

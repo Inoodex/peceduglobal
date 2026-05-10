@@ -25,10 +25,13 @@ Route::group(['prefix' => 'auth'], function () {
         Route::post('logout', [AuthController::class, 'logout']);
         Route::post('refresh', [AuthController::class, 'refresh']);
         Route::get('me', [AuthController::class, 'me']);
-        // Blog routes
-        Route::apiResource('blog-categories', BlogCategoryController::class);
-        Route::apiResource('blog-posts', BlogPostController::class);
-        Route::post('blog-posts/upload-image', [BlogPostController::class, 'uploadImage']);
+
+        // Blog routes (permission-protected)
+        Route::middleware('auto-permission')->group(function () {
+            Route::apiResource('blog-categories', BlogCategoryController::class);
+            Route::apiResource('blog-posts', BlogPostController::class);
+            Route::post('blog-posts/upload-image', [BlogPostController::class, 'uploadImage']);
+        });
 
         // Admin Routes (Protected by role)
         Route::prefix('admin')->middleware('role:admin')->group(function () {
@@ -39,20 +42,19 @@ Route::group(['prefix' => 'auth'], function () {
 
             // Permission Management
             Route::apiResource('permissions', PermissionController::class)->only(['index', 'store', 'destroy']);
+        });
 
-            // CMS Routes
+        // Admin+Counselor content routes (permission-protected)
+        Route::prefix('admin')->middleware(['role:admin,counselor', 'auto-permission'])->group(function () {
             Route::apiResource('pages', PageController::class);
             Route::apiResource('blocks', BlockController::class);
             Route::post('blocks/reorder', [BlockController::class, 'updateOrder']);
             Route::apiResource('elements', ElementController::class);
+            Route::post('editor/upload', [EditorUploadController::class, 'upload']);
             Route::apiResource('countries', CountryController::class);
-
-            // Education Routes
             Route::apiResource('universities', UniversityController::class);
             Route::apiResource('courses', CourseController::class);
             Route::apiResource('course-levels', CourseLevelController::class);
-            Route::post('editor/upload', [EditorUploadController::class, 'upload']);
-            // Route::apiResource('scholarships', ScholarshipController::class);
         });
 
         // Student Routes (Protected by role)

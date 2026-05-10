@@ -32,13 +32,21 @@ class User extends Authenticatable implements JWTSubject
     use HasUuids, HasFactory, Notifiable;
 
     /**
+     * The permissions that belong to the user.
+     */
+    public function permissions()
+    {
+        return $this->belongsToMany(Permission::class);
+    }
+
+    /**
      * Check if user has a specific permission
      */
     public function hasPermission(string $permission): bool
     {
         if ($this->role === 'admin') return true; // Admin has all permissions
-        if (!$this->permissions) return false;
-        return in_array($permission, $this->permissions);
+        
+        return $this->permissions()->where('slug', $permission)->exists();
     }
 
     /**
@@ -71,7 +79,7 @@ class User extends Authenticatable implements JWTSubject
         return [
             'email_verified_at' => 'datetime',
             'password' => 'hashed',
-            'permissions' => 'array',
+            // 'permissions' => 'array', // Removed JSON casting as we now use a relational table
         ];
     }
 }
