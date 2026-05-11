@@ -179,6 +179,49 @@ const routes = [
         meta: { auth: true, permission: 'manage_education' }
     },
     {
+        path: '/dashboard/course-intakes',
+        name: 'course-intakes',
+        component: () => import('../views/Dashboard/Education/CourseIntake/index.vue'),
+        meta: { auth: true, permission: 'manage_education' }
+    },
+    {
+        path: '/dashboard/course-intakes/create',
+        name: 'course-intakes-create',
+        component: () => import('../views/Dashboard/Education/CourseIntake/create.vue'),
+        meta: { auth: true, permission: 'manage_education' }
+    },
+    {
+        path: '/dashboard/course-intakes/edit/:id',
+        name: 'course-intakes-edit',
+        component: () => import('../views/Dashboard/Education/CourseIntake/create.vue'),
+        meta: { auth: true, permission: 'manage_education' }
+    },
+
+    {
+        path: '/dashboard/students',
+        name: 'student-list',
+        component: () => import('../views/Dashboard/Consultancy/Student/index.vue'),
+        meta: { auth: true, permission: 'edit_student' }
+    },
+    {
+        path: '/dashboard/students/create',
+        name: 'student-create',
+        component: () => import('../views/Dashboard/Consultancy/Student/create.vue'),
+        meta: { auth: true, permission: 'edit_student' }
+    },
+    {
+        path: '/dashboard/applications',
+        name: 'application-list',
+        component: () => import('../views/Dashboard/Consultancy/Application/index.vue'),
+        meta: { auth: true, permission: 'view_applications' }
+    },
+    {
+        path: '/dashboard/applications/create',
+        name: 'application-create',
+        component: () => import('../views/Dashboard/Consultancy/Application/create.vue'),
+        meta: { auth: true, permission: 'view_applications' }
+    },
+    {
         path: '/dashboard/user-management',
         name: 'user-management',
         component: () => import('../views/Dashboard/UserManagement.vue'),

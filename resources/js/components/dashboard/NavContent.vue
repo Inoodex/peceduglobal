@@ -111,6 +111,7 @@ const navigationData = [
         children: [
           { name: 'Universities', path: '/dashboard/university-manager' },
           { name: 'Courses', path: '/dashboard/course-manager' },
+          { name: 'Course Intakes', path: '/dashboard/course-intakes' },
           { name: 'Course Levels', path: '/dashboard/course-level-manager' },
         ]
       },
@@ -121,14 +122,20 @@ const navigationData = [
     roles: ['admin','counselor'],
     items: [
       {
-        name: 'My Students',
+        name: 'Students',
         icon: Users,
-        path: '/dashboard/my-students'
+        children: [
+          { name: 'Student List', path: '/dashboard/students' },
+          { name: 'Add Student', path: '/dashboard/students/create' }
+        ]
       },
       {
-        name: 'Student Applications',
+        name: 'Applications',
         icon: FileText,
-        path: '/dashboard/student-applications'
+        children: [
+          { name: 'Application List', path: '/dashboard/applications' },
+          { name: 'Add Application', path: '/dashboard/applications/create' }
+        ]
       }
     ]
   },

@@ -15,6 +15,7 @@ use App\Http\Controllers\Api\Student\ApplicationController;
 use App\Http\Controllers\Api\Student\ProfileController;
 use App\Http\Controllers\Api\Admin\UserController;
 use App\Http\Controllers\Api\Admin\PermissionController;
+use App\Http\Controllers\Api\CourseIntakeController;
 use Illuminate\Support\Facades\Route;
 
 Route::group(['prefix' => 'auth'], function () {
@@ -55,6 +56,7 @@ Route::group(['prefix' => 'auth'], function () {
             Route::apiResource('universities', UniversityController::class);
             Route::apiResource('courses', CourseController::class);
             Route::apiResource('course-levels', CourseLevelController::class);
+            Route::apiResource('course-intakes', CourseIntakeController::class);
         });
 
         // Student Routes (Protected by role)
