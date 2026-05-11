@@ -53,7 +53,7 @@
             <div>
               <label class="block text-sm font-medium text-gray-700 dark:text-gray-300 mb-1.5">Image</label>
               <div class="flex items-center gap-4">
-                <input type="file" @change="handleFileUpload" class="hidden" id="image-upload" />
+                <input type="file" accept="image/*" @change="handleFileUpload" class="hidden" id="image-upload" />
                 <label for="image-upload" class="cursor-pointer inline-flex items-center gap-2 px-4 py-2 bg-gray-100 dark:bg-gray-800 text-gray-700 dark:text-gray-300 rounded-xl hover:bg-gray-200 dark:hover:bg-gray-700 transition-colors border border-gray-200 dark:border-gray-700">
                   <Upload class="w-4 h-4" /> Upload Image
                 </label>
