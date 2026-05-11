@@ -5,36 +5,54 @@ namespace App\Models;
 // use Illuminate\Contracts\Auth\MustVerifyEmail;
 use PHPOpenSourceSaver\JWTAuth\Contracts\JWTSubject;
 use Illuminate\Database\Eloquent\Concerns\HasUuids;
-use Illuminate\Database\Eloquent\Attributes\Fillable;
-use Illuminate\Database\Eloquent\Attributes\Hidden;
 use Illuminate\Database\Eloquent\Factories\HasFactory;
 use Illuminate\Foundation\Auth\User as Authenticatable;
 use Illuminate\Notifications\Notifiable;
+use Illuminate\Database\Eloquent\Relations\BelongsTo;
+use Illuminate\Database\Eloquent\Relations\HasMany;
+use Illuminate\Database\Eloquent\Relations\HasOne;
+use Illuminate\Database\Eloquent\Relations\BelongsToMany;
 
-#[Fillable([
-    'full_name', 
-    'email', 
-    'password', 
-    'role', 
-    'permissions',
-    'phone', 
-    'country_of_origin', 
-    'nationality', 
-    'profile_photo_url', 
-    'is_verified', 
-    'is_active', 
-    'last_login_at'
-])]
-#[Hidden(['password', 'remember_token'])]
 class User extends Authenticatable implements JWTSubject
 {
-    /** @use HasFactory<UserFactory> */
+    /** @use HasFactory<\Database\Factories\UserFactory> */
     use HasUuids, HasFactory, Notifiable;
+
+    /**
+     * The attributes that are mass assignable.
+     *
+     * @var array<int, string>
+     */
+    protected $fillable = [
+        'consultant_id',
+        'full_name',
+        'email',
+        'password',
+        'role',
+        'permissions',
+        'phone',
+        'country_of_origin',
+        'nationality',
+        'profile_photo_url',
+        'is_verified',
+        'is_active',
+        'last_login_at',
+    ];
+
+    /**
+     * The attributes that should be hidden for serialization.
+     *
+     * @var array<int, string>
+     */
+    protected $hidden = [
+        'password',
+        'remember_token',
+    ];
 
     /**
      * The permissions that belong to the user.
      */
-    public function permissions()
+    public function permissions(): BelongsToMany
     {
         return $this->belongsToMany(Permission::class);
     }
@@ -47,6 +65,30 @@ class User extends Authenticatable implements JWTSubject
         if ($this->role === 'admin') return true; // Admin has all permissions
         
         return $this->permissions()->where('slug', $permission)->exists();
+    }
+
+    /**
+     * Get the consultant associated with the student.
+     */
+    public function consultant(): BelongsTo
+    {
+        return $this->belongsTo(User::class, 'consultant_id');
+    }
+
+    /**
+     * Get the students associated with the consultant.
+     */
+    public function students(): HasMany
+    {
+        return $this->hasMany(User::class, 'consultant_id');
+    }
+
+    /**
+     * Get the student profile associated with the user.
+     */
+    public function profile(): HasOne
+    {
+        return $this->hasOne(StudentProfile::class);
     }
 
     /**
@@ -79,7 +121,6 @@ class User extends Authenticatable implements JWTSubject
         return [
             'email_verified_at' => 'datetime',
             'password' => 'hashed',
-            // 'permissions' => 'array', // Removed JSON casting as we now use a relational table
         ];
     }
 }

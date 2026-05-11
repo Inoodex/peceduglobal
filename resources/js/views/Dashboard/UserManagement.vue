@@ -6,17 +6,17 @@
           <h1 class="text-2xl font-bold text-gray-900 dark:text-white">Access Control</h1>
           <p class="text-gray-500 dark:text-gray-400 text-sm">Manage users, roles and custom permissions</p>
         </div>
-        
+
         <!-- Tab Switcher -->
         <div class="bg-gray-100 dark:bg-gray-800 p-1 rounded-xl flex gap-1">
-          <button 
+          <button
             @click="activeTab = 'users'"
             class="px-4 py-1.5 rounded-lg text-sm font-bold transition-all"
             :class="activeTab === 'users' ? 'bg-white dark:bg-gray-700 text-primary shadow-sm' : 'text-gray-500'"
           >
             Users
           </button>
-          <button 
+          <button
             @click="activeTab = 'permissions'"
             class="px-4 py-1.5 rounded-lg text-sm font-bold transition-all"
             :class="activeTab === 'permissions' ? 'bg-white dark:bg-gray-700 text-primary shadow-sm' : 'text-gray-500'"
@@ -31,10 +31,10 @@
         <div class="flex justify-between items-center">
           <div class="relative">
             <Search class="absolute left-3 top-1/2 -translate-y-1/2 text-gray-400" :size="18" />
-            <input 
+            <input
               v-model="searchQuery"
-              type="text" 
-              placeholder="Search users..." 
+              type="text"
+              placeholder="Search users..."
               class="pl-10 pr-4 py-2 bg-white dark:bg-gray-800 border border-gray-200 dark:border-gray-700 rounded-lg focus:ring-2 focus:ring-primary outline-none transition-all w-64 text-sm"
             />
           </div>
@@ -45,8 +45,8 @@
         </div>
 
         <div v-else class="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-6">
-          <div 
-            v-for="user in filteredUsers" 
+          <div
+            v-for="user in filteredUsers"
             :key="user.id"
             class="bg-white dark:bg-[#1C252E] rounded-2xl border border-gray-100 dark:border-gray-800 p-5 shadow-sm hover:shadow-md transition-all group"
           >
@@ -60,7 +60,7 @@
                   <p class="text-xs text-gray-500">{{ user.email }}</p>
                 </div>
               </div>
-              <span 
+              <span
                 class="px-2.5 py-0.5 rounded-full text-[10px] font-bold uppercase tracking-wider"
                 :class="getRoleClass(user.role)"
               >
@@ -70,8 +70,8 @@
 
             <div class="space-y-3 min-h-[40px]">
               <div class="flex flex-wrap gap-1.5">
-                <span 
-                  v-for="perm in (user.permissions || [])" 
+                <span
+                  v-for="perm in (user.permissions || [])"
                   :key="perm.id"
                   class="px-2 py-0.5 bg-gray-100 dark:bg-gray-800 text-gray-600 dark:text-gray-400 rounded text-[10px] font-medium"
                 >
@@ -82,7 +82,7 @@
             </div>
 
             <div class="mt-6 pt-4 border-t border-gray-50 dark:border-gray-800 flex justify-end">
-              <button 
+              <button
                 @click="editUser(user)"
                 class="flex items-center gap-2 text-sm font-semibold text-primary hover:bg-primary/10 px-3 py-1.5 rounded-lg transition-colors"
               >
@@ -98,7 +98,7 @@
       <div v-if="activeTab === 'permissions'" class="space-y-6">
         <div class="flex justify-between items-center">
           <h2 class="text-lg font-bold">Dynamic Permissions</h2>
-          <button 
+          <button
             @click="isPermModalOpen = true"
             class="bg-primary text-white px-4 py-2 rounded-xl text-sm font-bold flex items-center gap-2 hover:bg-primary-dark transition-all"
           >
@@ -163,13 +163,13 @@
           <div>
             <label class="block text-sm font-bold text-gray-700 dark:text-gray-300 mb-3 uppercase tracking-wider">User Role</label>
             <div class="grid grid-cols-3 gap-3">
-              <button 
-                v-for="role in ['admin', 'counselor', 'student']" 
+              <button
+                v-for="role in ['admin', 'counselor', 'student']"
                 :key="role"
                 @click="editingUser.role = role"
                 class="px-4 py-3 rounded-xl border-2 text-sm font-bold transition-all text-center capitalize"
-                :class="editingUser.role === role 
-                  ? 'border-primary bg-primary/5 text-primary' 
+                :class="editingUser.role === role
+                  ? 'border-primary bg-primary/5 text-primary'
                   : 'border-gray-100 dark:border-gray-800 text-gray-500 hover:border-gray-200'"
               >
                 {{ role }}
@@ -180,8 +180,8 @@
           <div>
             <label class="block text-sm font-bold text-gray-700 dark:text-gray-300 mb-3 uppercase tracking-wider">Custom Permissions</label>
             <div class="grid grid-cols-1 gap-2">
-              <div 
-                v-for="perm in availablePermissions" 
+              <div
+                v-for="perm in availablePermissions"
                 :key="perm.id"
                 @click="togglePermission(perm.id)"
                 class="flex items-center justify-between p-3 rounded-xl border border-gray-100 dark:border-gray-800 hover:bg-gray-50 dark:hover:bg-gray-800/50 cursor-pointer transition-colors"
@@ -223,20 +223,20 @@
         <form @submit.prevent="saveNewPermission" class="p-6 space-y-4">
           <div>
             <label class="block text-xs font-bold text-gray-500 uppercase mb-2">Permission Name</label>
-            <input 
+            <input
               v-model="newPerm.name"
-              type="text" 
-              placeholder="e.g. Manage Universities" 
+              type="text"
+              placeholder="e.g. Manage Universities"
               required
               class="w-full px-4 py-2.5 bg-gray-50 dark:bg-gray-800 border border-gray-200 dark:border-gray-700 rounded-xl outline-none focus:ring-2 focus:ring-primary"
             />
           </div>
           <div>
             <label class="block text-xs font-bold text-gray-500 uppercase mb-2">Description</label>
-            <textarea 
+            <textarea
               v-model="newPerm.description"
               rows="3"
-              placeholder="What does this permission allow?" 
+              placeholder="What does this permission allow?"
               class="w-full px-4 py-2.5 bg-gray-50 dark:bg-gray-800 border border-gray-200 dark:border-gray-700 rounded-xl outline-none focus:ring-2 focus:ring-primary"
             ></textarea>
           </div>
@@ -257,7 +257,7 @@
 import { ref, computed, onMounted } from 'vue';
 import axios from '@/plugins/axios';
 import MainLayout from '@/layouts/MainLayout.vue';
-import { 
+import {
   Search, Users, ShieldCheck, X, Loader2, Plus, Lock, Trash2
 } from 'lucide-vue-next';
 
@@ -292,8 +292,8 @@ const fetchData = async () => {
 const filteredUsers = computed(() => {
   if (!searchQuery.value) return users.value;
   const query = searchQuery.value.toLowerCase();
-  return users.value.filter(u => 
-    u.full_name.toLowerCase().includes(query) || 
+  return users.value.filter(u =>
+    u.full_name.toLowerCase().includes(query) ||
     u.email.toLowerCase().includes(query)
   );
 });

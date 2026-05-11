@@ -117,16 +117,34 @@ const navigationData = [
     ]
   },
   {
-    title: 'Students',
-    roles: ['admin', 'counselor', 'student'],
+    title: 'Consultancy',
+    roles: ['admin','counselor'],
     items: [
       {
-        name: 'Profiles',
+        name: 'My Students',
+        icon: Users,
+        path: '/dashboard/my-students'
+      },
+      {
+        name: 'Student Applications',
+        icon: FileText,
+        path: '/dashboard/student-applications'
+      }
+    ]
+  },
+  {
+    title: 'Student Portal',
+    roles: ['student'],
+    items: [
+      {
+        name: 'My Profile',
         icon: GraduationCap,
-        children: [
-          { name: 'My Profile', path: '/student/profile' },
-          { name: 'Applications', path: '/student/applications' }
-        ]
+        path: '/student/profile'
+      },
+      {
+        name: 'My Applications',
+        icon: FileText,
+        path: '/student/applications'
       }
     ]
   },
