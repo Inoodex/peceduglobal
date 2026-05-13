@@ -62,8 +62,9 @@ Route::group(['prefix' => 'auth'], function () {
             Route::post('students/register', [StudentRegistrationController::class, 'register']);
             Route::post('students/profile', [StudentRegistrationController::class, 'createProfile']);
             Route::get('students/{id}', [StudentRegistrationController::class, 'show']);
-    Route::put('students/{id}', [StudentRegistrationController::class, 'update']);
+            Route::put('students/{id}', [StudentRegistrationController::class, 'update']);
             Route::delete('students/{id}', [StudentRegistrationController::class, 'destroy']);
+            Route::delete('students/{id}/document', [StudentRegistrationController::class, 'removeDocument']);
         });
 
         // Student Routes (Protected by role)

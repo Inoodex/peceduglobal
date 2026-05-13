@@ -152,12 +152,12 @@
                   <div class="flex gap-2 shrink-0">
                     <a :href="doc.url" target="_blank" class="text-blue-600 hover:underline font-semibold">View</a>
                     <a :href="doc.url" download :download="doc.file_name" class="text-green-600 hover:underline font-semibold">Download</a>
-                    <button @click="removeFile(doc.path, 'documents')" class="text-red-500 hover:text-red-700 font-semibold">Remove</button>
+                    <button type="button" @click="removeFile(doc.path || doc.file_path, 'documents')" class="text-red-500 hover:text-red-700 font-semibold">Remove</button>
                   </div>
                 </div>
               </div>
               <div v-else class="text-xs text-orange-500 italic mb-2">
-                ⚠️ No documents uploaded. Please upload.
+                 No documents uploaded. Please upload.
               </div>
 
               <input type="file" multiple accept=".pdf,.doc,.docx,.jpg,.jpeg,.png" @change="handleFiles($event, 'documents')" :class="fileInputClass" />
@@ -173,11 +173,11 @@
                   <div class="flex gap-2 shrink-0">
                     <a :href="doc.url" target="_blank" class="text-blue-600 hover:underline font-semibold">View</a>
                     <a :href="doc.url" download :download="doc.file_name" class="text-green-600 hover:underline font-semibold">Download</a>
-                    <button @click="removeFile(doc.path, 'translation_documents')" class="text-red-500 hover:text-red-700 font-semibold">Remove</button>
+                    <button type="button" @click="removeFile(doc.path || doc.file_path, 'translation_documents')" class="text-red-500 hover:text-red-700 font-semibold">Remove</button>
                   </div>
                 </div>
               </div>
-              <div v-else class="text-xs text-gray-400 italic mb-2">
+              <div v-else class="text-xs  text-orange-500  italic mb-2">
                 No translation documents found.
               </div>
 
