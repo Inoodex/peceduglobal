@@ -314,8 +314,25 @@ class StudentRegistrationController extends Controller
             }
 
             $profile = StudentProfile::firstOrNew(['user_id' => $user->id]);
-            $preferredIntake = $request->filled('course_intake_id')
-                ? CourseIntake::whereKey($request->course_intake_id)->value('intake_name')
+
+            // Multipart / optional fields: if a key is absent from the body, $request->input() is null
+            // and would wipe FKs. Only overwrite nullable FKs when the client actually sent the key.
+            $input = $request->input();
+            $nullableFk = ['university_id', 'course_id', 'course_intake_id'];
+            $fkValues = [];
+            foreach ($nullableFk as $key) {
+                if (array_key_exists($key, $input)) {
+                    $raw = $input[$key];
+                    $fkValues[$key] = ($raw === '' || $raw === null) ? null : $raw;
+                } elseif ($profile->exists) {
+                    $fkValues[$key] = $profile->getAttribute($key);
+                } else {
+                    $fkValues[$key] = null;
+                }
+            }
+
+            $preferredIntake = ! empty($fkValues['course_intake_id'])
+                ? CourseIntake::whereKey($fkValues['course_intake_id'])->value('intake_name')
                 : null;
 
             $profile->fill([
@@ -328,9 +345,9 @@ class StudentRegistrationController extends Controller
                 'passport_number' => $request->passport_number,
                 'passport_validity' => $request->passport_validity,
                 'country_id' => $request->country_id,
-                'university_id' => $request->university_id,
-                'course_id' => $request->course_id,
-                'course_intake_id' => $request->course_intake_id,
+                'university_id' => $fkValues['university_id'],
+                'course_id' => $fkValues['course_id'],
+                'course_intake_id' => $fkValues['course_intake_id'],
                 'preferred_intake' => $preferredIntake,
             ]);
 

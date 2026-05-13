@@ -9,9 +9,13 @@ use Illuminate\Support\Facades\Validator;
 
 class CourseIntakeController extends Controller
 {
-    public function index()
+    public function index(Request $request)
     {
-        $intakes = CourseIntake::with(['course', 'university'])->latest()->get();
+        $query = CourseIntake::with(['course', 'university'])->latest();
+        if ($request->filled('course_id')) {
+            $query->where('course_id', (int) $request->query('course_id'));
+        }
+        $intakes = $query->get();
         return response()->json(['data' => $intakes]);
     }
 

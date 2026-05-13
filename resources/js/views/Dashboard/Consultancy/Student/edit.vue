@@ -6,9 +6,9 @@
         <div v-if="!loadingStudent">
           <h1 class="text-2xl font-bold text-gray-900 dark:text-white mb-2">Edit Student</h1>
           <nav class="flex items-center gap-2 text-sm text-gray-500 dark:text-gray-400">
-            <span class="hover:text-gray-700 dark:hover:text-gray-300 cursor-pointer" @click="$router.push('/dashboard')">Dashboard</span
+            <span class="hover:text-gray-700 dark:hover:text-gray-300 cursor-pointer" @click="$router.push('/dashboard')">Dashboard</span>
             <ChevronRight class="w-4 h-4" />
-            <span class="hover:text-gray-700 dark:hover:text-gray-300 cursor-pointer" @click="$router.push('/dashboard/students')">Students</span
+            <span class="hover:text-gray-700 dark:hover:text-gray-300 cursor-pointer" @click="$router.push('/dashboard/students')">Students</span>
             <ChevronRight class="w-4 h-4" />
             <span class="text-gray-900 dark:text-white">Edit</span>
           </nav>
@@ -230,14 +230,29 @@ const existingDocs = ref([]);
 const existingTransDocs = ref([]);
 const files = ref({ documents: [], translation_docs: [] });
 
-// FIX: Cast to String to ensure match with IDs from API
+// Intakes for the selected course; if a saved intake exists but is missing from the list, keep it selectable
 const intakesForCourse = computed(() => {
   const cid = form.value.course_id;
-  if (!cid) return intakes.value;
-  return intakes.value.filter((i) => String(i.course_id) === String(cid));
+  const list = !cid
+    ? intakes.value
+    : intakes.value.filter((i) => String(i.course_id) === String(cid));
+  const sel = form.value.course_intake_id;
+  if (!sel) return list;
+  if (list.some((i) => String(i.id) === String(sel))) return list;
+  const found = intakes.value.find((i) => String(i.id) === String(sel));
+  return found ? [...list, found] : list;
 });
 
-watch(() => form.value.course_id, () => { form.value.course_intake_id = ''; });
+watch(
+  () => form.value.course_id,
+  (newId, oldId) => {
+    // Do not clear intake when hydrating from API (course_id goes from '' → saved value)
+    if (oldId === '' || oldId === null || oldId === undefined) return;
+    if (String(newId ?? '') !== String(oldId ?? '')) {
+      form.value.course_intake_id = '';
+    }
+  }
+);
 
 const handleFiles = (event, type) => {
   files.value[type] = [...event.target.files];
@@ -271,6 +286,7 @@ const fetchStudent = async () => {
     const response = await axios.get(`/auth/admin/students/${route.params.id}`);
     const student = response.data.data;
 
+    const idStr = (v) => (v != null && v !== '' ? String(v) : '');
     form.value = {
       first_name: student.first_name || '',
       last_name: student.last_name || '',
@@ -284,10 +300,10 @@ const fetchStudent = async () => {
       passport_validity: student.passport_validity || '',
       address: student.address || '',
       date_of_birth: student.date_of_birth || '',
-      country_id: student.country_id || '',
-      university_id: student.university_id || '',
-      course_id: student.course_id || '',
-      course_intake_id: student.course_intake_id || '',
+      country_id: idStr(student.country_id),
+      university_id: idStr(student.university_id),
+      course_id: idStr(student.course_id),
+      course_intake_id: idStr(student.course_intake_id),
     };
 
     existingDocs.value = student.documents || [];
@@ -331,10 +347,15 @@ const submit = async () => {
     fd.append('phone', f.phone);
     fd.append('country_id', f.country_id);
 
+    // Always send nullable FK keys so Laravel receives them (empty = clear). Omitting them used to null out DB on update.
+    fd.append('university_id', f.university_id ?? '');
+    fd.append('course_id', f.course_id ?? '');
+    fd.append('course_intake_id', f.course_intake_id ?? '');
+
     const optional = [
       'father_name', 'mother_name', 'sponsor_phone',
       'passport_number', 'passport_validity', 'address',
-      'date_of_birth', 'university_id', 'course_id', 'course_intake_id',
+      'date_of_birth',
     ];
     optional.forEach((key) => {
       if (f[key] !== '' && f[key] !== null) fd.append(key, f[key]);

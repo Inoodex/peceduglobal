@@ -103,26 +103,41 @@
             </div>
             <div class="space-y-2">
               <label class="text-sm font-medium dark:text-gray-300">Preferred University</label>
-              <select v-model="form.university_id" class="form-input">
-                <option value="">Select University</option>
+              <select
+                v-model="form.university_id"
+                class="form-input"
+                :disabled="!form.country_id || loadingUniversities"
+              >
+                <option value="">{{ universityPlaceholder }}</option>
                 <option v-for="u in universities" :key="u.id" :value="u.id">{{ u.name }}</option>
               </select>
+              <p v-if="!form.country_id" class="text-xs text-gray-500 dark:text-gray-400">Select a country first.</p>
             </div>
             <div class="space-y-2">
               <label class="text-sm font-medium dark:text-gray-300">Preferred Course</label>
-              <select v-model="form.course_id" class="form-input">
-                <option value="">Select Course</option>
+              <select
+                v-model="form.course_id"
+                class="form-input"
+                :disabled="!form.university_id || loadingCourses"
+              >
+                <option value="">{{ coursePlaceholder }}</option>
                 <option v-for="co in courses" :key="co.id" :value="co.id">{{ co.name }}</option>
               </select>
+              <p v-if="form.country_id && !form.university_id" class="text-xs text-gray-500 dark:text-gray-400">Select a university first.</p>
             </div>
             <div class="space-y-2 md:col-span-2">
               <label class="text-sm font-medium dark:text-gray-300">Preferred Intake</label>
-              <select v-model="form.course_intake_id" class="form-input">
-                <option value="">Select Intake</option>
-                <option v-for="i in intakesForCourse" :key="i.id" :value="i.id">
+              <select
+                v-model="form.course_intake_id"
+                class="form-input"
+                :disabled="!form.course_id || loadingIntakes"
+              >
+                <option value="">{{ intakePlaceholder }}</option>
+                <option v-for="i in intakes" :key="i.id" :value="i.id">
                   {{ i.intake_name }} — {{ i.course?.name }} ({{ i.university?.name }})
                 </option>
               </select>
+              <p v-if="form.university_id && !form.course_id" class="text-xs text-gray-500 dark:text-gray-400">Select a course first.</p>
             </div>
           </div>
         </div>
@@ -176,6 +191,9 @@ const countries = ref([]);
 const universities = ref([]);
 const courses = ref([]);
 const intakes = ref([]);
+const loadingUniversities = ref(false);
+const loadingCourses = ref(false);
+const loadingIntakes = ref(false);
 
 const form = ref({
   first_name: '',
@@ -198,16 +216,87 @@ const form = ref({
 
 const files = ref({ documents: [], translation_docs: [] });
 
-const intakesForCourse = computed(() => {
-  const cid = form.value.course_id;
-  if (!cid) return intakes.value;
-  return intakes.value.filter((i) => String(i.course_id) === String(cid));
-});
+const universityPlaceholder = computed(() =>
+  loadingUniversities.value ? 'Loading…' : 'Select University'
+);
+const coursePlaceholder = computed(() => (loadingCourses.value ? 'Loading…' : 'Select Course'));
+const intakePlaceholder = computed(() => (loadingIntakes.value ? 'Loading…' : 'Select Intake'));
+
+const resetUniversitiesBranch = () => {
+  form.value.university_id = '';
+  form.value.course_id = '';
+  form.value.course_intake_id = '';
+  universities.value = [];
+  courses.value = [];
+  intakes.value = [];
+};
+
+const resetCoursesBranch = () => {
+  form.value.course_id = '';
+  form.value.course_intake_id = '';
+  courses.value = [];
+  intakes.value = [];
+};
+
+const resetIntakesOnly = () => {
+  form.value.course_intake_id = '';
+  intakes.value = [];
+};
+
+watch(
+  () => form.value.country_id,
+  async (countryId) => {
+    resetUniversitiesBranch();
+    if (!countryId) return;
+    loadingUniversities.value = true;
+    try {
+      const res = await axios.get('/auth/admin/universities', {
+        params: { per_page: 500, country_id: countryId },
+      });
+      universities.value = unwrapList(res);
+    } catch (e) {
+      console.error('Failed to load universities', e);
+    } finally {
+      loadingUniversities.value = false;
+    }
+  }
+);
+
+watch(
+  () => form.value.university_id,
+  async (universityId) => {
+    resetCoursesBranch();
+    if (!universityId) return;
+    loadingCourses.value = true;
+    try {
+      const res = await axios.get('/auth/admin/courses', {
+        params: { per_page: 500, university_id: universityId },
+      });
+      courses.value = unwrapList(res);
+    } catch (e) {
+      console.error('Failed to load courses', e);
+    } finally {
+      loadingCourses.value = false;
+    }
+  }
+);
 
 watch(
   () => form.value.course_id,
-  () => {
-    form.value.course_intake_id = '';
+  async (courseId) => {
+    resetIntakesOnly();
+    if (!courseId) return;
+    loadingIntakes.value = true;
+    try {
+      const res = await axios.get('/auth/admin/course-intakes', {
+        params: { course_id: courseId },
+      });
+      intakes.value = res.data?.data ?? res.data ?? [];
+    } catch (e) {
+      console.error('Failed to load intakes', e);
+    } finally {
+      loadingIntakes.value = false;
+    }
   }
 );
 
@@ -222,20 +311,12 @@ const unwrapList = (res) => {
   return [];
 };
 
-const loadData = async () => {
+const loadCountries = async () => {
   try {
-    const [c, u, co, ink] = await Promise.all([
-      axios.get('/auth/admin/countries', { params: { per_page: 500 } }),
-      axios.get('/auth/admin/universities', { params: { per_page: 500 } }),
-      axios.get('/auth/admin/courses', { params: { per_page: 500 } }),
-      axios.get('/auth/admin/course-intakes'),
-    ]);
+    const c = await axios.get('/auth/admin/countries', { params: { per_page: 500 } });
     countries.value = unwrapList(c);
-    universities.value = unwrapList(u);
-    courses.value = unwrapList(co);
-    intakes.value = ink.data?.data ?? ink.data ?? [];
   } catch (e) {
-    console.error('Data loading failed', e);
+    console.error('Failed to load countries', e);
   }
 };
 
@@ -284,5 +365,5 @@ const submit = async () => {
   }
 };
 
-onMounted(loadData);
+onMounted(loadCountries);
 </script>

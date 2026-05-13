@@ -16,7 +16,11 @@ class UniversityController extends Controller
     public function index(Request $request): JsonResponse
     {
         $perPage = min(max((int) $request->query('per_page', 100), 1), 500);
-        $universities = University::with('country')->paginate($perPage);
+        $query = University::with('country');
+        if ($request->filled('country_id')) {
+            $query->where('country_id', (int) $request->query('country_id'));
+        }
+        $universities = $query->paginate($perPage);
         return response()->json([
             'success' => true,
             'data' => UniversityResource::collection($universities),

@@ -14,7 +14,11 @@ class CourseController extends Controller
     public function index(Request $request): JsonResponse
     {
         $perPage = min(max((int) $request->query('per_page', 100), 1), 500);
-        $courses = Course::with(['university', 'country', 'courseLevel'])->paginate($perPage);
+        $query = Course::with(['university', 'country', 'courseLevel']);
+        if ($request->filled('university_id')) {
+            $query->where('university_id', (int) $request->query('university_id'));
+        }
+        $courses = $query->paginate($perPage);
         return response()->json([
             'success' => true,
             'data' => $courses,
