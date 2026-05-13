@@ -7,38 +7,40 @@ use Illuminate\Support\Facades\Schema;
 return new class extends Migration
 {
     /**
-     * Run the migrations.
+     * Extra columns not present in create_student_profiles_table.
+     * (gender, nationality, alternative_phone — father_name etc. already exist on base table.)
      */
     public function up(): void
     {
         Schema::table('student_profiles', function (Blueprint $table) {
-            $table->string('father_name')->nullable()->after('phone');
-            $table->string('mother_name')->nullable()->after('father_name');
-            $table->date('date_of_birth')->nullable()->after('mother_name');
-            $table->string('gender')->nullable()->after('date_of_birth');
-            $table->string('passport_number')->nullable()->after('gender');
-            $table->date('passport_expiry')->nullable()->after('passport_number');
-            $table->string('nationality')->nullable()->after('passport_expiry');
-            $table->string('alternative_phone')->nullable()->after('nationality');
+            if (! Schema::hasColumn('student_profiles', 'gender')) {
+                $table->string('gender')->nullable()->after('date_of_birth');
+            }
+            if (! Schema::hasColumn('student_profiles', 'nationality')) {
+                $table->string('nationality')->nullable()->after('passport_validity');
+            }
+            if (! Schema::hasColumn('student_profiles', 'alternative_phone')) {
+                $table->string('alternative_phone')->nullable()->after('sponsor_phone');
+            }
         });
     }
 
-    /**
-     * Reverse the migrations.
-     */
     public function down(): void
     {
         Schema::table('student_profiles', function (Blueprint $table) {
-            $table->dropColumn([
-                'father_name',
-                'mother_name',
-                'date_of_birth',
-                'gender',
-                'passport_number',
-                'passport_expiry',
-                'nationality',
-                'alternative_phone'
-            ]);
+            $cols = [];
+            if (Schema::hasColumn('student_profiles', 'gender')) {
+                $cols[] = 'gender';
+            }
+            if (Schema::hasColumn('student_profiles', 'nationality')) {
+                $cols[] = 'nationality';
+            }
+            if (Schema::hasColumn('student_profiles', 'alternative_phone')) {
+                $cols[] = 'alternative_phone';
+            }
+            if ($cols !== []) {
+                $table->dropColumn($cols);
+            }
         });
     }
 };

@@ -7,6 +7,7 @@ use App\Http\Controllers\Api\Admin\CountryController;
 use App\Http\Controllers\Api\Admin\Education\UniversityController;
 use App\Http\Controllers\Api\Admin\Education\CourseController;
 use App\Http\Controllers\Api\Admin\Education\CourseLevelController;
+use App\Http\Controllers\Api\Admin\Education\StudentRegistrationController;
 use App\Http\Controllers\Api\AuthController;
 use App\Http\Controllers\Api\BlogCategoryController;
 use App\Http\Controllers\Api\BlogPostController;
@@ -57,6 +58,12 @@ Route::group(['prefix' => 'auth'], function () {
             Route::apiResource('courses', CourseController::class);
             Route::apiResource('course-levels', CourseLevelController::class);
             Route::apiResource('course-intakes', CourseIntakeController::class);
+            Route::get('students', [StudentRegistrationController::class, 'index']);
+            Route::post('students/register', [StudentRegistrationController::class, 'register']);
+            Route::post('students/profile', [StudentRegistrationController::class, 'createProfile']);
+            Route::get('students/{id}', [StudentRegistrationController::class, 'show']);
+    Route::put('students/{id}', [StudentRegistrationController::class, 'update']);
+            Route::delete('students/{id}', [StudentRegistrationController::class, 'destroy']);
         });
 
         // Student Routes (Protected by role)
@@ -69,4 +76,3 @@ Route::group(['prefix' => 'auth'], function () {
         });
     });
 });
-

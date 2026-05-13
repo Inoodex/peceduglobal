@@ -203,12 +203,25 @@ const routes = [
         component: () => import('../views/Dashboard/Consultancy/Student/index.vue'),
         meta: { auth: true, permission: 'edit_student' }
     },
+
+    {
+        path: '/dashboard/students/register',
+        name: 'RegisterStudent',
+        component: () => import('@/views/Dashboard/Consultant/RegisterStudent.vue')
+    },
     {
         path: '/dashboard/students/create',
         name: 'student-create',
         component: () => import('../views/Dashboard/Consultancy/Student/create.vue'),
         meta: { auth: true, permission: 'edit_student' }
+
     },
+    {
+    path: '/dashboard/students/edit/:id',
+    name: 'student-edit',
+    component: () => import('../views/Dashboard/Consultancy/Student/edit.vue'),
+    meta: { auth: true, permission: 'edit_student' }
+},
     {
         path: '/dashboard/applications',
         name: 'application-list',

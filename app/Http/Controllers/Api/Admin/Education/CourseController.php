@@ -11,9 +11,10 @@ use Illuminate\Support\Str;
 
 class CourseController extends Controller
 {
-    public function index(): JsonResponse
+    public function index(Request $request): JsonResponse
     {
-        $courses = Course::with(['university', 'country', 'courseLevel'])->paginate(15);
+        $perPage = min(max((int) $request->query('per_page', 100), 1), 500);
+        $courses = Course::with(['university', 'country', 'courseLevel'])->paginate($perPage);
         return response()->json([
             'success' => true,
             'data' => $courses,

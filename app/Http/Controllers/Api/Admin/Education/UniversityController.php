@@ -6,15 +6,17 @@ use App\Http\Controllers\Controller;
 use App\Http\Requests\Admin\Education\StoreUniversityRequest;
 use App\Http\Resources\Admin\Education\UniversityResource;
 use App\Models\University;
+use Illuminate\Http\Request;
 use Illuminate\Http\JsonResponse;
 use Illuminate\Http\Response;
 use Illuminate\Support\Str;
 
 class UniversityController extends Controller
 {
-    public function index(): JsonResponse
+    public function index(Request $request): JsonResponse
     {
-        $universities = University::with('country')->paginate(15);
+        $perPage = min(max((int) $request->query('per_page', 100), 1), 500);
+        $universities = University::with('country')->paginate($perPage);
         return response()->json([
             'success' => true,
             'data' => UniversityResource::collection($universities),

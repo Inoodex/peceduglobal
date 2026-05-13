@@ -100,6 +100,16 @@
   }
 }
 
+@layer components {
+  .form-input {
+    @apply w-full px-4 py-2 rounded-lg border dark:bg-[#141A21] dark:border-gray-700 dark:text-white outline-none focus:ring-2 focus:ring-primary/20 transition-all;
+  }
+
+  .file-input {
+    @apply w-full text-sm text-gray-500 file:mr-4 file:py-2 file:px-4 file:rounded-full file:border-0 file:text-sm file:font-semibold file:bg-primary/10 file:text-primary hover:file:bg-primary/20;
+  }
+}
+
 @layer utilities {
   .glass {
     @apply backdrop-blur-md opacity-90;

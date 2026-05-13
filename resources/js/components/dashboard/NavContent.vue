@@ -121,10 +121,12 @@ const navigationData = [
     title: 'Consultancy',
     roles: ['admin','counselor'],
     items: [
+      
       {
         name: 'Students',
         icon: Users,
         children: [
+          { name: 'Register Student', path: '/dashboard/students/register' },
           { name: 'Student List', path: '/dashboard/students' },
           { name: 'Add Student', path: '/dashboard/students/create' }
         ]

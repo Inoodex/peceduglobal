@@ -79,9 +79,9 @@ class PageController extends Controller
         $validated = $request->validated();
         
         // Auto-generate slug if not provided
-        if (empty($validated['slug'])) {
-            $validated['slug'] = $this->generateUniqueSlug($validated['title'], $page->id);
-        }
+        // if (empty($validated['slug'])) {
+        //     $validated['slug'] = $this->generateUniqueSlug($validated['title'], $page->id);
+        // }
         
         if ($request->hasFile('thumbnail')) {
             $validated['thumbnail'] = $request->file('thumbnail')->store('pages/thumbnails', 'public');

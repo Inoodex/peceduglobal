@@ -6,15 +6,17 @@ use App\Http\Controllers\Controller;
 use App\Http\Requests\Admin\StoreCountryRequest;
 use App\Http\Resources\Admin\CountryResource;
 use App\Models\Country;
+use Illuminate\Http\Request;
 use Illuminate\Http\JsonResponse;
 use Illuminate\Http\Response;
 use Illuminate\Support\Str;
 
 class CountryController extends Controller
 {
-    public function index(): JsonResponse
+    public function index(Request $request): JsonResponse
     {
-        $countries = Country::paginate(15);
+        $perPage = min(max((int) $request->query('per_page', 100), 1), 500);
+        $countries = Country::paginate($perPage);
         return response()->json([
             'success' => true,
             'data' => CountryResource::collection($countries),
