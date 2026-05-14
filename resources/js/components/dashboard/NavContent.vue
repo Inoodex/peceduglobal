@@ -93,6 +93,7 @@ const navigationData = [
         icon: BookOpen,
         permission: 'manage_pages',
         children: [
+          { name: 'Hero Sliders', path: '/dashboard/hero-sliders' },
           { name: 'Pages', path: '/dashboard/page-manager' },
           { name: 'Blocks', path: '/dashboard/block-manager' },
           { name: 'Elements', path: '/dashboard/element-manager' }

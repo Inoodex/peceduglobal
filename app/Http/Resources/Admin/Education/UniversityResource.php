@@ -12,8 +12,8 @@ class UniversityResource extends JsonResource
             'id' => $this->id,
             'name' => $this->name,
             'slug' => $this->slug,
-            'logo' => $this->logo ? asset('storage/' . $this->logo) : null,
-            'banner' => $this->banner ? asset('storage/' . $this->banner) : null,
+            'logo' => $this->logo ? (str_starts_with($this->logo, '/storage/') ? $this->logo : '/storage/' . $this->logo) : null,
+            'banner' => $this->banner ? (str_starts_with($this->banner, '/storage/') ? $this->banner : '/storage/' . $this->banner) : null,
             'country_id' => $this->country_id,
             'country' => $this->whenLoaded('country', function() {
                 return [

@@ -27,7 +27,8 @@ class CountryController extends Controller
     {
         $validated = $request->validated();
         if ($request->hasFile('thumbnail')) {
-            $validated['thumbnail'] = $request->file('thumbnail')->store('countries/thumbnails', 'public');
+            $path = $request->file('thumbnail')->store('countries/thumbnails', 'public');
+            $validated['thumbnail'] = '/storage/' . $path;
         }
         if (empty($validated['slug']) && !empty($validated['name'])) {
             $slug = Str::slug($validated['name']);
@@ -58,7 +59,8 @@ class CountryController extends Controller
     {
         $validated = $request->validated();
         if ($request->hasFile('thumbnail')) {
-            $validated['thumbnail'] = $request->file('thumbnail')->store('countries/thumbnails', 'public');
+            $path = $request->file('thumbnail')->store('countries/thumbnails', 'public');
+            $validated['thumbnail'] = '/storage/' . $path;
         }
         if (empty($validated['slug']) && !empty($validated['name'])) {
             $slug = Str::slug($validated['name']);

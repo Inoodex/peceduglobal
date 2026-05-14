@@ -10,6 +10,7 @@ use App\Http\Controllers\Api\Admin\Education\CourseLevelController;
 use App\Http\Controllers\Api\Admin\Education\StudentRegistrationController;
 use App\Http\Controllers\Api\Admin\Education\ApplicationController as AdminApplicationController;
 use App\Http\Controllers\Api\Consultant\AvailabilityController;
+use App\Http\Controllers\Api\Admin\HeroSliderController;
 use App\Http\Controllers\Api\Student\AppointmentController;
 use App\Http\Controllers\Api\AuthController;
 use App\Http\Controllers\Api\BlogCategoryController;
@@ -38,66 +39,70 @@ Route::group(['prefix' => 'auth'], function () {
             Route::post('blog-posts/upload-image', [BlogPostController::class, 'uploadImage']);
         });
 
-            // Admin Specific Routes
-            Route::middleware('role:admin')->prefix('admin')->group(function () {
-                // User Management
-                Route::get('users', [UserController::class, 'index']);
-                Route::put('users/{user}/role', [UserController::class, 'updateRole']);
-                Route::put('users/{user}/permissions', [UserController::class, 'updatePermissions']);
+        // Admin & Shared Management Routes
+        Route::middleware(['role:admin,consultant', 'auto-permission'])->prefix('admin')->group(function () {
+            // User Management
+            Route::get('users', [UserController::class, 'index']);
+            Route::put('users/{user}/role', [UserController::class, 'updateRole']);
+            Route::put('users/{user}/permissions', [UserController::class, 'updatePermissions']);
 
-                // Permission Management
-                Route::apiResource('permissions', PermissionController::class)->only(['index', 'store', 'destroy']);
+            // Permission Management
+            Route::apiResource('permissions', PermissionController::class)->only(['index', 'store', 'destroy']);
+
+            // Hero Slider Management
+            Route::get('hero-sliders', [HeroSliderController::class, 'index']);
+            Route::post('hero-sliders', [HeroSliderController::class, 'store']);
+            Route::get('hero-sliders/{id}', [HeroSliderController::class, 'show']);
+            Route::post('hero-sliders/{id}', [HeroSliderController::class, 'update']);
+            Route::delete('hero-sliders/{id}', [HeroSliderController::class, 'destroy']);
+
+            // Country Management
+            Route::apiResource('countries', CountryController::class);
+
+            // Education Management
+            Route::apiResource('universities', UniversityController::class);
+            Route::apiResource('courses', CourseController::class);
+            Route::apiResource('course-levels', CourseLevelController::class);
+            Route::apiResource('course-intakes', CourseIntakeController::class);
+
+            // Content Management (Pages, Blocks, etc.)
+            Route::apiResource('pages', PageController::class);
+            Route::apiResource('blocks', BlockController::class);
+            Route::post('blocks/reorder', [BlockController::class, 'updateOrder']);
+            Route::apiResource('elements', ElementController::class);
+            Route::post('editor/upload', [EditorUploadController::class, 'upload']);
+
+            Route::get('students', [StudentRegistrationController::class, 'index']);
+            Route::post('students/register', [StudentRegistrationController::class, 'register']);
+            Route::post('students/profile', [StudentRegistrationController::class, 'createProfile']);
+            Route::get('students/{id}', [StudentRegistrationController::class, 'show']);
+            Route::put('students/{id}', [StudentRegistrationController::class, 'update']);
+            Route::delete('students/{id}', [StudentRegistrationController::class, 'destroy']);
+            Route::delete('students/{id}/document', [StudentRegistrationController::class, 'removeDocument']);
+
+            // Applications Management
+            Route::get('applications/metadata', [AdminApplicationController::class, 'metadata']);
+            Route::apiResource('applications', AdminApplicationController::class);
+        });
+
+        // Booking & Appointment Management (Clean Prefix)
+        Route::prefix('booking')->group(function () {
+
+            // Consultant Booking Routes
+            Route::middleware('role:consultant')->prefix('consultant')->group(function () {
+                Route::post('available-slots', [AvailabilityController::class, 'store']);
+                Route::delete('release-slot', [AvailabilityController::class, 'releaseSlot']);
+                Route::get('my-claimed-slots', [AvailabilityController::class, 'getMyClaimedSlots']);
+                Route::get('student-appointments', [AppointmentController::class, 'getConsultantAppointments']);
             });
 
-            // Shared Admin/Consultant content routes
-            Route::middleware(['role:admin,consultant', 'auto-permission'])->prefix('content')->group(function () {
-                Route::apiResource('pages', PageController::class);
-                Route::apiResource('blocks', BlockController::class);
-                Route::post('blocks/reorder', [BlockController::class, 'updateOrder']);
-                Route::apiResource('elements', ElementController::class);
-                Route::post('editor/upload', [EditorUploadController::class, 'upload']);
-                Route::apiResource('universities', UniversityController::class);
-                Route::apiResource('courses', CourseController::class);
-                Route::apiResource('course-levels', CourseLevelController::class);
-                Route::apiResource('course-intakes', CourseIntakeController::class);
-                Route::get('students', [StudentRegistrationController::class, 'index']);
-                Route::post('students/register', [StudentRegistrationController::class, 'register']);
-                Route::post('students/profile', [StudentRegistrationController::class, 'createProfile']);
-                Route::get('students/{id}', [StudentRegistrationController::class, 'show']);
-                Route::put('students/{id}', [StudentRegistrationController::class, 'update']);
-                Route::delete('students/{id}', [StudentRegistrationController::class, 'destroy']);
-                Route::delete('students/{id}/document', [StudentRegistrationController::class, 'removeDocument']);
-                
-                // Applications Management
-                Route::get('applications/metadata', [AdminApplicationController::class, 'metadata']);
-                Route::apiResource('applications', AdminApplicationController::class);
+            // Student Booking Routes
+            Route::middleware('role:student')->prefix('student')->group(function () {
+                Route::get('my-appointments', [AppointmentController::class, 'getMyAppointments']);
             });
+        });
 
-            // Booking & Appointment Management (Clean Prefix)
-            Route::prefix('booking')->group(function() {
-
-                // Consultant Booking Routes
-                Route::middleware('role:consultant')->prefix('consultant')->group(function () {
-                    Route::post('available-slots', [AvailabilityController::class, 'store']);
-                    Route::delete('release-slot', [AvailabilityController::class, 'releaseSlot']);
-                    Route::get('my-claimed-slots', [AvailabilityController::class, 'getMyClaimedSlots']);
-                    Route::get('student-appointments', [AppointmentController::class, 'getConsultantAppointments']);
-                });
-
-                // Student Booking Routes
-                Route::middleware('role:student')->prefix('student')->group(function () {
-                    Route::get('my-appointments', [AppointmentController::class, 'getMyAppointments']);
-                });
-            });
-
-            // Public/Shared Lookups
-            Route::prefix('content')->group(function () {
-                Route::get('countries', [CountryController::class, 'index']);
-                Route::get('course-levels', [CourseLevelController::class, 'index']);
-                Route::get('course-intakes', [CourseIntakeController::class, 'index']);
-            });
-
-            // Student Routes (Protected by role)
+        // Student Routes (Protected by role)
         Route::prefix('student')->middleware('role:student')->group(function () {
             Route::get('profile', [ProfileController::class, 'show']);
             Route::put('profile', [ProfileController::class, 'update']);

@@ -42,11 +42,13 @@ class UniversityController extends Controller
         }
 
         if ($request->hasFile('logo')) {
-            $validated['logo'] = $request->file('logo')->store('universities/logos', 'public');
+            $path = $request->file('logo')->store('universities/logos', 'public');
+            $validated['logo'] = '/storage/' . $path;
         }
 
         if ($request->hasFile('banner')) {
-            $validated['banner'] = $request->file('banner')->store('universities/banners', 'public');
+            $path = $request->file('banner')->store('universities/banners', 'public');
+            $validated['banner'] = '/storage/' . $path;
         }
 
         $university = University::create($validated);
@@ -82,11 +84,13 @@ class UniversityController extends Controller
         }
 
         if ($request->hasFile('logo')) {
-            $validated['logo'] = $request->file('logo')->store('universities/logos', 'public');
+            $path = $request->file('logo')->store('universities/logos', 'public');
+            $validated['logo'] = '/storage/' . $path;
         }
 
         if ($request->hasFile('banner')) {
-            $validated['banner'] = $request->file('banner')->store('universities/banners', 'public');
+            $path = $request->file('banner')->store('universities/banners', 'public');
+            $validated['banner'] = '/storage/' . $path;
         }
 
         $university->update($validated);

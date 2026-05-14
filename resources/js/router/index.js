@@ -222,18 +222,12 @@ const routes = [
         component: () => import('../views/Dashboard/Consultancy/Student/edit.vue'),
         meta: { auth: true, permission: 'edit_student' }
     },
-    // Booking & Appointment Management for Admin
+    // hero slider
     {
-        path: '/dashboard/booking/templates',
-        name: 'admin.booking.templates',
-        component: () => import('@/views/Dashboard/Admin/Booking/Templates.vue'),
-        meta: { auth: true, role: 'admin' }
-    },
-    {
-        path: '/dashboard/booking/generate',
-        name: 'admin.booking.generate',
-        component: () => import('@/views/Dashboard/Admin/Booking/Generate.vue'),
-        meta: { auth: true, role: 'admin' }
+        path: '/dashboard/hero-sliders',
+        name: 'hero-sliders',
+        component: () => import('@/views/Dashboard/Admin/CMS/HeroSlider/index.vue'),
+        meta: { auth: true, permission: 'manage_pages' }
     },
     // Consultant Specific Routes
     {
