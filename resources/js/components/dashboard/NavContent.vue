@@ -48,7 +48,7 @@
 </template>
 
 <script setup>
-import { computed } from 'vue';
+import { computed, provide } from 'vue';
 import { useLayoutStore } from '@/stores/layout';
 import { useAuthStore } from '@/stores/auth';
 import NavItem from './NavItem.vue';
@@ -210,6 +210,21 @@ const navigation = computed(() => {
     }))
     .filter(section => section.items.length > 0);
 });
+
+// Collect all available paths in the navigation to help NavItem decide on "longest match"
+const allNavPaths = computed(() => {
+  const paths = [];
+  const extractPaths = (items) => {
+    items.forEach(item => {
+      if (item.path) paths.push(item.path);
+      if (item.children) extractPaths(item.children);
+    });
+  };
+  navigation.value.forEach(section => extractPaths(section.items));
+  return paths;
+});
+
+provide('allNavPaths', allNavPaths);
 </script>
 
 <style scoped>

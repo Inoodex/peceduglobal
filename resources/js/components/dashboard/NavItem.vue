@@ -143,7 +143,7 @@ export default { name: 'NavItem' }
 </script>
 
 <script setup>
-import { ref, computed, watch } from 'vue';
+import { ref, computed, watch, inject } from 'vue';
 import { useRouter, useRoute } from 'vue-router';
 import { ChevronRight } from 'lucide-vue-next';
 import { useLayoutStore } from '@/stores/layout';
@@ -160,22 +160,40 @@ const props = defineProps({
 const layout = useLayoutStore();
 const router = useRouter();
 const route = useRoute();
+const allNavPaths = inject('allNavPaths', ref([]));
 
 // Helper function to check if the current route matches the item path
 const isActive = computed(() => {
+  const currentPath = route.path;
+  
   if (props.item.path) {
-    // If path is exactly '/dashboard', use exact match to avoid highlighting it on sub-pages
-    if (props.item.path === '/dashboard') {
-      return route.path === props.item.path;
-    }
-    return route.path === props.item.path || route.path.startsWith(props.item.path + '/');
+    // 1. Basic Check: Does the current path start with this item's path?
+    const isPrefix = currentPath === props.item.path || currentPath.startsWith(props.item.path + '/');
+    if (!isPrefix) return false;
+
+    // 2. SMART CHECK (Longest Match): 
+    // Is there any other item in the sidebar that is a BETTER (longer) match for the current path?
+    // For example, if we are on /dashboard/students/create:
+    // /dashboard/students matches (length 19)
+    // /dashboard/students/create matches (length 26)
+    // So /dashboard/students/create is the winner.
+    const betterMatch = allNavPaths.value.find(p => 
+      p !== props.item.path && 
+      (currentPath === p || currentPath.startsWith(p + '/')) && 
+      p.length > props.item.path.length
+    );
+
+    return !betterMatch;
   }
+  
+  // For parent items with children, check if any child is active
   if (props.item.children) {
     return props.item.children.some(child => {
       if (!child.path) return false;
-      return route.path === child.path || route.path.startsWith(child.path + '/');
+      return currentPath === child.path || currentPath.startsWith(child.path + '/');
     });
   }
+  
   return false;
 });
 
