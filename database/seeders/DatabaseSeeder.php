@@ -42,20 +42,20 @@ class DatabaseSeeder extends Seeder
             ]
         );
 
-        // 3. Create a Test Counselor
-        $counselor = User::updateOrCreate(
-            ['email' => 'counselor@gmail.com'],
+        // 3. Create a Test Consultant
+        $consultant = User::updateOrCreate(
+            ['email' => 'consultant@gmail.com'],
             [
-                'full_name' => 'Test Counselor',
+                'full_name' => 'Test Consultant',
                 'password' => Hash::make('password'),
-                'role' => 'counselor',
+                'role' => 'consultant',
                 'is_verified' => true,
             ]
         );
 
-        // Assign some permissions to Counselor
-        $counselorPerms = \App\Models\Permission::whereIn('slug', ['view_applications', 'edit_student'])->pluck('id');
-        $counselor->permissions()->sync($counselorPerms);
+        // Assign some permissions to Consultant
+        $consultantPerms = \App\Models\Permission::whereIn('slug', ['view_applications', 'edit_student'])->pluck('id');
+        $consultant->permissions()->sync($consultantPerms);
 
         // 4. Create a Test Student
         User::updateOrCreate(

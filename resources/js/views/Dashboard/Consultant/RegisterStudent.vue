@@ -168,7 +168,7 @@ const form = ref({
 
 const fetchCountries = async () => {
   try {
-    const { data } = await axios.get('/auth/admin/countries');
+    const { data } = await axios.get('/auth/content/countries');
     countries.value = data.data;
   } catch (e) {
     console.error('Error fetching countries:', e);
@@ -182,7 +182,7 @@ const submit = async () => {
       phone: form.value.phone,
       full_name: `${form.value.first_name} ${form.value.last_name}`.trim()
     };
-    await axios.post('/auth/admin/students/register', payload);
+    await axios.post('/auth/content/students/register', payload);
     router.push('/dashboard/students');
   } catch (e) {
     const msg = e.response?.data?.errors

@@ -79,14 +79,14 @@ const auth = useAuthStore();
 const navigationData = [
   {
     title: 'Overview',
-    roles: ['admin', 'counselor', 'student'],
+    roles: ['admin', 'consultant', 'student'],
     items: [
       { name: 'Dashboard', icon: LayoutDashboard, path: '/dashboard' },
     ]
   },
   {
     title: 'Content',
-    roles: ['admin', 'counselor'],
+    roles: ['admin', 'consultant'],
     items: [
       {
         name: 'Page Manager',
@@ -121,7 +121,7 @@ const navigationData = [
   },
   {
     title: 'Consultancy',
-    roles: ['admin','counselor'],
+    roles: ['admin', 'consultant'],
     items: [
       
       {
@@ -144,19 +144,17 @@ const navigationData = [
     ]
   },
   {
-    title: 'Booking Management',
-    roles: ['admin'],
-    items: [
-      { name: 'Schedule Templates', path: '/dashboard/booking/templates', icon: Calendar },
-      { name: 'Generate Slots', path: '/dashboard/booking/generate', icon: Clock },
-    ]
-  },
-  {
     title: 'Consultant Services',
-    roles: ['counselor'],
+    roles: ['consultant'],
     items: [
-      { name: 'Manage Availability', path: '/dashboard/consultant/availability', icon: Clock },
-      { name: 'Student Appointments', path: '/dashboard/consultant/appointments', icon: Calendar },
+      {
+        name: 'Counselling',
+        icon: Users,
+        children: [
+          { name: 'Manage Availability', path: '/dashboard/consultant/availability', icon: Clock },
+          { name: 'Student Appointments', path: '/dashboard/consultant/appointments', icon: Calendar },
+        ]
+      }
     ]
   },
   {
@@ -193,7 +191,7 @@ const navigationData = [
   },
   {
     title: 'Blog',
-    roles: ['admin', 'counselor'],
+    roles: ['admin', 'consultant'],
     items: [
       {
         name: 'Blog',

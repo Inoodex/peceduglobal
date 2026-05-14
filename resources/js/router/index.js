@@ -245,7 +245,7 @@ const routes = [
     {
         path: '/dashboard/consultant/appointments',
         name: 'consultant.appointments',
-        component: () => import('@/views/Dashboard/Student/Appointment/index.vue'),
+        component: () => import('@/views/Dashboard/Consultant/Appointment/index.vue'),
         meta: { auth: true, role: 'consultant' }
     },
     // Student Specific Routes
@@ -278,6 +278,12 @@ const routes = [
         name: 'user-management',
         component: () => import('../views/Dashboard/UserManagement.vue'),
         meta: { auth: true, role: 'admin' }
+    },
+    {
+        path: '/dashboard/profile',
+        name: 'user.profile',
+        component: () => import('@/views/Dashboard/Student/Profile.vue'), // Assuming this view exists or using a placeholder
+        meta: { auth: true }
     },
     {
         path: '/',

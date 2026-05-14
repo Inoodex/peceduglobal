@@ -10,17 +10,14 @@ return new class extends Migration
     {
         Schema::create('appointments', function (Blueprint $table) {
             $table->id();
-            $table->foreignId('availability_id')->constrained('consultant_availability')->onDelete('cascade');
+            $table->foreignId('schedule_id')->constrained('consultant_schedules')->onDelete('cascade');
             $table->foreignUuid('student_id')->constrained('users')->onDelete('cascade');
             $table->enum('status', ['pending', 'confirmed', 'cancelled', 'completed'])->default('pending');
             $table->enum('meeting_type', ['online', 'physical'])->default('online');
             $table->string('meeting_link')->nullable();
-            $table->text('remarks')->nullable();
+            $table->text('student_notes')->nullable();
+            $table->text('consultant_notes')->nullable();
             $table->timestamps();
-            
-            $table->unique(['student_id', 'availability_id'], 'unique_student_slot');
-            $table->index('status');
-            $table->index('student_id');
         });
     }
 

@@ -7,17 +7,18 @@ use Illuminate\Database\Eloquent\Model;
 class Appointment extends Model
 {
     protected $fillable = [
-        'availability_id',
+        'schedule_id',
         'student_id',
         'status',
         'meeting_type',
         'meeting_link',
-        'remarks'
+        'student_notes',
+        'consultant_notes'
     ];
 
-    public function availability()
+    public function schedule()
     {
-        return $this->belongsTo(ConsultantAvailability::class, 'availability_id');
+        return $this->belongsTo(ConsultantSchedule::class, 'schedule_id');
     }
 
     public function student()
@@ -26,17 +27,17 @@ class Appointment extends Model
     }
 
     /**
-     * Get the consultant through availability
+     * Get the consultant through schedule
      */
     public function consultant()
     {
         return $this->hasOneThrough(
             User::class,
-            ConsultantAvailability::class,
-            'id', // Local key on consultant_availability
-            'id', // Local key on users
-            'availability_id', // Foreign key on appointments
-            'consultant_id' // Foreign key on consultant_availability
+            ConsultantSchedule::class,
+            'id',            // Local key on consultant_schedules
+            'id',            // Local key on users
+            'schedule_id',   // Foreign key on appointments
+            'consultant_id'  // Foreign key on consultant_schedules
         );
     }
 }

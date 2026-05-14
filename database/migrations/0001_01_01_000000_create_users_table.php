@@ -17,7 +17,7 @@ return new class extends Migration
             $table->string('email')->unique();
             $table->string('phone', 20)->nullable();
             $table->string('password');
-            $table->enum('role', ['student', 'counselor', 'admin'])->default('student');
+            $table->enum('role', ['student', 'consultant', 'admin'])->default('student');
             $table->json('permissions')->nullable(); // Dynamic permissions
             $table->string('country_of_origin', 100)->nullable();
             $table->string('nationality', 100)->nullable();

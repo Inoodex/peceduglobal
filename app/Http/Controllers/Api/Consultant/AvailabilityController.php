@@ -3,18 +3,18 @@
 namespace App\Http\Controllers\Api\Consultant;
 
 use App\Http\Controllers\Controller;
-use App\Models\TimeSlot;
-use App\Models\ConsultantAvailability;
+use App\Models\ConsultantSchedule;
 use Illuminate\Http\Request;
 use Illuminate\Support\Facades\Validator;
-use Carbon\Carbon;
 
 class AvailabilityController extends Controller
 {
-    public function getAvailableSlots(Request $request)
+    public function store(Request $request)
     {
         $validator = Validator::make($request->all(), [
-            'date' => 'required|date|after_or_equal:today'
+            'slot_date' => 'required|date|after_or_equal:today',
+            'start_time' => 'required|date_format:H:i',
+            'end_time' => 'required|date_format:H:i|after:start_time',
         ]);
 
         if ($validator->fails()) {
@@ -25,97 +25,30 @@ class AvailabilityController extends Controller
         }
 
         try {
-            $date = $request->date;
-            $consultantId = auth()->id();
-
-            $slots = TimeSlot::where('slot_date', $date)
-                ->where('status', 'open')
-                ->with(['availabilities' => function($query) use ($consultantId) {
-                    $query->where('consultant_id', $consultantId);
-                }])
-                ->get()
-                ->map(function($slot) use ($consultantId) {
-                    $availability = $slot->availabilities->first();
-                    return [
-                        'id' => $slot->id,
-                        'date' => $slot->slot_date,
-                        'start_time' => $slot->start_time,
-                        'end_time' => $slot->end_time,
-                        'is_claimed' => $availability ? true : false,
-                        'availability_id' => $availability ? $availability->id : null,
-                        'status' => $availability ? $availability->status : 'available_for_claim'
-                    ];
-                });
-
-            return response()->json([
-                'success' => true,
-                'data' => $slots
-            ], 200);
-
-        } catch (\Exception $e) {
-            return response()->json([
-                'success' => false,
-                'message' => $e->getMessage()
-            ], 500);
-        }
-    }
-
-    public function claimSlot(Request $request)
-    {
-        $validator = Validator::make($request->all(), [
-            'slot_id' => 'required|exists:time_slots,id'
-        ]);
-
-        if ($validator->fails()) {
-            return response()->json([
-                'success' => false,
-                'errors' => $validator->errors()
-            ], 422);
-        }
-
-        try {
-            $consultantId = auth()->id();
-            $slotId = $request->slot_id;
-
-            // Check if already claimed by ANY consultant? 
-            // In your design multiple consultants can claim same slot if it's available for claim
-            // But usually one consultant only once
-            $existing = ConsultantAvailability::where('consultant_id', $consultantId)
-                ->where('slot_id', $slotId)
-                ->first();
-
-            if ($existing) {
-                return response()->json([
-                    'success' => false,
-                    'message' => 'Slot already claimed by you'
-                ], 400);
-            }
-
-            // Create availability
-            $availability = ConsultantAvailability::create([
-                'slot_id' => $slotId,
-                'consultant_id' => $consultantId,
+            $schedule = ConsultantSchedule::create([
+                'consultant_id' => auth()->id(),
+                'slot_date' => $request->slot_date,
+                'start_time' => $request->start_time,
+                'end_time' => $request->end_time,
+                'day_of_week' => date('l', strtotime($request->slot_date)),
                 'status' => 'available'
             ]);
 
             return response()->json([
                 'success' => true,
-                'message' => 'Slot claimed successfully',
-                'data' => $availability
+                'message' => 'Appointment slot created successfully',
+                'data' => $schedule
             ], 201);
 
         } catch (\Exception $e) {
-            return response()->json([
-                'success' => false,
-                'message' => $e->getMessage()
-            ], 500);
+            return response()->json(['success' => false, 'message' => $e->getMessage()], 500);
         }
     }
 
     public function releaseSlot(Request $request)
     {
         $validator = Validator::make($request->all(), [
-            'availability_id' => 'required|exists:consultant_availability,id'
+            'schedule_id' => 'required|exists:consultant_schedules,id'
         ]);
 
         if ($validator->fails()) {
@@ -126,75 +59,65 @@ class AvailabilityController extends Controller
         }
 
         try {
-            $consultantId = auth()->id();
-            $availability = ConsultantAvailability::where('id', $request->availability_id)
-                ->where('consultant_id', $consultantId)
+            $schedule = ConsultantSchedule::where('id', $request->schedule_id)
+                ->where('consultant_id', auth()->id())
                 ->first();
 
-            if (!$availability) {
+            if (!$schedule) {
                 return response()->json([
                     'success' => false,
-                    'message' => 'Availability not found'
+                    'message' => 'Schedule not found'
                 ], 404);
             }
 
-            // Check if already booked
-            if ($availability->status === 'booked') {
+            if ($schedule->status === 'booked') {
                 return response()->json([
                     'success' => false,
-                    'message' => 'Cannot release booked slot'
+                    'message' => 'Cannot delete a booked slot'
                 ], 400);
             }
 
-            $availability->delete();
+            $schedule->delete();
 
             return response()->json([
                 'success' => true,
-                'message' => 'Slot released successfully'
+                'message' => 'Slot deleted successfully'
             ], 200);
 
         } catch (\Exception $e) {
-            return response()->json([
-                'success' => false,
-                'message' => $e->getMessage()
-            ], 500);
+            return response()->json(['success' => false, 'message' => $e->getMessage()], 500);
         }
     }
 
     public function getMyClaimedSlots(Request $request)
     {
         try {
-            $consultantId = auth()->id();
-            $date = $request->date ?? now()->toDateString();
+            $search = $request->query('search');
+            $perPage = $request->query('per_page', 10);
 
-            $availabilities = ConsultantAvailability::where('consultant_id', $consultantId)
-                ->whereHas('slot', function($query) use ($date) {
-                    $query->where('slot_date', '>=', $date);
-                })
-                ->with('slot')
-                ->get()
-                ->map(function($availability) {
-                    return [
-                        'id' => $availability->id,
-                        'slot_id' => $availability->slot_id,
-                        'date' => $availability->slot->slot_date,
-                        'start_time' => $availability->slot->start_time,
-                        'end_time' => $availability->slot->end_time,
-                        'status' => $availability->status,
-                        'day_of_week' => $availability->slot->day_of_week
-                    ];
-                });
+            $query = ConsultantSchedule::where('consultant_id', auth()->id())
+                ->orderBy('slot_date', 'desc')
+                ->orderBy('start_time', 'asc');
+
+            if ($search) {
+                $query->where('slot_date', 'like', "%{$search}%");
+            }
+
+            $schedules = $query->paginate($perPage);
 
             return response()->json([
                 'success' => true,
-                'data' => $availabilities
+                'data' => $schedules->items(),
+                'meta' => [
+                    'current_page' => $schedules->currentPage(),
+                    'last_page' => $schedules->lastPage(),
+                    'total' => $schedules->total(),
+                    'per_page' => $schedules->perPage(),
+                ]
             ], 200);
 
         } catch (\Exception $e) {
-            return response()->json([
-                'success' => false,
-                'message' => $e->getMessage()
-            ], 500);
+            return response()->json(['success' => false, 'message' => $e->getMessage()], 500);
         }
     }
 }

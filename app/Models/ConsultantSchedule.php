@@ -2,22 +2,21 @@
 
 namespace App\Models;
 
+use Illuminate\Database\Eloquent\Factories\HasFactory;
 use Illuminate\Database\Eloquent\Model;
 
-class ConsultantAvailability extends Model
+class ConsultantSchedule extends Model
 {
-    protected $table = 'consultant_availability';
+    use HasFactory;
 
     protected $fillable = [
-        'slot_id',
         'consultant_id',
+        'slot_date',
+        'start_time',
+        'end_time',
+        'day_of_week',
         'status'
     ];
-
-    public function slot()
-    {
-        return $this->belongsTo(TimeSlot::class, 'slot_id');
-    }
 
     public function consultant()
     {
@@ -26,6 +25,6 @@ class ConsultantAvailability extends Model
 
     public function appointment()
     {
-        return $this->hasOne(Appointment::class, 'availability_id');
+        return $this->hasOne(Appointment::class, 'schedule_id');
     }
 }

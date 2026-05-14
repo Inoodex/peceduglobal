@@ -15,7 +15,7 @@ class UserController extends Controller
     public function updateRole(Request $request, User $user)
     {
         $validator = Validator::make($request->all(), [
-            'role' => 'required|in:student,counselor,admin',
+            'role' => 'required|in:student,consultant,admin',
         ]);
 
         if ($validator->fails()) {

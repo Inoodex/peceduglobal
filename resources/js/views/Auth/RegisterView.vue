@@ -186,7 +186,7 @@ const handleSubmit = async () => {
                             class="w-full px-3.5 py-2.5 border border-gray-200 rounded-lg focus:outline-none focus:ring-2 focus:ring-slate-900 focus:border-transparent text-gray-900 text-sm"
                         >
                             <option value="student">Student</option>
-                            <option value="counselor">Counselor</option>
+                            <option value="consultant">Consultant</option>
                         </select>
                     </div>
 

@@ -3,7 +3,7 @@
 namespace App\Http\Controllers\Api\Student;
 
 use App\Http\Controllers\Controller;
-use App\Models\ConsultantAvailability;
+use App\Models\ConsultantSchedule;
 use App\Models\Appointment;
 use App\Models\User;
 use Illuminate\Http\Request;
@@ -63,25 +63,17 @@ class AppointmentController extends Controller
         }
 
         try {
-            $consultantId = $request->consultant_id;
-            $date = $request->date;
-
-            $slots = ConsultantAvailability::where('consultant_id', $consultantId)
+            $slots = ConsultantSchedule::where('consultant_id', $request->consultant_id)
+                ->where('slot_date', $request->date)
                 ->where('status', 'available')
-                ->whereHas('slot', function($query) use ($date) {
-                    $query->where('slot_date', $date)
-                          ->where('status', 'open');
-                })
-                ->with('slot')
                 ->get()
-                ->map(function($availability) {
+                ->map(function($schedule) {
                     return [
-                        'availability_id' => $availability->id,
-                        'slot_id' => $availability->slot_id,
-                        'date' => $availability->slot->slot_date,
-                        'start_time' => $availability->slot->start_time,
-                        'end_time' => $availability->slot->end_time,
-                        'day_of_week' => $availability->slot->day_of_week
+                        'schedule_id' => $schedule->id,
+                        'date' => $schedule->slot_date,
+                        'start_time' => $schedule->start_time,
+                        'end_time' => $schedule->end_time,
+                        'day_of_week' => $schedule->day_of_week
                     ];
                 });
 
@@ -112,21 +104,15 @@ class AppointmentController extends Controller
         }
 
         try {
-            $consultantId = $request->consultant_id;
             $today = now()->toDateString();
 
-            $nextDate = ConsultantAvailability::where('consultant_id', $consultantId)
+            $nextSchedule = ConsultantSchedule::where('consultant_id', $request->consultant_id)
                 ->where('status', 'available')
-                ->whereHas('slot', function($query) use ($today) {
-                    $query->where('slot_date', '>', $today)
-                          ->where('status', 'open');
-                })
-                ->join('time_slots', 'consultant_availability.slot_id', '=', 'time_slots.id')
-                ->orderBy('time_slots.slot_date')
-                ->select('time_slots.slot_date')
+                ->where('slot_date', '>', $today)
+                ->orderBy('slot_date')
                 ->first();
 
-            if (!$nextDate) {
+            if (!$nextSchedule) {
                 return response()->json([
                     'success' => true,
                     'message' => 'No future availability found for this consultant',
@@ -137,8 +123,8 @@ class AppointmentController extends Controller
             return response()->json([
                 'success' => true,
                 'data' => [
-                    'next_available_date' => $nextDate->slot_date,
-                    'formatted_date' => Carbon::parse($nextDate->slot_date)->format('F j, Y')
+                    'next_available_date' => $nextSchedule->slot_date,
+                    'formatted_date' => Carbon::parse($nextSchedule->slot_date)->format('F j, Y')
                 ]
             ], 200);
 
@@ -153,9 +139,9 @@ class AppointmentController extends Controller
     public function bookAppointment(Request $request)
     {
         $validator = Validator::make($request->all(), [
-            'availability_id' => 'required|exists:consultant_availability,id',
+            'schedule_id' => 'required|exists:consultant_schedules,id',
             'meeting_type' => 'required|in:online,physical',
-            'remarks' => 'nullable|string|max:500'
+            'student_notes' => 'nullable|string|max:500'
         ]);
 
         if ($validator->fails()) {
@@ -167,29 +153,27 @@ class AppointmentController extends Controller
 
         try {
             $studentId = auth()->id();
-            $availabilityId = $request->availability_id;
+            $scheduleId = $request->schedule_id;
+
+            $schedule = ConsultantSchedule::findOrFail($scheduleId);
 
             // Check if slot is already booked
-            $existingBooking = Appointment::where('availability_id', $availabilityId)->first();
-            if ($existingBooking) {
+            if ($schedule->status === 'booked') {
                 return response()->json([
                     'success' => false,
                     'message' => 'This slot is already booked'
                 ], 400);
             }
 
-            // Check if student already has booking for this consultant on same date
-            $availability = ConsultantAvailability::with('slot')->findOrFail($availabilityId);
-            $existingStudentBooking = Appointment::where('student_id', $studentId)
-                ->whereHas('availability.slot', function($query) use ($availability) {
-                    $query->where('slot_date', $availability->slot->slot_date);
-                })
-                ->whereHas('availability', function($query) use ($availability) {
-                    $query->where('consultant_id', $availability->consultant_id);
+            // Check duplicate booking for same date & consultant
+            $existingBooking = Appointment::where('student_id', $studentId)
+                ->whereHas('schedule', function($q) use ($schedule) {
+                    $q->where('consultant_id', $schedule->consultant_id)
+                      ->where('slot_date', $schedule->slot_date);
                 })
                 ->first();
 
-            if ($existingStudentBooking) {
+            if ($existingBooking) {
                 return response()->json([
                     'success' => false,
                     'message' => 'You already have a booking with this consultant on this date'
@@ -198,20 +182,20 @@ class AppointmentController extends Controller
 
             // Create appointment
             $appointment = Appointment::create([
-                'availability_id' => $availabilityId,
+                'schedule_id' => $scheduleId,
                 'student_id' => $studentId,
                 'status' => 'confirmed',
                 'meeting_type' => $request->meeting_type,
-                'remarks' => $request->remarks
+                'student_notes' => $request->student_notes
             ]);
 
-            // Update availability status
-            $availability->update(['status' => 'booked']);
+            // Update schedule status
+            $schedule->update(['status' => 'booked']);
 
             return response()->json([
                 'success' => true,
                 'message' => 'Appointment booked successfully',
-                'data' => $appointment->load(['availability.slot', 'availability.consultant:id,full_name,email'])
+                'data' => $appointment->load(['schedule.consultant:id,full_name,email'])
             ], 201);
 
         } catch (\Exception $e) {
@@ -228,7 +212,7 @@ class AppointmentController extends Controller
             $studentId = auth()->id();
 
             $appointments = Appointment::where('student_id', $studentId)
-                ->with(['availability.slot', 'availability.consultant:id,full_name,email'])
+                ->with(['schedule.consultant:id,full_name,email'])
                 ->orderBy('created_at', 'desc')
                 ->get()
                 ->map(function($appointment) {
@@ -236,12 +220,51 @@ class AppointmentController extends Controller
                         'id' => $appointment->id,
                         'status' => $appointment->status,
                         'meeting_type' => $appointment->meeting_type,
-                        'date' => $appointment->availability->slot->slot_date->format('Y-m-d'),
-                        'start_time' => $appointment->availability->slot->start_time,
-                        'end_time' => $appointment->availability->slot->end_time,
-                        'consultant' => $appointment->availability->consultant->only(['id', 'full_name', 'email']),
+                        'date' => $appointment->schedule->slot_date,
+                        'start_time' => $appointment->schedule->start_time,
+                        'end_time' => $appointment->schedule->end_time,
+                        'consultant' => $appointment->schedule->consultant->only(['id', 'full_name', 'email']),
                         'meeting_link' => $appointment->meeting_link,
-                        'remarks' => $appointment->remarks,
+                        'student_notes' => $appointment->student_notes,
+                        'created_at' => $appointment->created_at->format('Y-m-d H:i:s')
+                    ];
+                });
+
+            return response()->json([
+                'success' => true,
+                'data' => $appointments
+            ], 200);
+
+        } catch (\Exception $e) {
+            return response()->json([
+                'success' => false,
+                'message' => $e->getMessage()
+            ], 500);
+        }
+    }
+
+    public function getConsultantAppointments()
+    {
+        try {
+            $consultantId = auth()->id();
+
+            $appointments = Appointment::whereHas('schedule', function($query) use ($consultantId) {
+                    $query->where('consultant_id', $consultantId);
+                })
+                ->with(['schedule', 'student:id,full_name,email,profile_photo_url'])
+                ->orderBy('created_at', 'desc')
+                ->get()
+                ->map(function($appointment) {
+                    return [
+                        'id' => $appointment->id,
+                        'status' => $appointment->status,
+                        'meeting_type' => $appointment->meeting_type,
+                        'date' => $appointment->schedule->slot_date,
+                        'start_time' => $appointment->schedule->start_time,
+                        'end_time' => $appointment->schedule->end_time,
+                        'student' => $appointment->student->only(['id', 'full_name', 'email', 'profile_photo_url']),
+                        'meeting_link' => $appointment->meeting_link,
+                        'consultant_notes' => $appointment->consultant_notes,
                         'created_at' => $appointment->created_at->format('Y-m-d H:i:s')
                     ];
                 });

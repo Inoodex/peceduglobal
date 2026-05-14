@@ -164,7 +164,7 @@
             <label class="block text-sm font-bold text-gray-700 dark:text-gray-300 mb-3 uppercase tracking-wider">User Role</label>
             <div class="grid grid-cols-3 gap-3">
               <button
-                v-for="role in ['admin', 'counselor', 'student']"
+                v-for="role in ['admin', 'consultant', 'student']"
                 :key="role"
                 @click="editingUser.role = role"
                 class="px-4 py-3 rounded-xl border-2 text-sm font-bold transition-all text-center capitalize"
@@ -301,7 +301,7 @@ const filteredUsers = computed(() => {
 const getRoleClass = (role) => {
   switch (role) {
     case 'admin': return 'bg-red-100 text-red-600 dark:bg-red-500/10';
-    case 'counselor': return 'bg-blue-100 text-blue-600 dark:bg-blue-500/10';
+    case 'consultant': return 'bg-blue-100 text-blue-600 dark:bg-blue-500/10';
     default: return 'bg-gray-100 text-gray-600 dark:bg-gray-500/10';
   }
 };
