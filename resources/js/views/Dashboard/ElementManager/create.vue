@@ -51,17 +51,16 @@
               <AppEditor v-model="form.element_body" />
             </div>
             <div>
-              <label class="block text-sm font-medium text-gray-700 dark:text-gray-300 mb-1.5">Image</label>
-              <div class="flex items-center gap-4">
-                <input type="file" accept="image/*" @change="handleFileUpload" class="hidden" id="image-upload" />
-                <label for="image-upload" class="cursor-pointer inline-flex items-center gap-2 px-4 py-2 bg-gray-100 dark:bg-gray-800 text-gray-700 dark:text-gray-300 rounded-xl hover:bg-gray-200 dark:hover:bg-gray-700 transition-colors border border-gray-200 dark:border-gray-700">
-                  <Upload class="w-4 h-4" /> Upload Image
-                </label>
-                <span v-if="form.image_path" class="text-xs text-green-600 font-medium">Image selected!</span>
-              </div>
-              <div v-if="imagePreview" class="mt-3 w-24 h-24 rounded-xl overflow-hidden border border-gray-200 dark:border-gray-700">
-                <img :src="imagePreview" class="w-full h-full object-cover" />
-              </div>
+              <label class="block text-sm font-medium text-gray-700 dark:text-gray-300 mb-1.5">Images (Multiple)</label>
+              <FileUpload
+                v-model="imageUrls"
+                :show-alt-input="false"
+                :multiple="true"
+                placeholder="Drop or select multiple images"
+                hint="PNG, JPG, WEBP up to 2MB each"
+                @select="handleFileSelect"
+                @remove="handleFileRemove"
+              />
             </div>
           </div>
         </div>
@@ -82,24 +81,25 @@
 import axios from '@/plugins/axios';
 import MainLayout from '@/layouts/MainLayout.vue';
 import AppEditor from '@/components/AppEditor.vue';
+import FileUpload from '@/components/MultipleFileUpload.vue';
 import { ChevronRight, ChevronDown, Loader2, Upload } from 'lucide-vue-next';
 
 export default {
   name: 'ElementCreate',
-  components: { MainLayout, AppEditor, ChevronRight, ChevronDown, Loader2, Upload },
+  components: { MainLayout, AppEditor, FileUpload, ChevronRight, ChevronDown, Loader2, Upload },
   data() {
     return {
       sections: { details: true },
       loading: false,
+      imageUrls: [],
       blocks: [],
-      imagePreview: null,
       form: {
         page_block_id: '',
         element_title: '',
         element_body: '',
-        image_path: null,
+        images: [],
         link_url: '',
-        sort_order: 0
+        sort_order: 0,
       },
     };
   },
@@ -118,20 +118,27 @@ export default {
         console.error('Error fetching blocks:', error);
       }
     },
-    handleFileUpload(event) {
-      const file = event.target.files[0];
-      if (file) {
-        this.form.image_path = file;
-        this.imagePreview = URL.createObjectURL(file);
-      }
+    handleFileSelect(files) {
+      this.form.images = files;
+      this.imageUrls = files.map(file => URL.createObjectURL(file));
+    },
+    handleFileRemove(index) {
+      this.form.images.splice(index, 1);
+      this.imageUrls.splice(index, 1);
     },
     async save() {
       this.loading = true;
       try {
         const formData = new FormData();
-        for (const key in this.form) {
-          formData.append(key, this.form[key]);
-        }
+        Object.keys(this.form).forEach(key => {
+          if (key === 'images') {
+            this.form.images.forEach((file, index) => {
+              formData.append('images[]', file);
+            });
+          } else if (this.form[key] !== null && this.form[key] !== '') {
+            formData.append(key, this.form[key]);
+          }
+        });
 
         await axios.post('/auth/admin/elements', formData, {
           headers: { 'Content-Type': 'multipart/form-data' }

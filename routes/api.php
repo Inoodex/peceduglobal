@@ -11,6 +11,7 @@ use App\Http\Controllers\Api\Admin\Education\StudentRegistrationController;
 use App\Http\Controllers\Api\Admin\Education\ApplicationController as AdminApplicationController;
 use App\Http\Controllers\Api\Consultant\AvailabilityController;
 use App\Http\Controllers\Api\Admin\HeroSliderController;
+use App\Http\Controllers\Api\Frontend\HomeController;
 use App\Http\Controllers\Api\Student\AppointmentController;
 use App\Http\Controllers\Api\AuthController;
 use App\Http\Controllers\Api\BlogCategoryController;
@@ -111,4 +112,11 @@ Route::group(['prefix' => 'auth'], function () {
             Route::get('applications/{application}', [ApplicationController::class, 'show']);
         });
     });
+});
+
+
+
+// Frontend api endpoint
+Route::prefix('public')->group(function(){
+    Route::get('/home', [HomeController::class, 'index']);
 });

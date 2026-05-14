@@ -25,6 +25,7 @@ class StorePageRequest extends FormRequest
         return [
             'title' => 'required|string|max:255',
             'slug' => 'nullable|string|unique:pages,slug,' . $this->route('page')?->id,
+            'page_type' => 'nullable|string|max:50',
             'country_id' => 'nullable|exists:countries,id',
             'parent_id' => 'nullable|exists:pages,id',
             'meta_title' => 'nullable|string|max:255',

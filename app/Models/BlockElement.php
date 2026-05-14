@@ -14,9 +14,13 @@ class BlockElement extends Model
         'page_block_id',
         'element_title',
         'element_body',
-        'image_path',
+        'image_paths',
         'link_url',
         'sort_order',
+    ];
+
+    protected $casts = [
+        'image_paths' => 'array',
     ];
 
     public function pageBlock(): BelongsTo

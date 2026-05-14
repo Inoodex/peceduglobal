@@ -46,8 +46,12 @@ class ElementController extends Controller
     {
         $validated = $request->validated();
 
-        if ($request->hasFile('image_path')) {
-            $validated['image_path'] = $request->file('image_path')->store('elements/images', 'public');
+        if ($request->hasFile('images')) {
+            $paths = [];
+            foreach ($request->file('images') as $file) {
+                $paths[] = $file->store('elements/images', 'public');
+            }
+            $validated['image_paths'] = $paths;
         }
 
         $element = BlockElement::create($validated);
@@ -71,11 +75,21 @@ class ElementController extends Controller
     {
         $validated = $request->validated();
 
-        if ($request->hasFile('image_path')) {
-            if ($element->image_path && Storage::disk('public')->exists($element->image_path)) {
-                Storage::disk('public')->delete($element->image_path);
+        if ($request->hasFile('images')) {
+            // Delete old images
+            if ($element->image_paths) {
+                foreach ($element->image_paths as $oldPath) {
+                    if (Storage::disk('public')->exists($oldPath)) {
+                        Storage::disk('public')->delete($oldPath);
+                    }
+                }
             }
-            $validated['image_path'] = $request->file('image_path')->store('elements/images', 'public');
+            
+            $paths = [];
+            foreach ($request->file('images') as $file) {
+                $paths[] = $file->store('elements/images', 'public');
+            }
+            $validated['image_paths'] = $paths;
         }
 
         $element->update($validated);

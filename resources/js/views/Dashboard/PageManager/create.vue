@@ -23,6 +23,18 @@
             <ChevronDown class="w-5 h-5 text-gray-400 transition-transform" :class="{ 'rotate-180': sections.details }" />
           </button>
           <div v-show="sections.details" class="p-4 pt-0 border-t border-gray-200 dark:border-gray-700/50 space-y-4">
+            <div class="flex flex-col gap-1.5">
+              <label class="block text-sm font-medium text-gray-700 dark:text-gray-300 mb-1.5">Page Type</label>
+              <select v-model="form.page_type" class="w-full bg-gray-50 dark:bg-[#141A21] border border-gray-200 dark:border-gray-700 rounded-xl px-4 py-2.5 text-gray-900 dark:text-white focus:outline-none focus:ring-2 focus:ring-primary/20 focus:border-primary transition-all">
+                <option value="">Regular Page</option>
+                <option value="home">Home Page</option>
+                <option value="about">About Us</option>
+                <option value="why_choose_us">Why Choose Us</option>
+                <option value="services">Services</option>
+                <option value="privacy">Privacy Policy</option>
+                <option value="terms">Terms & Conditions</option>
+              </select>
+            </div>
             <div>
               <label class="block text-sm font-medium text-gray-700 dark:text-gray-300 mb-1.5">Title <span class="text-red-500">*</span></label>
               <input v-model="form.title" type="text" placeholder="Page title" class="w-full bg-gray-50 dark:bg-[#141A21] border border-gray-200 dark:border-gray-700 rounded-xl px-4 py-2.5 text-gray-900 dark:text-white placeholder-gray-400 focus:outline-none focus:ring-2 focus:ring-primary/20 focus:border-primary transition-all" required />
@@ -118,6 +130,7 @@ export default {
       pages: [],
       form: {
         title: '',
+        page_type: '',
         country_id: '',
         parent_id: '',
         meta_title: '',

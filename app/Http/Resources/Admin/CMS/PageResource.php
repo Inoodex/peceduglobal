@@ -12,6 +12,7 @@ class PageResource extends JsonResource
             'id' => $this->id,
             'title' => $this->title,
             'slug' => $this->slug,
+            'page_type' => $this->page_type,
             'country_id' => $this->country_id,
             'country' => $this->whenLoaded('country'),
             'parent_id' => $this->parent_id,

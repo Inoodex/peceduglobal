@@ -57,19 +57,16 @@
               <AppEditor v-model="form.element_body" />
             </div>
             <div v-if="form">
-              <label class="block text-sm font-medium text-gray-700 dark:text-gray-300 mb-1.5">Image</label>
-              <div class="flex items-center gap-4">
-                <input type="file" accept="image/*" @change="handleFileUpload" class="hidden" id="image-upload" />
-                <label for="image-upload" class="cursor-pointer inline-flex items-center gap-2 px-4 py-2 bg-gray-100 dark:bg-gray-800 text-gray-700 dark:text-gray-300 rounded-xl hover:bg-gray-200 dark:hover:bg-gray-700 transition-colors border border-gray-200 dark:border-gray-700">
-                  <Upload class="w-4 h-4" /> Change Image
-                </label>
-                <div v-if="imagePreview" class="flex items-center gap-2">
-                  <div class="w-10 h-10 rounded-lg overflow-hidden border border-gray-200 dark:border-gray-700">
-                    <img :src="imagePreview" class="w-full h-full object-cover" />
-                  </div>
-                  <span class="text-xs text-green-600 font-medium">Current image active</span>
-                </div>
-              </div>
+              <label class="block text-sm font-medium text-gray-700 dark:text-gray-300 mb-1.5">Images (Multiple)</label>
+              <FileUpload
+                v-model="imageUrls"
+                :show-alt-input="false"
+                :multiple="true"
+                placeholder="Drop or select multiple images"
+                hint="PNG, JPG, WEBP up to 2MB each"
+                @select="handleFileSelect"
+                @remove="handleFileRemove"
+              />
             </div>
           </div>
         </div>
@@ -90,18 +87,19 @@
 import axios from '@/plugins/axios';
 import MainLayout from '@/layouts/MainLayout.vue';
 import AppEditor from '@/components/AppEditor.vue';
+import FileUpload from '@/components/MultipleFileUpload.vue';
 import { ChevronRight, ChevronDown, Loader2, Upload } from 'lucide-vue-next';
 
 export default {
   name: 'ElementEdit',
-  components: { MainLayout, AppEditor, ChevronRight, ChevronDown, Loader2, Upload },
+  components: { MainLayout, AppEditor, FileUpload, ChevronRight, ChevronDown, Loader2, Upload },
   data() {
     return {
       sections: { details: true },
       loading: false,
       blocks: [],
       form: null,
-      imagePreview: null,
+      imageUrls: [],
     };
   },
   mounted() {
@@ -124,30 +122,48 @@ export default {
       this.loading = true;
       try {
         const response = await axios.get(`/auth/admin/elements/${this.$route.params.id}`);
-        this.form = response.data.data;
-        this.imagePreview = this.form.image_path || null;
+        const element = response.data.data;
+        this.form = {
+          page_block_id: element.page_block_id,
+          element_title: element.element_title,
+          element_body: element.element_body,
+          images: [],
+          link_url: element.link_url,
+          sort_order: element.sort_order,
+        };
+        if (element.image_paths && element.image_paths.length > 0) {
+          this.imageUrls = element.image_paths;
+        }
       } catch (error) {
         console.error('Error fetching element:', error);
       } finally {
         this.loading = false;
       }
     },
-    handleFileUpload(event) {
-      const file = event.target.files[0];
-      if (file) {
-        this.form.image_path = file;
-        this.imagePreview = URL.createObjectURL(file);
-      }
+    handleFileSelect(files) {
+      this.form.images = files;
+      this.imageUrls = files.map(file => URL.createObjectURL(file));
+    },
+    handleFileRemove(index) {
+      this.form.images.splice(index, 1);
+      this.imageUrls.splice(index, 1);
     },
     async save() {
       this.loading = true;
       try {
         const formData = new FormData();
-        for (const key in this.form) {
-          formData.append(key, this.form[key]);
-        }
+        Object.keys(this.form).forEach(key => {
+          if (key === 'images') {
+            this.form.images.forEach((file, index) => {
+              formData.append('images[]', file);
+            });
+          } else if (this.form[key] !== null && this.form[key] !== '') {
+            formData.append(key, this.form[key]);
+          }
+        });
+        formData.append('_method', 'PUT');
 
-        await axios.put(`/auth/admin/elements/${this.$route.params.id}`, formData, {
+        await axios.post(`/auth/admin/elements/${this.$route.params.id}`, formData, {
           headers: { 'Content-Type': 'multipart/form-data' }
         });
         this.$router.push('/dashboard/element-manager');
