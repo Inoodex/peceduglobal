@@ -217,7 +217,7 @@ const routes = [
 
     },
     {
-        path: '/dashboard/students/edit/:id',
+        path: '/dashboard/students/:id/edit',
         name: 'student-edit',
         component: () => import('../views/Dashboard/Consultancy/Student/edit.vue'),
         meta: { auth: true, permission: 'edit_student' }
