@@ -80,8 +80,8 @@
             </div>
 
             <div class="space-y-2">
-              <label class="text-sm font-medium dark:text-gray-300">Select Intake <span class="text-red-500">*</span></label>
-              <select v-model="form.intake_id" required class="form-input" :disabled="!form.course_id || loadingIntakes">
+              <label class="text-sm font-medium dark:text-gray-300">Select Intake</label>
+              <select v-model="form.intake_id" class="form-input" :disabled="!form.course_id || loadingIntakes">
                 <option value="">{{ loadingIntakes ? 'Loading Intakes...' : 'Select Intake' }}</option>
                 <option v-for="i in intakes" :key="i?.id" :value="i?.id">{{ i?.intake_name }}</option>
               </select>
@@ -155,11 +155,13 @@
 import { ref, watch, onMounted } from 'vue';
 import { useRouter, useRoute } from 'vue-router';
 import axios from '@/plugins/axios';
+import { useToastStore } from '@/stores/toast';
 import MainLayout from '@/layouts/MainLayout.vue';
 import { ChevronRight, Loader2, User, FileText, GraduationCap } from 'lucide-vue-next';
 
 const router = useRouter();
 const route = useRoute();
+const toast = useToastStore();
 const loading = ref(false);
 const loadingData = ref(true);
 
@@ -302,7 +304,7 @@ onMounted(async () => {
 
   } catch (error) {
     console.error('Failed to load application', error);
-    alert('Failed to load application data');
+    toast.error('Failed to load application data');
     router.push('/dashboard/applications');
   } finally {
     loadingData.value = false;
@@ -313,10 +315,11 @@ const submit = async () => {
   loading.value = true;
   try {
     await axios.put(`/auth/admin/applications/${route.params.id}`, form.value);
+    toast.success('Application updated successfully!');
     router.push('/dashboard/applications');
   } catch (error) {
     const message = error.response?.data?.message || 'Failed to update application';
-    alert(message);
+    toast.error(message);
   } finally {
     loading.value = false;
   }

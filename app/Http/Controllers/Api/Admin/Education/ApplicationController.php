@@ -63,7 +63,7 @@ class ApplicationController extends Controller
                 'university_id' => 'required|exists:universities,id',
                 'course_id' => 'required|exists:courses,id',
                 'course_level_id' => 'required|exists:course_levels,id',
-                'intake_id' => 'required|exists:course_intakes,id',
+                'intake_id' => 'nullable|exists:course_intakes,id',
                 'status' => 'required|string',
                 'notes' => 'nullable|string',
             ]);
@@ -126,7 +126,7 @@ class ApplicationController extends Controller
                 'university_id' => 'sometimes|required|exists:universities,id',
                 'course_id' => 'sometimes|required|exists:courses,id',
                 'course_level_id' => 'sometimes|required|exists:course_levels,id',
-                'intake_id' => 'sometimes|required|exists:course_intakes,id',
+                'intake_id' => 'nullable|exists:course_intakes,id',
                 'status' => 'sometimes|required|string',
                 'notes' => 'nullable|string',
                 'university_reference_id' => 'nullable|string',

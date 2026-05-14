@@ -86,8 +86,9 @@
                     <button @click="edit(app)" class="p-2 text-gray-400 hover:text-primary hover:bg-primary/5 rounded-lg transition-all">
                       <Edit3 class="w-4 h-4" />
                     </button>
-                    <button @click="confirmDelete(app)" class="p-2 text-gray-400 hover:text-red-500 hover:bg-red-50/50 dark:hover:bg-red-900/10 rounded-lg transition-all">
-                      <Trash2 class="w-4 h-4" />
+                    <button @click="confirmDelete(app)" class="p-2 text-gray-400 hover:text-red-500 hover:bg-red-50/50 dark:hover:bg-red-900/10 rounded-lg transition-all" :disabled="deleteLoading">
+                      <Loader2 v-if="deleteLoading" class="w-4 h-4 animate-spin" />
+                      <Trash2 v-else class="w-4 h-4" />
                     </button>
                   </div>
                 </td>
@@ -95,53 +96,7 @@
             </tbody>
           </table>
         </div>
-        
-        <!-- Pagination Placeholder -->
-        <div class="px-6 py-4 bg-gray-50/50 dark:bg-[#151C24]/50 border-t border-gray-100 dark:border-gray-800 flex justify-between items-center">
-          <p class="text-xs font-medium text-gray-500 dark:text-gray-400">Showing <span class="text-gray-900 dark:text-white">{{ applications.length }}</span> applications</p>
-          <div class="flex gap-2">
-            <button class="p-2 border border-gray-200 dark:border-gray-700 rounded-lg disabled:opacity-30 bg-white dark:bg-gray-800" disabled>
-               <ChevronRight class="w-4 h-4 rotate-180" />
-            </button>
-            <button class="p-2 border border-gray-200 dark:border-gray-700 rounded-lg disabled:opacity-30 bg-white dark:bg-gray-800" disabled>
-               <ChevronRight class="w-4 h-4" />
-            </button>
-          </div>
-        </div>
       </div>
-
-      <!-- Custom Delete Modal (Match Student UI) -->
-      <div v-if="deleteModal.show" class="fixed inset-0 bg-black/60 backdrop-blur-sm flex items-center justify-center z-50 animate-in fade-in duration-300">
-        <div class="bg-white dark:bg-[#1C252E] rounded-3xl p-8 max-w-md w-full mx-4 shadow-2xl border border-gray-100 dark:border-gray-800 animate-in zoom-in-95 duration-300">
-          <div class="flex flex-col items-center text-center">
-            <div class="w-20 h-20 rounded-full bg-red-50 dark:bg-red-900/20 flex items-center justify-center mb-6 border-4 border-red-100 dark:border-red-900/30">
-              <AlertTriangle class="w-10 h-10 text-red-600 dark:text-red-400" />
-            </div>
-            <h3 class="text-2xl font-bold text-gray-900 dark:text-white mb-2">Delete Application?</h3>
-            <p class="text-gray-500 dark:text-gray-400 mb-8 leading-relaxed">
-              Are you sure you want to delete application <span class="font-bold text-primary">#{{ deleteModal.application?.application_number }}</span>? This action cannot be undone.
-            </p>
-            
-            <div class="flex gap-3 w-full">
-              <button 
-                @click="deleteModal.show = false" 
-                class="flex-1 px-6 py-3 text-sm font-semibold text-gray-700 dark:text-gray-300 bg-gray-100 dark:bg-gray-800 hover:bg-gray-200 dark:hover:bg-gray-700 rounded-2xl transition-all"
-              >
-                Cancel
-              </button>
-              <button 
-                @click="deleteApplication" 
-                :disabled="deleteModal.loading"
-                class="flex-1 px-6 py-3 text-sm font-semibold text-white bg-red-600 hover:bg-red-700 hover:shadow-lg hover:shadow-red-500/30 rounded-2xl transition-all flex items-center justify-center gap-2"
-              >
-                <Loader2 v-if="deleteModal.loading" class="w-4 h-4 animate-spin" />
-                <span v-else>Delete Now</span>
-              </button>
-            </div>
-          </div>
-        </div>
-      </div>
-
     </div>
   </MainLayout>
 </template>
@@ -150,19 +105,18 @@
 import { ref, onMounted } from 'vue';
 import { useRouter } from 'vue-router';
 import axios from '@/plugins/axios';
+import { useToastStore } from '@/stores/toast';
+import { useConfirmStore } from '@/stores/confirm';
 import MainLayout from '@/layouts/MainLayout.vue';
-import { Plus, Edit3, Trash2, Search, Filter, ChevronRight, FileText, AlertTriangle, Loader2 } from 'lucide-vue-next';
+import { Plus, Edit3, Trash2, ChevronRight, FileText, Loader2 } from 'lucide-vue-next';
 
 const router = useRouter();
+const toast = useToastStore();
+const confirm = useConfirmStore();
+
 const applications = ref([]);
 const loading = ref(true);
-
-// Delete Modal State
-const deleteModal = ref({
-  show: false,
-  application: null,
-  loading: false
-});
+const deleteLoading = ref(false);
 
 const stats = ref([
   { label: 'Total Apps', value: 0 },
@@ -176,17 +130,19 @@ const loadApplications = async () => {
   try {
     const res = await axios.get('/auth/admin/applications');
     applications.value = res.data.data.data || res.data.data || [];
-    
-    // Update simple stats
-    stats.value[0].value = applications.value.length;
-    stats.value[1].value = applications.value.filter(a => a.status === 'pending').length;
-    stats.value[2].value = applications.value.filter(a => a.status === 'offer_letter').length;
-    stats.value[3].value = applications.value.filter(a => a.status === 'visa_process').length;
+    updateStats();
   } catch (error) {
     console.error('Failed to load applications', error);
   } finally {
     loading.value = false;
   }
+};
+
+const updateStats = () => {
+  stats.value[0].value = applications.value.length;
+  stats.value[1].value = applications.value.filter(a => a.status === 'pending').length;
+  stats.value[2].value = applications.value.filter(a => a.status === 'offer_letter').length;
+  stats.value[3].value = applications.value.filter(a => a.status === 'visa_process').length;
 };
 
 const statusClass = (status) => {
@@ -202,21 +158,24 @@ const statusClass = (status) => {
   return map[status] || 'bg-gray-50 text-gray-700 border-gray-100';
 };
 
-const confirmDelete = (app) => {
-  deleteModal.value.application = app;
-  deleteModal.value.show = true;
-};
+const confirmDelete = async (app) => {
+  const ok = await confirm.ask({
+    title: 'Delete Application?',
+    message: `Are you sure you want to delete application #${app.application_number}? This action cannot be undone.`
+  });
 
-const deleteApplication = async () => {
-  deleteModal.value.loading = true;
-  try {
-    await axios.delete(`/auth/admin/applications/${deleteModal.value.application.id}`);
-    applications.value = applications.value.filter(a => a.id !== deleteModal.value.application.id);
-    deleteModal.value.show = false;
-  } catch (error) {
-    alert('Failed to delete application');
-  } finally {
-    deleteModal.value.loading = false;
+  if (ok) {
+    deleteLoading.value = true;
+    try {
+      await axios.delete(`/auth/admin/applications/${app.id}`);
+      applications.value = applications.value.filter(a => a.id !== app.id);
+      updateStats();
+      toast.success('Application deleted successfully');
+    } catch (error) {
+      toast.error('Failed to delete application');
+    } finally {
+      deleteLoading.value = false;
+    }
   }
 };
 
@@ -226,7 +185,3 @@ const edit = (app) => {
 
 onMounted(loadApplications);
 </script>
-
-<style scoped>
-/* Any custom scoped styles */
-</style>
