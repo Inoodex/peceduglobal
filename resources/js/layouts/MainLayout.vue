@@ -17,6 +17,9 @@
     <!-- Settings Drawer -->
     <SettingsDrawer />
 
+    <!-- Profile Drawer -->
+    <ProfileDrawer />
+
     <!-- Main Content -->
     <main
       :class="[
@@ -40,6 +43,7 @@ import DashboardSidebar from '@/components/dashboard/DashboardSidebar.vue';
 import MobileSidebar from '@/components/dashboard/MobileSidebar.vue';
 import DashboardHeader from '@/components/dashboard/DashboardHeader.vue';
 import SettingsDrawer from '@/components/dashboard/SettingsDrawer.vue';
+import ProfileDrawer from '@/components/dashboard/ProfileDrawer.vue';
 import ToastContainer from '@/components/ui/ToastContainer.vue';
 import GlobalConfirm from '@/components/ui/GlobalConfirm.vue';
 

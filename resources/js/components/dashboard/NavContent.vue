@@ -59,7 +59,9 @@ import {
   School,
   Globe,
   GraduationCap,
-  FileText
+  FileText,
+  Calendar,
+  Clock
 } from 'lucide-vue-next';
 
 defineProps({
@@ -142,18 +144,39 @@ const navigationData = [
     ]
   },
   {
+    title: 'Booking Management',
+    roles: ['admin'],
+    items: [
+      { name: 'Schedule Templates', path: '/dashboard/booking/templates', icon: Calendar },
+      { name: 'Generate Slots', path: '/dashboard/booking/generate', icon: Clock },
+    ]
+  },
+  {
+    title: 'Consultant Services',
+    roles: ['counselor'],
+    items: [
+      { name: 'Manage Availability', path: '/dashboard/consultant/availability', icon: Clock },
+      { name: 'Student Appointments', path: '/dashboard/consultant/appointments', icon: Calendar },
+    ]
+  },
+  {
     title: 'Student Portal',
     roles: ['student'],
     items: [
       {
         name: 'My Profile',
         icon: GraduationCap,
-        path: '/student/profile'
+        path: '/dashboard/profile'
       },
       {
         name: 'My Applications',
         icon: FileText,
-        path: '/student/applications'
+        path: '/dashboard/applications'
+      },
+      {
+        name: 'My Appointments',
+        icon: Clock,
+        path: '/dashboard/student/appointments'
       }
     ]
   },

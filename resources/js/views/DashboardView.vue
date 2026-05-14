@@ -93,7 +93,7 @@ const stats = [
           <p class="text-sm opacity-70">Manage countries</p>
         </router-link>
 
-        <router-link to="/dashboard/blog" class="p-6 rounded-3xl transition-all shadow-card dark:shadow-card-dark bg-paper-light dark:bg-paper-dark border border-transparent hover:border-primary/20 block">
+        <router-link to="#" class="p-6 rounded-3xl transition-all shadow-card dark:shadow-card-dark bg-paper-light dark:bg-paper-dark border border-transparent hover:border-primary/20 block">
           <div class="flex items-center justify-between mb-4">
             <div class="text-lg font-bold">Blog Manager</div>
             <div class="p-3 rounded-2xl bg-orange-500/5 text-orange-500">

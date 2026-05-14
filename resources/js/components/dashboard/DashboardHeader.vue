@@ -45,11 +45,15 @@
       </button>
 
       <!-- User Profile -->
-      <div v-ripple class="ml-1 sm:ml-2 w-10 h-10 rounded-full border-2 border-primary/20 p-0.5 cursor-pointer hover:bg-primary/10 transition-colors">
+      <div 
+        v-ripple 
+        @click="layout.toggleProfile"
+        class="ml-1 sm:ml-2 w-10 h-10 rounded-full border-2 border-primary/20 p-0.5 cursor-pointer hover:bg-primary/10 transition-all overflow-hidden"
+      >
         <img 
-          src="https://api.dicebear.com/7.x/avataaars/svg?seed=Felix" 
+          :src="auth.user?.profile_photo_url || `https://api.dicebear.com/7.x/avataaars/svg?seed=${auth.user?.full_name}`" 
           alt="User" 
-          class="w-full h-full rounded-full bg-gray-200"
+          class="w-full h-full rounded-full bg-gray-200 object-cover"
         />
       </div>
     </div>
@@ -58,9 +62,11 @@
 
 <script setup>
 import { useLayoutStore } from '@/stores/layout';
+import { useAuthStore } from '@/stores/auth';
 import { Search, Bell, Users, Settings, Menu } from 'lucide-vue-next';
 
 const layout = useLayoutStore();
+const auth = useAuthStore();
 </script>
 
 <style scoped>

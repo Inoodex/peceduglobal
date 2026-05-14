@@ -9,6 +9,10 @@ use App\Http\Controllers\Api\Admin\Education\CourseController;
 use App\Http\Controllers\Api\Admin\Education\CourseLevelController;
 use App\Http\Controllers\Api\Admin\Education\StudentRegistrationController;
 use App\Http\Controllers\Api\Admin\Education\ApplicationController as AdminApplicationController;
+use App\Http\Controllers\Api\Admin\ScheduleTemplateController;
+use App\Http\Controllers\Api\Admin\SlotGenerationController;
+use App\Http\Controllers\Api\Consultant\AvailabilityController;
+use App\Http\Controllers\Api\Student\AppointmentController;
 use App\Http\Controllers\Api\AuthController;
 use App\Http\Controllers\Api\BlogCategoryController;
 use App\Http\Controllers\Api\BlogPostController;
@@ -70,6 +74,32 @@ Route::group(['prefix' => 'auth'], function () {
             // Applications Management
             Route::get('applications/metadata', [AdminApplicationController::class, 'metadata']);
             Route::apiResource('applications', AdminApplicationController::class);
+            
+            // Booking & Appointment Management
+            Route::prefix('booking')->group(function() {
+                // Admin Routes
+                Route::middleware('role:admin')->prefix('admin')->group(function () {
+                    Route::get('schedule-templates', [ScheduleTemplateController::class, 'index']);
+                    Route::post('schedule-templates', [ScheduleTemplateController::class, 'store']);
+                    Route::delete('schedule-templates/{id}', [ScheduleTemplateController::class, 'destroy']);
+                    
+                    Route::post('generate-slots', [SlotGenerationController::class, 'generateMonthlySlots']);
+                    Route::get('generated-months', [SlotGenerationController::class, 'getGeneratedMonths']);
+                });
+
+                // Consultant Routes
+                Route::middleware('role:consultant')->prefix('consultant')->group(function () {
+                    Route::get('available-slots', [AvailabilityController::class, 'getAvailableSlots']);
+                    Route::post('claim-slot', [AvailabilityController::class, 'claimSlot']);
+                    Route::delete('release-slot', [AvailabilityController::class, 'releaseSlot']);
+                    Route::get('my-claimed-slots', [AvailabilityController::class, 'getMyClaimedSlots']);
+                });
+
+                // Student Routes
+                Route::middleware('role:student')->prefix('student')->group(function () {
+                    Route::get('my-appointments', [AppointmentController::class, 'getMyAppointments']);
+                });
+            });
         });
 
         // Student Routes (Protected by role)

@@ -217,11 +217,44 @@ const routes = [
 
     },
     {
-    path: '/dashboard/students/edit/:id',
-    name: 'student-edit',
-    component: () => import('../views/Dashboard/Consultancy/Student/edit.vue'),
-    meta: { auth: true, permission: 'edit_student' }
-},
+        path: '/dashboard/students/edit/:id',
+        name: 'student-edit',
+        component: () => import('../views/Dashboard/Consultancy/Student/edit.vue'),
+        meta: { auth: true, permission: 'edit_student' }
+    },
+    // Booking & Appointment Management for Admin
+    {
+        path: '/dashboard/booking/templates',
+        name: 'admin.booking.templates',
+        component: () => import('@/views/Dashboard/Admin/Booking/Templates.vue'),
+        meta: { auth: true, role: 'admin' }
+    },
+    {
+        path: '/dashboard/booking/generate',
+        name: 'admin.booking.generate',
+        component: () => import('@/views/Dashboard/Admin/Booking/Generate.vue'),
+        meta: { auth: true, role: 'admin' }
+    },
+    // Consultant Specific Routes
+    {
+        path: '/dashboard/consultant/availability',
+        name: 'consultant.availability',
+        component: () => import('@/views/Dashboard/Consultant/Availability/index.vue'),
+        meta: { auth: true, role: 'consultant' }
+    },
+    {
+        path: '/dashboard/consultant/appointments',
+        name: 'consultant.appointments',
+        component: () => import('@/views/Dashboard/Student/Appointment/index.vue'),
+        meta: { auth: true, role: 'consultant' }
+    },
+    // Student Specific Routes
+    {
+        path: '/dashboard/student/appointments',
+        name: 'student.appointments',
+        component: () => import('@/views/Dashboard/Student/Appointment/index.vue'),
+        meta: { auth: true, role: 'student' }
+    },
     {
         path: '/dashboard/applications',
         name: 'application-list',

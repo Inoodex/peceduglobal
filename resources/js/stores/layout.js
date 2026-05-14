@@ -8,6 +8,7 @@ export const useLayoutStore = defineStore('layout', {
     isMobileMenuOpen: false,
     themeColor: '#00A76F',
     isCompact: false,
+    isProfileOpen: false,
   }),
   actions: {
     toggleDarkMode() {
@@ -22,6 +23,9 @@ export const useLayoutStore = defineStore('layout', {
     },
     toggleMobileMenu() {
       this.isMobileMenuOpen = !this.isMobileMenuOpen;
+    },
+    toggleProfile() {
+      this.isProfileOpen = !this.isProfileOpen;
     },
     updateBodyClass() {
       if (this.isDarkMode) {
