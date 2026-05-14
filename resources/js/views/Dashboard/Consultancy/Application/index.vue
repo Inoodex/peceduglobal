@@ -1,28 +1,232 @@
 <template>
   <MainLayout>
-    <div class="p-6 space-y-4">
+    <div class="p-6 space-y-6">
+      <!-- Header -->
       <div class="flex items-center justify-between">
         <div>
           <h1 class="text-2xl font-bold text-gray-900 dark:text-white">Application List</h1>
-          <p class="text-sm text-gray-500 dark:text-gray-400">Track all student applications here.</p>
+          <p class="text-sm text-gray-500 dark:text-gray-400">Manage and track all student applications globally.</p>
         </div>
         <button
-          class="px-4 py-2 bg-primary text-white rounded-xl text-sm font-semibold hover:bg-primary-dark transition"
+          class="px-4 py-2 bg-primary text-white rounded-xl text-sm font-semibold hover:shadow-lg hover:shadow-primary/30 transition-all flex items-center gap-2"
           @click="$router.push('/dashboard/applications/create')"
         >
-          Add Application
+          <Plus class="w-4 h-4" /> Add Application
         </button>
       </div>
 
-      <div class="bg-white dark:bg-[#1C252E] border border-gray-100 dark:border-gray-800 rounded-2xl p-6">
-        <p class="text-sm text-gray-500 dark:text-gray-400">
-          Application list UI is ready. Connect it with your application listing API.
-        </p>
+      <!-- Stats Quick Overview -->
+      <div class="grid grid-cols-1 md:grid-cols-4 gap-4">
+        <div v-for="stat in stats" :key="stat.label" class="bg-white dark:bg-[#1C252E] p-4 rounded-2xl border border-gray-100 dark:border-gray-800 shadow-sm">
+          <p class="text-xs font-semibold text-gray-500 uppercase tracking-wider">{{ stat.label }}</p>
+          <p class="text-2xl font-bold mt-1 dark:text-white">{{ stat.value }}</p>
+        </div>
       </div>
+
+      <!-- Table Container -->
+      <div class="bg-white dark:bg-[#1C252E] border border-gray-100 dark:border-gray-800/50 rounded-2xl overflow-hidden shadow-sm transition-colors duration-300">
+        <div class="overflow-x-auto">
+          <table class="w-full text-left border-collapse">
+            <thead>
+              <tr class="bg-gray-50/50 dark:bg-[#151C24]/50 border-b border-gray-100 dark:border-gray-800">
+                <th class="px-6 py-4 text-xs font-semibold text-gray-500 dark:text-gray-400 uppercase tracking-wider">App Number</th>
+                <th class="px-6 py-4 text-xs font-semibold text-gray-500 dark:text-gray-400 uppercase tracking-wider">Student</th>
+                <th class="px-6 py-4 text-xs font-semibold text-gray-500 dark:text-gray-400 uppercase tracking-wider">University & Course</th>
+                <th class="px-6 py-4 text-xs font-semibold text-gray-500 dark:text-gray-400 uppercase tracking-wider">Country</th>
+                <th class="px-6 py-4 text-xs font-semibold text-gray-500 dark:text-gray-400 uppercase tracking-wider">Status</th>
+                <th class="px-6 py-4 text-xs font-semibold text-gray-500 dark:text-gray-400 uppercase tracking-wider text-right">Actions</th>
+              </tr>
+            </thead>
+            <tbody class="divide-y divide-gray-100 dark:divide-gray-800/50">
+              <tr v-if="loading" v-for="i in 3" :key="i" class="animate-pulse">
+                <td colspan="6" class="px-6 py-4"><div class="h-10 bg-gray-100 dark:bg-gray-800/50 rounded-xl w-full"></div></td>
+              </tr>
+              <tr v-else-if="applications.length === 0">
+                <td colspan="6" class="px-6 py-12 text-center">
+                   <div class="flex flex-col items-center gap-2">
+                      <div class="p-3 bg-gray-50 dark:bg-gray-800/50 rounded-full">
+                        <FileText class="w-6 h-6 text-gray-400" />
+                      </div>
+                      <p class="text-sm text-gray-500 dark:text-gray-400">No applications found.</p>
+                   </div>
+                </td>
+              </tr>
+              <tr v-for="app in applications" :key="app.id" class="hover:bg-gray-50/80 dark:hover:bg-[#151C24] transition-all group">
+                <td class="px-6 py-4">
+                  <span class="text-sm font-bold text-primary bg-primary/5 px-2 py-1 rounded-lg">#{{ app.application_number }}</span>
+                </td>
+                <td class="px-6 py-4">
+                  <div class="flex items-center gap-3">
+                    <div class="w-9 h-9 rounded-full bg-gray-100 dark:bg-gray-800 border border-gray-200 dark:border-gray-700 flex items-center justify-center text-xs font-bold text-gray-600 dark:text-gray-400 shadow-sm">
+                      {{ app.student?.user?.full_name?.charAt(0) || 'S' }}
+                    </div>
+                    <div>
+                      <p class="text-sm font-semibold text-gray-900 dark:text-white group-hover:text-primary transition-colors">{{ app.student?.user?.full_name }}</p>
+                      <p class="text-xs text-gray-500 dark:text-gray-400">{{ app.student?.user?.email }}</p>
+                    </div>
+                  </div>
+                </td>
+                <td class="px-6 py-4">
+                  <p class="text-sm font-medium text-gray-900 dark:text-white">{{ app.university?.name }}</p>
+                  <p class="text-xs text-gray-500 dark:text-gray-400 line-clamp-1">{{ app.course?.name || app.course_name }}</p>
+                </td>
+                <td class="px-6 py-4">
+                  <div class="flex items-center gap-1.5 text-sm text-gray-600 dark:text-gray-400">
+                    <span class="w-1.5 h-1.5 rounded-full bg-primary/40"></span>
+                    {{ app.country?.name || 'N/A' }}
+                  </div>
+                </td>
+                <td class="px-6 py-4">
+                  <span :class="statusClass(app.status)" class="px-2.5 py-1 rounded-lg text-[10px] font-bold uppercase tracking-wider border shadow-sm">
+                    {{ app.status?.replace('_', ' ') }}
+                  </span>
+                </td>
+                <td class="px-6 py-4 text-right">
+                  <div class="flex items-center justify-end gap-1 opacity-0 group-hover:opacity-100 transition-all transform translate-x-2 group-hover:translate-x-0">
+                    <button @click="edit(app)" class="p-2 text-gray-400 hover:text-primary hover:bg-primary/5 rounded-lg transition-all">
+                      <Edit3 class="w-4 h-4" />
+                    </button>
+                    <button @click="confirmDelete(app)" class="p-2 text-gray-400 hover:text-red-500 hover:bg-red-50/50 dark:hover:bg-red-900/10 rounded-lg transition-all">
+                      <Trash2 class="w-4 h-4" />
+                    </button>
+                  </div>
+                </td>
+              </tr>
+            </tbody>
+          </table>
+        </div>
+        
+        <!-- Pagination Placeholder -->
+        <div class="px-6 py-4 bg-gray-50/50 dark:bg-[#151C24]/50 border-t border-gray-100 dark:border-gray-800 flex justify-between items-center">
+          <p class="text-xs font-medium text-gray-500 dark:text-gray-400">Showing <span class="text-gray-900 dark:text-white">{{ applications.length }}</span> applications</p>
+          <div class="flex gap-2">
+            <button class="p-2 border border-gray-200 dark:border-gray-700 rounded-lg disabled:opacity-30 bg-white dark:bg-gray-800" disabled>
+               <ChevronRight class="w-4 h-4 rotate-180" />
+            </button>
+            <button class="p-2 border border-gray-200 dark:border-gray-700 rounded-lg disabled:opacity-30 bg-white dark:bg-gray-800" disabled>
+               <ChevronRight class="w-4 h-4" />
+            </button>
+          </div>
+        </div>
+      </div>
+
+      <!-- Custom Delete Modal (Match Student UI) -->
+      <div v-if="deleteModal.show" class="fixed inset-0 bg-black/60 backdrop-blur-sm flex items-center justify-center z-50 animate-in fade-in duration-300">
+        <div class="bg-white dark:bg-[#1C252E] rounded-3xl p-8 max-w-md w-full mx-4 shadow-2xl border border-gray-100 dark:border-gray-800 animate-in zoom-in-95 duration-300">
+          <div class="flex flex-col items-center text-center">
+            <div class="w-20 h-20 rounded-full bg-red-50 dark:bg-red-900/20 flex items-center justify-center mb-6 border-4 border-red-100 dark:border-red-900/30">
+              <AlertTriangle class="w-10 h-10 text-red-600 dark:text-red-400" />
+            </div>
+            <h3 class="text-2xl font-bold text-gray-900 dark:text-white mb-2">Delete Application?</h3>
+            <p class="text-gray-500 dark:text-gray-400 mb-8 leading-relaxed">
+              Are you sure you want to delete application <span class="font-bold text-primary">#{{ deleteModal.application?.application_number }}</span>? This action cannot be undone.
+            </p>
+            
+            <div class="flex gap-3 w-full">
+              <button 
+                @click="deleteModal.show = false" 
+                class="flex-1 px-6 py-3 text-sm font-semibold text-gray-700 dark:text-gray-300 bg-gray-100 dark:bg-gray-800 hover:bg-gray-200 dark:hover:bg-gray-700 rounded-2xl transition-all"
+              >
+                Cancel
+              </button>
+              <button 
+                @click="deleteApplication" 
+                :disabled="deleteModal.loading"
+                class="flex-1 px-6 py-3 text-sm font-semibold text-white bg-red-600 hover:bg-red-700 hover:shadow-lg hover:shadow-red-500/30 rounded-2xl transition-all flex items-center justify-center gap-2"
+              >
+                <Loader2 v-if="deleteModal.loading" class="w-4 h-4 animate-spin" />
+                <span v-else>Delete Now</span>
+              </button>
+            </div>
+          </div>
+        </div>
+      </div>
+
     </div>
   </MainLayout>
 </template>
 
 <script setup>
+import { ref, onMounted } from 'vue';
+import { useRouter } from 'vue-router';
+import axios from '@/plugins/axios';
 import MainLayout from '@/layouts/MainLayout.vue';
+import { Plus, Edit3, Trash2, Search, Filter, ChevronRight, FileText, AlertTriangle, Loader2 } from 'lucide-vue-next';
+
+const router = useRouter();
+const applications = ref([]);
+const loading = ref(true);
+
+// Delete Modal State
+const deleteModal = ref({
+  show: false,
+  application: null,
+  loading: false
+});
+
+const stats = ref([
+  { label: 'Total Apps', value: 0 },
+  { label: 'Pending', value: 0 },
+  { label: 'Offer Letters', value: 0 },
+  { label: 'Visa Process', value: 0 },
+]);
+
+const loadApplications = async () => {
+  loading.value = true;
+  try {
+    const res = await axios.get('/auth/admin/applications');
+    applications.value = res.data.data.data || res.data.data || [];
+    
+    // Update simple stats
+    stats.value[0].value = applications.value.length;
+    stats.value[1].value = applications.value.filter(a => a.status === 'pending').length;
+    stats.value[2].value = applications.value.filter(a => a.status === 'offer_letter').length;
+    stats.value[3].value = applications.value.filter(a => a.status === 'visa_process').length;
+  } catch (error) {
+    console.error('Failed to load applications', error);
+  } finally {
+    loading.value = false;
+  }
+};
+
+const statusClass = (status) => {
+  const map = {
+    pending: 'bg-yellow-50 text-yellow-700 border-yellow-100 dark:bg-yellow-900/10 dark:text-yellow-500 dark:border-yellow-900/20',
+    document_review: 'bg-blue-50 text-blue-700 border-blue-100 dark:bg-blue-900/10 dark:text-blue-500 dark:border-blue-900/20',
+    university_submitted: 'bg-indigo-50 text-indigo-700 border-indigo-100 dark:bg-indigo-900/10 dark:text-indigo-500 dark:border-indigo-900/20',
+    offer_letter: 'bg-green-50 text-green-700 border-green-100 dark:bg-green-900/10 dark:text-green-500 dark:border-green-900/20',
+    visa_process: 'bg-purple-50 text-purple-700 border-purple-100 dark:bg-purple-900/10 dark:text-purple-500 dark:border-purple-900/20',
+    completed: 'bg-emerald-50 text-emerald-700 border-emerald-100 dark:bg-emerald-900/10 dark:text-emerald-500 dark:border-emerald-900/20',
+    rejected: 'bg-red-50 text-red-700 border-red-100 dark:bg-red-900/10 dark:text-red-500 dark:border-red-900/20',
+  };
+  return map[status] || 'bg-gray-50 text-gray-700 border-gray-100';
+};
+
+const confirmDelete = (app) => {
+  deleteModal.value.application = app;
+  deleteModal.value.show = true;
+};
+
+const deleteApplication = async () => {
+  deleteModal.value.loading = true;
+  try {
+    await axios.delete(`/auth/admin/applications/${deleteModal.value.application.id}`);
+    applications.value = applications.value.filter(a => a.id !== deleteModal.value.application.id);
+    deleteModal.value.show = false;
+  } catch (error) {
+    alert('Failed to delete application');
+  } finally {
+    deleteModal.value.loading = false;
+  }
+};
+
+const edit = (app) => {
+  router.push(`/dashboard/applications/${app.id}/edit`);
+};
+
+onMounted(loadApplications);
 </script>
+
+<style scoped>
+/* Any custom scoped styles */
+</style>

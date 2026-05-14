@@ -235,6 +235,12 @@ const routes = [
         meta: { auth: true, permission: 'view_applications' }
     },
     {
+        path: '/dashboard/applications/:id/edit',
+        name: 'application-edit',
+        component: () => import('../views/Dashboard/Consultancy/Application/edit.vue'),
+        meta: { auth: true, permission: 'view_applications' }
+    },
+    {
         path: '/dashboard/user-management',
         name: 'user-management',
         component: () => import('../views/Dashboard/UserManagement.vue'),

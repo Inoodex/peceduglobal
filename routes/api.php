@@ -8,6 +8,7 @@ use App\Http\Controllers\Api\Admin\Education\UniversityController;
 use App\Http\Controllers\Api\Admin\Education\CourseController;
 use App\Http\Controllers\Api\Admin\Education\CourseLevelController;
 use App\Http\Controllers\Api\Admin\Education\StudentRegistrationController;
+use App\Http\Controllers\Api\Admin\Education\ApplicationController as AdminApplicationController;
 use App\Http\Controllers\Api\AuthController;
 use App\Http\Controllers\Api\BlogCategoryController;
 use App\Http\Controllers\Api\BlogPostController;
@@ -65,6 +66,10 @@ Route::group(['prefix' => 'auth'], function () {
             Route::put('students/{id}', [StudentRegistrationController::class, 'update']);
             Route::delete('students/{id}', [StudentRegistrationController::class, 'destroy']);
             Route::delete('students/{id}/document', [StudentRegistrationController::class, 'removeDocument']);
+            
+            // Applications Management
+            Route::get('applications/metadata', [AdminApplicationController::class, 'metadata']);
+            Route::apiResource('applications', AdminApplicationController::class);
         });
 
         // Student Routes (Protected by role)

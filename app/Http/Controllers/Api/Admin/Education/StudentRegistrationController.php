@@ -22,6 +22,7 @@ class StudentRegistrationController extends Controller
     {
         try {
             $students = User::where('role', 'student')
+                ->with('profile')
                 ->orderBy('created_at', 'desc')
                 ->get();
 
