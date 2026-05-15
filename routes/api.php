@@ -11,7 +11,6 @@ use App\Http\Controllers\Api\Admin\Education\StudentRegistrationController;
 use App\Http\Controllers\Api\Admin\Education\ApplicationController as AdminApplicationController;
 use App\Http\Controllers\Api\Consultant\AvailabilityController;
 use App\Http\Controllers\Api\Admin\HeroSliderController;
-use App\Http\Controllers\Api\Frontend\HomeController;
 use App\Http\Controllers\Api\Student\AppointmentController;
 use App\Http\Controllers\Api\AuthController;
 use App\Http\Controllers\Api\BlogCategoryController;
@@ -22,6 +21,8 @@ use App\Http\Controllers\Api\Student\ProfileController;
 use App\Http\Controllers\Api\Admin\UserController;
 use App\Http\Controllers\Api\Admin\PermissionController;
 use App\Http\Controllers\Api\CourseIntakeController;
+use App\Http\Controllers\Frontend\HomeController;
+use App\Http\Controllers\Frontend\PageController as FrontendPageController;
 use Illuminate\Support\Facades\Route;
 
 Route::group(['prefix' => 'auth'], function () {
@@ -119,4 +120,10 @@ Route::group(['prefix' => 'auth'], function () {
 // Frontend api endpoint
 Route::prefix('public')->group(function(){
     Route::get('/home', [HomeController::class, 'index']);
+    Route::get('/pages/about', [FrontendPageController::class, 'about']);
+    Route::get('/pages/why-choose-us', [FrontendPageController::class, 'whyChooseUs']);
+    Route::get('/pages/services', [FrontendPageController::class, 'services']);
+    Route::get('/pages/statistics', [FrontendPageController::class, 'statistics']);
+    Route::get('/pages/country-guide/{countryId}', [FrontendPageController::class, 'getCountryGuide']);
+    Route::get('/countries', [FrontendPageController::class, 'getCountriesForNavbar']);
 });

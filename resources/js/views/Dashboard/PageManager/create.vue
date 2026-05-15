@@ -29,8 +29,10 @@
                 <option value="">Regular Page</option>
                 <option value="home">Home Page</option>
                 <option value="about">About Us</option>
+                <option value="country_guide">Country Guide</option>
                 <option value="why_choose_us">Why Choose Us</option>
                 <option value="services">Services</option>
+                <option value="statistics">Statistics</option>
                 <option value="privacy">Privacy Policy</option>
                 <option value="terms">Terms & Conditions</option>
               </select>
