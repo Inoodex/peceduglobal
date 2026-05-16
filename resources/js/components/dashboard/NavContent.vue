@@ -61,7 +61,8 @@ import {
   GraduationCap,
   FileText,
   Calendar,
-  Clock
+  Clock,
+  Mail
 } from 'lucide-vue-next';
 
 defineProps({
@@ -132,6 +133,16 @@ const navigationData = [
           { name: 'Register Student', path: '/dashboard/students/register' },
           { name: 'Student List', path: '/dashboard/students' },
           { name: 'Add Student', path: '/dashboard/students/create' }
+        ]
+      },
+      {
+        name: 'Inquiries & Bookings',
+        icon: Mail,
+        children: [
+          { name: 'Student Inquiries', path: '/dashboard/student-inquiries' },
+          { name: 'Air Ticket Booking', path: '/dashboard/air-ticket-bookings' },
+          { name: 'Booking Manager', path: '/dashboard/booking-manager', roles: ['admin'] },
+          // { name: 'Consultation Requests', path: '/dashboard/consultation-requests' },
         ]
       },
       {
@@ -224,11 +235,27 @@ const canAccessItem = (item, userRole) => {
 
 const navigation = computed(() => {
   const userRole = auth.user?.role || 'student';
+  
+  const filterRecursive = (items) => {
+    return items
+      .filter(item => canAccessItem(item, userRole))
+      .map(item => {
+        if (item.children) {
+          return {
+            ...item,
+            children: filterRecursive(item.children)
+          };
+        }
+        return item;
+      })
+      .filter(item => !item.children || item.children.length > 0 || item.path);
+  };
+
   return navigationData
     .filter(section => !section.roles || section.roles.includes(userRole))
     .map(section => ({
       ...section,
-      items: section.items.filter(item => canAccessItem(item, userRole))
+      items: filterRecursive(section.items)
     }))
     .filter(section => section.items.length > 0);
 });

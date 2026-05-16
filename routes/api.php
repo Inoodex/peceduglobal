@@ -11,6 +11,7 @@ use App\Http\Controllers\Api\Admin\Education\StudentRegistrationController;
 use App\Http\Controllers\Api\Admin\Education\ApplicationController as AdminApplicationController;
 use App\Http\Controllers\Api\Consultant\AvailabilityController;
 use App\Http\Controllers\Api\Admin\HeroSliderController;
+use App\Http\Controllers\Frontend\ConsultantController as FrontendConsultantController;
 use App\Http\Controllers\Api\Student\AppointmentController;
 use App\Http\Controllers\Api\AuthController;
 use App\Http\Controllers\Api\BlogCategoryController;
@@ -27,6 +28,9 @@ use App\Http\Controllers\Frontend\BlogController as FrontendBlogController;
 use App\Http\Controllers\Frontend\UniversityController as FrontendUniversityController;
 use App\Http\Controllers\Frontend\CourseController as FrontendCourseController;
 use App\Http\Controllers\Frontend\SearchController as FrontendSearchController;
+use App\Http\Controllers\Frontend\InquiryController as FrontendInquiryController;
+use App\Http\Controllers\Api\Admin\InquiryController as AdminInquiryController;
+use App\Http\Controllers\Api\Admin\AppointmentController as AdminAppointmentController;
 use Illuminate\Support\Facades\Route;
 
 Route::group(['prefix' => 'auth'], function () {
@@ -89,6 +93,14 @@ Route::group(['prefix' => 'auth'], function () {
             // Applications Management
             Route::get('applications/metadata', [AdminApplicationController::class, 'metadata']);
             Route::apiResource('applications', AdminApplicationController::class);
+
+            // Inquiry/Lead Management
+            Route::apiResource('inquiries', AdminInquiryController::class)->except(['store']);
+
+            // Booking & Appointment Management
+            Route::get('booking-stats', [AdminAppointmentController::class, 'getStats']);
+            Route::get('all-schedules', [AdminAppointmentController::class, 'getAllSchedules']);
+            Route::get('appointments', [AdminAppointmentController::class, 'index']);
         });
 
         // Booking & Appointment Management (Clean Prefix)
@@ -133,6 +145,15 @@ Route::prefix('public')->group(function () {
 
     // Search Route
     Route::get('/search', [FrontendSearchController::class, 'search']);
+
+    // Inquiry/Lead Submission
+    Route::post('/inquiry', [FrontendInquiryController::class, 'store']);
+
+    // Consultant & Booking Public Routes
+    Route::get('/consultants/search', [FrontendConsultantController::class, 'search']);
+    Route::get('/consultants/slots', [FrontendConsultantController::class, 'getSlots']);
+    Route::get('/consultants/global-availability', [FrontendConsultantController::class, 'getGlobalAvailability']);
+    Route::post('/consultants/book-appointment', [FrontendConsultantController::class, 'bookAppointment']);
 
     Route::get('/pages/about', [FrontendPageController::class, 'about']);
     Route::get('/pages/about-the-company', [FrontendPageController::class, 'getAboutCompany']);

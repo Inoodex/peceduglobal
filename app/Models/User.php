@@ -92,6 +92,22 @@ class User extends Authenticatable implements JWTSubject
     }
 
     /**
+     * Get the schedules for the consultant.
+     */
+    public function consultantSchedules(): HasMany
+    {
+        return $this->hasMany(ConsultantSchedule::class, 'consultant_id');
+    }
+
+    /**
+     * Get the appointments for the student.
+     */
+    public function appointments(): HasMany
+    {
+        return $this->hasMany(Appointment::class, 'student_id');
+    }
+
+    /**
      * Get the identifier that will be stored in the subject claim of the JWT.
      *
      * @return mixed

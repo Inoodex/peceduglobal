@@ -274,10 +274,50 @@ const routes = [
         meta: { auth: true, role: 'admin' }
     },
     {
+        path: '/dashboard/student-inquiries',
+        name: 'student-inquiries',
+        component: () => import('../views/Dashboard/InquiryManager/index.vue'),
+        props: { type: 'university_apply' },
+        meta: { auth: true, permission: 'manage_inquiries' }
+    },
+    {
+        path: '/dashboard/air-ticket-bookings',
+        name: 'air-ticket-bookings',
+        component: () => import('../views/Dashboard/InquiryManager/index.vue'),
+        props: { type: 'air_ticket' },
+        meta: { auth: true, permission: 'manage_inquiries' }
+    },
+    {
+        path: '/dashboard/booking-manager',
+        name: 'booking-manager',
+        component: () => import('../views/Dashboard/BookingManager/index.vue'),
+        meta: { auth: true, role: 'admin' }
+    },
+    // {
+    //     path: '/dashboard/consultation-requests',
+    //     name: 'consultation-requests',
+    //     component: () => import('../views/Dashboard/InquiryManager/index.vue'),
+    //     props: { type: 'consultation' },
+    //     meta: { auth: true, role: 'admin' }
+    // },
+    {
         path: '/dashboard/profile',
         name: 'user.profile',
-        component: () => import('@/views/Dashboard/Student/Profile.vue'), // Assuming this view exists or using a placeholder
+        component: () => import('@/views/Dashboard/Student/Profile.vue'),
         meta: { auth: true }
+    },
+    // Consultant Routes
+    {
+        path: '/dashboard/consultant/availability',
+        name: 'consultant-availability',
+        component: () => import('../views/Dashboard/Consultant/Availability.vue'),
+        meta: { auth: true, role: 'consultant' }
+    },
+    {
+        path: '/dashboard/consultant/appointments',
+        name: 'consultant-appointments',
+        component: () => import('../views/Dashboard/Consultant/StudentAppointments.vue'),
+        meta: { auth: true, role: 'consultant' }
     },
     {
         path: '/',

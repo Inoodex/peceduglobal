@@ -167,16 +167,11 @@ const isActive = computed(() => {
   const currentPath = route.path;
   
   if (props.item.path) {
-    // 1. Basic Check: Does the current path start with this item's path?
+    // 1. Basic Prefix Check
     const isPrefix = currentPath === props.item.path || currentPath.startsWith(props.item.path + '/');
     if (!isPrefix) return false;
 
     // 2. SMART CHECK (Longest Match): 
-    // Is there any other item in the sidebar that is a BETTER (longer) match for the current path?
-    // For example, if we are on /dashboard/students/create:
-    // /dashboard/students matches (length 19)
-    // /dashboard/students/create matches (length 26)
-    // So /dashboard/students/create is the winner.
     const betterMatch = allNavPaths.value.find(p => 
       p !== props.item.path && 
       (currentPath === p || currentPath.startsWith(p + '/')) && 

@@ -46,6 +46,8 @@ class AutoPermissionMiddleware
             'App\Http\Controllers\Api\Admin\Education\UniversityController' => 'manage_education',
             'App\Http\Controllers\Api\Admin\Education\CourseController' => 'manage_education',
             'App\Http\Controllers\Api\Admin\Education\CourseLevelController' => 'manage_education',
+            'App\Http\Controllers\Api\Admin\InquiryController' => 'manage_inquiries',
+            'App\Http\Controllers\Api\Admin\AppointmentController' => 'manage_bookings',
         ];
 
         $permission = $controllerPermissions[$controllerClass] ?? null;
