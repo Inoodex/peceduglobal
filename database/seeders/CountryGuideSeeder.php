@@ -15,7 +15,7 @@ class CountryGuideSeeder extends Seeder
         // 1. Ensure Singapore Country exists
         $country = Country::firstOrCreate(
             ['name' => 'Singapore'],
-            ['name' => 'Singapore', 'iso_code' => 'SG']
+            ['name' => 'Singapore', 'iso_code' => 'SG', 'slug' => 'singapore']
         );
 
         // 2. Create the Singapore Guide Page
@@ -28,147 +28,110 @@ class CountryGuideSeeder extends Seeder
             ]
         );
 
+        // Clear existing blocks to avoid duplicates if re-seeding
+        $page->blocks()->delete();
+
         // 3. Define Blocks and their Elements
         $blocksData = [
+            // HERO SECTION
             [
-                'block_type' => 'country_hero',
-                'section_title' => 'Study in Singapore from Bangladesh',
-                'section_description' => 'Your gateway to world-class education and a thriving career in the heart of Asia.',
+                'block_type' => 'hero',
+                'section_title' => 'Study in the Singapore from Bangladesh',
+                'section_description' => 'World-class education in the heart of Asia. Secure your future with top-ranked universities and a vibrant multicultural environment.',
                 'elements' => [
                     [
-                        'element_title' => '',
-                        'element_body' => '',
-                        'image_paths' => [], // Admin will upload actual image
+                        'element_title' => 'Explore Opportunities',
+                        'element_body' => 'Join thousands of Bangladeshi students who chose Singapore for their higher studies.',
+                        'image_paths' => ['/storage/defaults/singapore-hero.jpg'],
                         'sort_order' => 0
                     ]
                 ]
             ],
+            // REASONS TO STUDY
             [
-                'block_type' => 'country_intro',
-                'section_title' => 'About Singapore',
-                'section_description' => '',
+                'block_type' => 'reasons',
+                'section_title' => 'Reasons to Study in the Best advice for Singapore',
+                'section_description' => 'Why choose Singapore as your next study destination?',
+                'elements' => [
+                    ['element_title' => 'World-Class Education', 'element_body' => 'Home to some of the world\'s top-ranked universities.', 'sort_order' => 0],
+                    ['element_title' => 'Global Hub', 'element_body' => 'A major global hub for business, finance, and innovation.', 'sort_order' => 1],
+                    ['element_title' => 'Multicultural Society', 'element_body' => 'A safe, inclusive, and diverse environment for students.', 'sort_order' => 2],
+                    ['element_title' => 'Proximity', 'element_body' => 'Easily accessible from Bangladesh with frequent flights.', 'sort_order' => 3],
+                ]
+            ],
+            // SERVICES
+            [
+                'block_type' => 'services',
+                'section_title' => 'Services Designed around You',
+                'section_description' => 'We provide end-to-end support for your study abroad journey.',
+                'elements' => [
+                    ['element_title' => 'Course Counseling', 'element_body' => 'Finding the right course for your career.', 'sort_order' => 0],
+                    ['element_title' => 'University Selection', 'element_body' => 'Shortlisting the best institutions based on your profile.', 'sort_order' => 1],
+                    ['element_title' => 'Visa Support', 'element_body' => 'Expert guidance on Student Pass application.', 'sort_order' => 2],
+                    ['element_title' => 'Scholarship Assistance', 'element_body' => 'Helping you secure financial aid.', 'sort_order' => 3],
+                    ['element_title' => 'Accommodation', 'element_body' => 'Finding a safe and comfortable home.', 'sort_order' => 4],
+                    ['element_title' => 'Travel Assistance', 'element_body' => 'Booking flights and pre-departure briefing.', 'sort_order' => 5],
+                    ['element_title' => 'Part-time Work', 'element_body' => 'Guidance on work regulations for students.', 'sort_order' => 6],
+                    ['element_title' => 'Post-study Support', 'element_body' => 'Connecting you with career opportunities.', 'sort_order' => 7],
+                ]
+            ],
+            // PARTNERS
+            [
+                'block_type' => 'partners',
+                'section_title' => 'You\'re chose to partner with Top Best Best Universities',
+                'section_description' => 'We represent the most prestigious institutions in Singapore.',
+                'elements' => [] // Dynamically filled in frontend from University model
+            ],
+            // WHY CHOOSE US
+            [
+                'block_type' => 'why_choose',
+                'section_title' => 'Why Choose PEC EDU',
+                'section_description' => 'Bangladesh\'s most trusted education consultancy with 15+ years of excellence.',
                 'elements' => [
                     [
-                        'element_title' => '',
-                        'element_body' => 'Singapore is a global hub for education and innovation. Known for its world-class universities and high standard of living, it is a top destination for Bangladeshi students seeking quality education and career growth.',
+                        'element_title' => 'Expert Counselors',
+                        'element_body' => 'Our team consists of certified experts who understand the Singaporean education system.',
+                        'image_paths' => ['/storage/defaults/why-choose-pec.jpg'],
                         'sort_order' => 0
                     ]
                 ]
             ],
+            // STATISTICS
+            [
+                'block_type' => 'statistics',
+                'section_title' => 'Singapore at a glance',
+                'section_description' => 'Key facts and figures about studying in Singapore.',
+                'elements' => [
+                    ['element_title' => '31%', 'element_body' => 'Success Rate', 'sort_order' => 0],
+                    ['element_title' => '24K+', 'element_body' => 'Global Students', 'sort_order' => 1],
+                    ['element_title' => '363+', 'element_body' => 'Universities', 'sort_order' => 2],
+                    ['element_title' => '35+', 'element_body' => 'Countries Covered', 'sort_order' => 3],
+                ]
+            ],
+            // LIVING COSTS
             [
                 'block_type' => 'living_costs',
-                'section_title' => 'Living Costs in Singapore',
-                'section_description' => 'Understanding the cost of living is crucial for planning your studies.',
+                'section_title' => 'Living Costs for Bangladeshi Students',
+                'section_description' => 'Studying in Singapore requires careful financial planning, as monthly living costs vary by area.',
                 'elements' => [
-                    [
-                        'element_title' => 'Accommodation',
-                        'element_body' => '$500 - $1,200 per month',
-                        'sort_order' => 0
-                    ],
-                    [
-                        'element_title' => 'Food & Groceries',
-                        'element_body' => '$300 - $600 per month',
-                        'sort_order' => 1
-                    ],
-                    [
-                        'element_title' => 'Transport',
-                        'element_body' => '$50 - $150 per month',
-                        'sort_order' => 2
-                    ],
-                    [
-                        'element_title' => 'Miscellaneous',
-                        'element_body' => '$100 - $300 per month',
-                        'sort_order' => 3
-                    ]
+                    ['element_title' => 'Central Area', 'element_body' => 'Accommodation: $800-$1200 | Transport: $100 | Food: $400 | Total: $1300-$1700', 'sort_order' => 0],
+                    ['element_title' => 'Jurong East', 'element_body' => 'Accommodation: $600-$900 | Transport: $80 | Food: $350 | Total: $1030-$1330', 'sort_order' => 1],
+                    ['element_title' => 'Tampines', 'element_body' => 'Accommodation: $600-$900 | Transport: $80 | Food: $350 | Total: $1030-$1330', 'sort_order' => 2],
+                    ['element_title' => 'Woodlands', 'element_body' => 'Accommodation: $550-$850 | Transport: $80 | Food: $350 | Total: $980-$1280', 'sort_order' => 3],
                 ]
             ],
+            // REQUIREMENTS
             [
                 'block_type' => 'requirements',
-                'section_title' => 'Required Documents',
-                'section_description' => 'Ensure you have all the necessary documents for a smooth application process.',
+                'section_title' => 'Requirements for Bangladesh Students to Study abroad',
+                'section_description' => 'Basic criteria you need to fulfill to apply for Singapore.',
                 'elements' => [
-                    [
-                        'element_title' => 'Academic Transcripts',
-                        'element_body' => 'SSC and HSC certificates with minimum required GPA.',
-                        'sort_order' => 0
-                    ],
-                    [
-                        'element_title' => 'English Proficiency',
-                        'element_body' => 'IELTS (usually 6.0 - 6.5) or PTE/TOEFL equivalent.',
-                        'sort_order' => 1
-                    ],
-                    [
-                        'element_title' => 'Passport',
-                        'element_body' => 'Valid passport with at least 6 months validity.',
-                        'sort_order' => 2
-                    ],
-                    [
-                        'element_title' => 'SOP & LOR',
-                        'element_body' => 'A strong Statement of Purpose and Letters of Recommendation.',
-                        'sort_order' => 3
-                    ]
+                    ['element_title' => 'Academic GPA', 'element_body' => 'Minimum 3.0 in SSC & HSC.', 'sort_order' => 0],
+                    ['element_title' => 'English Proficiency', 'element_body' => 'IELTS 6.0 or equivalent (some private unis allow MOI).', 'sort_order' => 1],
+                    ['element_title' => 'Bank Solvency', 'element_body' => 'Proof of funds for tuition and living expenses.', 'sort_order' => 2],
+                    ['element_title' => 'Valid Passport', 'element_body' => 'With at least 6 months validity.', 'sort_order' => 3],
                 ]
-            ],
-            [
-                'block_type' => 'country_facts',
-                'section_title' => 'Facts at a Glance',
-                'section_description' => '',
-                'elements' => [
-                    [
-                        'element_title' => 'Currency',
-                        'element_body' => 'Singapore Dollar (SGD)',
-                        'sort_order' => 0
-                    ],
-                    [
-                        'element_title' => 'Official Language',
-                        'element_body' => 'English, Mandarin, Malay, Tamil',
-                        'sort_order' => 1
-                    ],
-                    [
-                        'element_title' => 'Climate',
-                        'element_body' => 'Tropical (Hot and Humid)',
-                        'sort_order' => 2
-                    ],
-                    [
-                        'element_title' => 'Time Zone',
-                        'element_body' => 'GMT+8',
-                        'sort_order' => 3
-                    ]
-                ]
-            ],
-            [
-                'block_type' => 'university_list',
-                'section_title' => 'Top Universities in Singapore',
-                'section_description' => 'Explore some of the most prestigious institutions in the country.',
-                'elements' => [] // Data comes from University model
-            ],
-            [
-                'block_type' => 'visa_process',
-                'section_title' => 'Visa Application Process',
-                'section_description' => 'A step-by-step guide to securing your student visa for Singapore.',
-                'elements' => [
-                    [
-                        'element_title' => 'Step 1: University Admission',
-                        'element_body' => 'Apply to your chosen university and receive an unconditional offer letter.',
-                        'sort_order' => 0
-                    ],
-                    [
-                        'element_title' => 'Step 2: Student Pass (STP) Application',
-                        'element_body' => 'Apply for the Student\'s Pass via the SOLAR system.',
-                        'sort_order' => 1
-                    ],
-                    [
-                        'element_title' => 'Step 3: Visa Approval',
-                        'element_body' => 'Wait for the In-Principle Approval (IPA) letter from ICA.',
-                        'sort_order' => 2
-                    ],
-                    [
-                        'element_title' => 'Step 4: Travel to Singapore',
-                        'element_body' => 'Fly to Singapore and complete the formalities for your STP card.',
-                        'sort_order' => 3
-                    ]
-                ]
-            ],
+            ]
         ];
 
         foreach ($blocksData as $index => $blockData) {

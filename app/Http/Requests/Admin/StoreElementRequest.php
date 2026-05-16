@@ -13,15 +13,12 @@ class StoreElementRequest extends FormRequest
 
     public function rules(): array
     {
-        $imagePathRule = $this->hasFile('image_path')
-            ? 'nullable|file|mimetypes:image/*|max:2048'
-            : 'nullable|string';
-
         return [
             'page_block_id' => 'required|exists:page_blocks,id',
             'element_title' => 'nullable|string|max:255',
             'element_body' => 'nullable|string',
-            'image_path' => $imagePathRule,
+            'images' => 'nullable|array',
+            'images.*' => 'nullable|file|mimetypes:image/jpeg,image/png,image/gif,image/webp,image/avif,image/svg+xml,image/bmp,image/vnd.microsoft.icon,image/x-icon,image/tiff|max:5120',
             'link_url' => 'nullable|url',
             'sort_order' => 'nullable|integer',
         ];

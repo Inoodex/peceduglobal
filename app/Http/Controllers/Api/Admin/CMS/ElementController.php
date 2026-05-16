@@ -54,6 +54,7 @@ class ElementController extends Controller
             $validated['image_paths'] = $paths;
         }
 
+        unset($validated['images']);
         $element = BlockElement::create($validated);
 
         return response()->json([
@@ -92,6 +93,7 @@ class ElementController extends Controller
             $validated['image_paths'] = $paths;
         }
 
+        unset($validated['images']);
         $element->update($validated);
 
         return response()->json([

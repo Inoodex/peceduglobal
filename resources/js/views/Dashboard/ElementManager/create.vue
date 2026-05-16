@@ -57,7 +57,7 @@
                 :show-alt-input="false"
                 :multiple="true"
                 placeholder="Drop or select multiple images"
-                hint="PNG, JPG, WEBP up to 2MB each"
+                hint="JPEG, PNG, GIF, WebP, AVIF, SVG, BMP, ICO, TIFF (Max 5MB)"
                 @select="handleFileSelect"
                 @remove="handleFileRemove"
               />

@@ -74,6 +74,17 @@ class PageController extends Controller
             ], Response::HTTP_NOT_FOUND);
         }
 
+        // Attach universities to specific blocks if they exist
+        foreach ($page->blocks as $block) {
+            if ($block->block_type === 'partners' || $block->block_type === 'university_list') {
+                $block->universities = \App\Models\University::where('country_id', $countryId)
+                    ->where(function($q) {
+                        $q->where('is_partner', true)->orWhere('is_popular', true);
+                    })
+                    ->get();
+            }
+        }
+
         return response()->json([
             'success' => true,
             'data' => [
