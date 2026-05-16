@@ -33,8 +33,8 @@
               </select>
             </div>
             <div>
-              <label class="block text-sm font-medium text-gray-700 dark:text-gray-300 mb-1.5">Element Title</label>
-              <input v-model="form.element_title" type="text" placeholder="e.g. Top Ranked University" class="w-full bg-gray-50 dark:bg-[#141A21] border border-gray-200 dark:border-gray-700 rounded-xl px-4 py-2.5 text-gray-900 dark:text-white placeholder-gray-400 focus:outline-none focus:ring-2 focus:ring-primary/20 focus:border-primary transition-all" />
+              <label class="block text-sm font-medium text-gray-700 dark:text-gray-300 mb-1.5">{{ selectedBlockType === 'faq' ? 'Question' : 'Element Title' }}</label>
+              <input v-model="form.element_title" type="text" :placeholder="selectedBlockType === 'faq' ? 'e.g. What are the requirements?' : 'e.g. Top Ranked University'" class="w-full bg-gray-50 dark:bg-[#141A21] border border-gray-200 dark:border-gray-700 rounded-xl px-4 py-2.5 text-gray-900 dark:text-white placeholder-gray-400 focus:outline-none focus:ring-2 focus:ring-primary/20 focus:border-primary transition-all" />
             </div>
             <div class="grid grid-cols-1 md:grid-cols-2 gap-4">
               <div>
@@ -47,7 +47,7 @@
               </div>
             </div>
             <div>
-              <label class="block text-sm font-medium text-gray-700 dark:text-gray-300 mb-1.5">Element Body</label>
+              <label class="block text-sm font-medium text-gray-700 dark:text-gray-300 mb-1.5">{{ selectedBlockType === 'faq' ? 'Answer' : 'Element Body' }}</label>
               <AppEditor v-model="form.element_body" />
             </div>
             <div>
@@ -102,6 +102,12 @@ export default {
         sort_order: 0,
       },
     };
+  },
+  computed: {
+    selectedBlockType() {
+      const block = this.blocks.find(b => b.id === this.form.page_block_id);
+      return block ? block.block_type : '';
+    }
   },
   mounted() {
     this.fetchBlocks();

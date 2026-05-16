@@ -123,6 +123,9 @@ Route::prefix('public')->group(function () {
     Route::get('/pages/why-choose-us', [FrontendPageController::class, 'whyChooseUs']);
     Route::get('/pages/services', [FrontendPageController::class, 'services']);
     Route::get('/pages/statistics', [FrontendPageController::class, 'statistics']);
+    Route::get('/pages/about-the-company', [FrontendPageController::class, 'getAboutCompany']);
+    Route::get('/pages/faq', [FrontendPageController::class, 'getFaqs']);
+    Route::get('/pages/comparison', [FrontendPageController::class, 'getComparison']);
     Route::get('/pages/country-guide/{countryId}', [FrontendPageController::class, 'getCountryGuide']);
     Route::get('/countries', [FrontendPageController::class, 'getCountriesForNavbar']);
 

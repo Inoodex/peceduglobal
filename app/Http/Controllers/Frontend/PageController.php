@@ -42,6 +42,30 @@ class PageController extends Controller
     }
 
     /**
+     * Fetch the "Comparison" page content.
+     */
+    public function getComparison(): JsonResponse
+    {
+        return $this->getPageData('comparison');
+    }
+
+    /**
+     * Fetch the "About the Company" page content.
+     */
+    public function getAboutCompany(): JsonResponse
+    {
+        return $this->getPageData('about_the_company');
+    }
+
+    /**
+     * Fetch the "FAQ" page content.
+     */
+    public function getFaqs(): JsonResponse
+    {
+        return $this->getPageData('faq');
+    }
+
+    /**
      * Fetch countries for the navbar "Study Abroad" dropdown.
      */
     public function getCountriesForNavbar(): JsonResponse
