@@ -21,6 +21,12 @@ class HomeController extends Controller
             ->where('is_partner', true)
             ->get();
 
+        $popularCountries = \App\Models\Country::where('is_popular', true)->get();
+        $popularUniversities = University::with('country')
+            ->where('is_popular', true)
+            ->limit(8)
+            ->get();
+
         $latestBlogs = \App\Models\BlogPost::with(['category', 'author'])
             ->where('status', 'published')
             ->latest('published_at')
@@ -32,6 +38,10 @@ class HomeController extends Controller
             'data' => [
                 'hero_sliders' => HeroSliderResource::collection($sliders),
                 'partners' => UniversityResource::collection($partners),
+                'popular_destinations' => [
+                    'countries' => \App\Http\Resources\Admin\CountryResource::collection($popularCountries),
+                    'universities' => UniversityResource::collection($popularUniversities),
+                ],
                 'latest_blogs' => \App\Http\Resources\Frontend\BlogResource::collection($latestBlogs)
             ],
         ], 200);

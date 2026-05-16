@@ -24,6 +24,9 @@ use App\Http\Controllers\Api\CourseIntakeController;
 use App\Http\Controllers\Frontend\HomeController;
 use App\Http\Controllers\Frontend\PageController as FrontendPageController;
 use App\Http\Controllers\Frontend\BlogController as FrontendBlogController;
+use App\Http\Controllers\Frontend\UniversityController as FrontendUniversityController;
+use App\Http\Controllers\Frontend\CourseController as FrontendCourseController;
+use App\Http\Controllers\Frontend\SearchController as FrontendSearchController;
 use Illuminate\Support\Facades\Route;
 
 Route::group(['prefix' => 'auth'], function () {
@@ -119,11 +122,23 @@ Route::group(['prefix' => 'auth'], function () {
 // Frontend api endpoints
 Route::prefix('public')->group(function () {
     Route::get('/home', [HomeController::class, 'index']);
+    
+    // University Routes
+    Route::get('/universities', [FrontendUniversityController::class, 'index']);
+    Route::get('/universities/{slug}', [FrontendUniversityController::class, 'show']);
+
+    // Course Routes
+    Route::get('/courses', [FrontendCourseController::class, 'index']);
+    Route::get('/courses/{id}', [FrontendCourseController::class, 'show']);
+
+    // Search Route
+    Route::get('/search', [FrontendSearchController::class, 'search']);
+
     Route::get('/pages/about', [FrontendPageController::class, 'about']);
+    Route::get('/pages/about-the-company', [FrontendPageController::class, 'getAboutCompany']);
     Route::get('/pages/why-choose-us', [FrontendPageController::class, 'whyChooseUs']);
     Route::get('/pages/services', [FrontendPageController::class, 'services']);
     Route::get('/pages/statistics', [FrontendPageController::class, 'statistics']);
-    Route::get('/pages/about-the-company', [FrontendPageController::class, 'getAboutCompany']);
     Route::get('/pages/faq', [FrontendPageController::class, 'getFaqs']);
     Route::get('/pages/comparison', [FrontendPageController::class, 'getComparison']);
     Route::get('/pages/country-guide/{countryId}', [FrontendPageController::class, 'getCountryGuide']);

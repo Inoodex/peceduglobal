@@ -19,6 +19,7 @@ class StoreCountryRequest extends FormRequest
             'iso_code' => 'required|string|max:3',
             'phone_code' => 'required|string|max:10',
             'thumbnail' => 'nullable|image|max:2048',
+            'is_popular' => 'nullable|boolean',
         ];
     }
 }

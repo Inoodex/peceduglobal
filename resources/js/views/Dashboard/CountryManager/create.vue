@@ -41,6 +41,10 @@
                 @remove="handleFileRemove"
               />
             </div>
+            <div class="flex items-center gap-3 p-3 bg-gray-50 dark:bg-[#141A21] rounded-xl border border-gray-200 dark:border-gray-700/50">
+              <input v-model="form.is_popular" type="checkbox" class="w-4 h-4 text-primary border-gray-300 rounded focus:ring-primary" />
+              <span class="text-sm font-medium text-gray-700 dark:text-gray-300">Mark as Popular Destination</span>
+            </div>
           </div>
         </div>
 
@@ -102,7 +106,14 @@ export default {
       sections: { details: true, properties: true },
       saving: false,
       thumbnailUrl: '',
-      form: { name: '', slug: '', iso_code: '', phone_code: '', thumbnail: null },
+      form: {
+        name: '',
+        slug: '',
+        iso_code: '',
+        phone_code: '',
+        thumbnail: null,
+        is_popular: false,
+      },
     };
   },
   methods: {

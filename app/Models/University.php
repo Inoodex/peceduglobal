@@ -32,6 +32,11 @@ class University extends Model
         return $this->belongsTo(Country::class);
     }
 
+    public function courses()
+    {
+        return $this->hasMany(Course::class);
+    }
+
     protected $casts = [
         'social_links' => 'array',
         'is_popular' => 'boolean',

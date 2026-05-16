@@ -25,6 +25,17 @@ class UniversityResource extends JsonResource
             'website' => $this->website,
             'description' => $this->description,
             'social_links' => $this->social_links,
+            'courses' => $this->whenLoaded('courses', function() {
+                return $this->courses->map(function($course) {
+                    return [
+                        'id' => $course->id,
+                        'name' => $course->name,
+                        'level' => $course->courseLevel?->name,
+                        'tuition_fee' => $course->tuition_fee,
+                        'duration' => $course->duration,
+                    ];
+                });
+            }),
         ];
     }
 }

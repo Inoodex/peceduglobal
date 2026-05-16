@@ -15,6 +15,7 @@ class CountryResource extends JsonResource
             'iso_code' => $this->iso_code,
             'phone_code' => $this->phone_code,
             'thumbnail' => $this->thumbnail ? (str_starts_with($this->thumbnail, '/storage/') ? $this->thumbnail : '/storage/' . $this->thumbnail) : null,
+            'is_popular' => (bool)$this->is_popular,
         ];
     }
 }

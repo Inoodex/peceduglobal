@@ -15,6 +15,11 @@ class Country extends Model
         'iso_code',
         'phone_code',
         'thumbnail',
+        'is_popular',
+    ];
+
+    protected $casts = [
+        'is_popular' => 'boolean',
     ];
 
     public function universities()

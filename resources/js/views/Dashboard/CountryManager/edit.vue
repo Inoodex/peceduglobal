@@ -49,6 +49,10 @@
                 @remove="handleFileRemove"
               />
             </div>
+            <div class="flex items-center gap-3 p-3 bg-gray-50 dark:bg-[#141A21] rounded-xl border border-gray-200 dark:border-gray-700/50">
+              <input v-model="form.is_popular" type="checkbox" class="w-4 h-4 text-primary border-gray-300 rounded focus:ring-primary" />
+              <span class="text-sm font-medium text-gray-700 dark:text-gray-300">Mark as Popular Destination</span>
+            </div>
           </div>
         </div>
 
@@ -111,7 +115,14 @@ export default {
       loading: false,
       saving: false,
       thumbnailUrl: '',
-      form: { name: '', slug: '', iso_code: '', phone_code: '', thumbnail: null },
+      form: {
+        name: '',
+        slug: '',
+        iso_code: '',
+        phone_code: '',
+        thumbnail: null,
+        is_popular: false,
+      },
     };
   },
   mounted() { this.fetchCountry(); },
@@ -122,7 +133,14 @@ export default {
       try {
         const response = await axios.get(`/auth/admin/countries/${this.$route.params.id}`);
         const country = response.data.data;
-        this.form = { ...country, thumbnail: null, slug: country.slug || '' };
+        this.form = {
+          name: country.name,
+          slug: country.slug || '',
+          iso_code: country.iso_code,
+          phone_code: country.phone_code,
+          thumbnail: null,
+          is_popular: !!country.is_popular,
+        };
         if (country.thumbnail) this.thumbnailUrl = country.thumbnail;
       } catch (e) {
         console.error('Failed to load country', e);
