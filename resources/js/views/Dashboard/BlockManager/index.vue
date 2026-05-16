@@ -75,9 +75,7 @@
                   </span>
                 </td>
                 <td class="px-6 py-4">
-                  <span class="text-sm text-gray-600 dark:text-gray-400 truncate max-w-xs block">
-                    {{ block.section_description || 'N/A' }}
-                  </span>
+                  <span class="text-sm text-gray-600 dark:text-gray-400 truncate max-w-xs block" v-html="block.section_description || 'N/A'"></span>
                 </td>
                 <td class="px-6 py-4">
                   <span v-if="block.page" class="inline-flex items-center gap-1 px-2 py-1 rounded-lg bg-blue-100 dark:bg-blue-900/30 text-blue-700 dark:text-blue-300 text-xs font-medium">
