@@ -103,6 +103,9 @@ Route::group(['prefix' => 'auth'], function () {
 
             // Applications Management
             Route::get('applications/metadata', [AdminApplicationController::class, 'metadata']);
+            Route::get('applications/universities', [AdminApplicationController::class, 'getUniversities']);
+            Route::get('applications/courses', [AdminApplicationController::class, 'getCourses']);
+            Route::get('applications/intakes', [AdminApplicationController::class, 'getIntakes']);
             Route::apiResource('applications', AdminApplicationController::class);
 
             // Inquiry/Lead Management

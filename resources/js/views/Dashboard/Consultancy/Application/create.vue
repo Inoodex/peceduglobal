@@ -333,7 +333,7 @@ watch(() => form.value.country_id, async (val) => {
   
   loadingUniversities.value = true;
   try {
-    const res = await axios.get('/auth/admin/universities', { params: { country_id: val, per_page: 500 } });
+    const res = await axios.get('/auth/admin/applications/universities', { params: { country_id: val } });
     universities.value = unwrapList(res);
   } finally {
     loadingUniversities.value = false;
@@ -348,7 +348,7 @@ watch(() => form.value.university_id, async (val) => {
   
   loadingCourses.value = true;
   try {
-    const res = await axios.get('/auth/admin/courses', { params: { university_id: val, per_page: 500 } });
+    const res = await axios.get('/auth/admin/applications/courses', { params: { university_id: val } });
     courses.value = unwrapList(res);
   } finally {
     loadingCourses.value = false;
@@ -369,7 +369,7 @@ watch(() => form.value.course_id, async (val) => {
 
   loadingIntakes.value = true;
   try {
-    const res = await axios.get('/auth/admin/course-intakes', { params: { course_id: val } });
+    const res = await axios.get('/auth/admin/applications/intakes', { params: { course_id: val } });
     intakes.value = unwrapList(res);
   } finally {
     loadingIntakes.value = false;

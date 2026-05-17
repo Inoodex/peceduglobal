@@ -31,6 +31,66 @@ class ApplicationController extends Controller
         }
     }
 
+    /**
+     * Get universities filtered by country for application form.
+     */
+    public function getUniversities(Request $request)
+    {
+        try {
+            $query = \App\Models\University::query();
+            if ($request->filled('country_id')) {
+                $query->where('country_id', $request->query('country_id'));
+            }
+            $universities = $query->orderBy('name')->get(['id', 'name']);
+            return response()->json([
+                'success' => true,
+                'data' => $universities
+            ], 200);
+        } catch (Exception $e) {
+            return response()->json(['success' => false, 'message' => $e->getMessage()], 500);
+        }
+    }
+
+    /**
+     * Get courses filtered by university for application form.
+     */
+    public function getCourses(Request $request)
+    {
+        try {
+            $query = \App\Models\Course::query();
+            if ($request->filled('university_id')) {
+                $query->where('university_id', $request->query('university_id'));
+            }
+            $courses = $query->orderBy('name')->get(['id', 'name', 'course_level_id']);
+            return response()->json([
+                'success' => true,
+                'data' => $courses
+            ], 200);
+        } catch (Exception $e) {
+            return response()->json(['success' => false, 'message' => $e->getMessage()], 500);
+        }
+    }
+
+    /**
+     * Get intakes filtered by course for application form.
+     */
+    public function getIntakes(Request $request)
+    {
+        try {
+            $query = \App\Models\CourseIntake::query();
+            if ($request->filled('course_id')) {
+                $query->where('course_id', (int) $request->query('course_id'));
+            }
+            $intakes = $query->latest()->get(['id', 'intake_name', 'course_id']);
+            return response()->json([
+                'success' => true,
+                'data' => $intakes
+            ], 200);
+        } catch (Exception $e) {
+            return response()->json(['success' => false, 'message' => $e->getMessage()], 500);
+        }
+    }
+
     public function index()
     {
         try {
