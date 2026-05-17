@@ -5,14 +5,8 @@
       <div class="flex items-center justify-between">
         <div>
           <h1 class="text-2xl font-bold text-gray-900 dark:text-white">My Appointments</h1>
-          <p class="text-sm text-gray-500 dark:text-gray-400">View and manage your scheduled sessions with consultants.</p>
+          <p class="text-sm text-gray-500 dark:text-gray-400">View your scheduled sessions with consultants.</p>
         </div>
-        <button
-          class="px-4 py-2 bg-primary text-white rounded-xl text-sm font-semibold hover:shadow-lg hover:shadow-primary/30 transition-all flex items-center gap-2"
-          @click="$router.push('/dashboard/appointments/book')"
-        >
-          <Plus class="w-4 h-4" /> Book New Session
-        </button>
       </div>
 
       <!-- Stats Grid -->
@@ -142,7 +136,7 @@ const upcomingCount = computed(() => {
 const fetchAppointments = async () => {
   loading.value = true;
   try {
-    const res = await axios.get('/auth/student/booking/student/my-appointments');
+    const res = await axios.get('/auth/booking/student/my-appointments');
     appointments.value = res.data.data || [];
   } catch (error) {
     console.error('Failed to fetch appointments', error);

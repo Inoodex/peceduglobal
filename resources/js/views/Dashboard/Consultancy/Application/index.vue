@@ -8,6 +8,7 @@
           <p class="text-sm text-gray-500 dark:text-gray-400">Manage and track all student applications globally.</p>
         </div>
         <button
+          v-if="!isStudent"
           class="px-4 py-2 bg-primary text-white rounded-xl text-sm font-semibold hover:shadow-lg hover:shadow-primary/30 transition-all flex items-center gap-2"
           @click="$router.push('/dashboard/applications/create')"
         >
@@ -34,7 +35,7 @@
                 <th class="px-6 py-4 text-xs font-semibold text-gray-500 dark:text-gray-400 uppercase tracking-wider">University & Course</th>
                 <th class="px-6 py-4 text-xs font-semibold text-gray-500 dark:text-gray-400 uppercase tracking-wider">Country</th>
                 <th class="px-6 py-4 text-xs font-semibold text-gray-500 dark:text-gray-400 uppercase tracking-wider">Status</th>
-                <th class="px-6 py-4 text-xs font-semibold text-gray-500 dark:text-gray-400 uppercase tracking-wider text-right">Actions</th>
+                <th v-if="!isStudent" class="px-6 py-4 text-xs font-semibold text-gray-500 dark:text-gray-400 uppercase tracking-wider text-right">Actions</th>
               </tr>
             </thead>
             <tbody class="divide-y divide-gray-100 dark:divide-gray-800/50">
@@ -81,7 +82,7 @@
                     {{ app.status?.replace('_', ' ') }}
                   </span>
                 </td>
-                <td class="px-6 py-4 text-right">
+                <td v-if="!isStudent" class="px-6 py-4 text-right">
                   <div class="flex items-center justify-end gap-1 opacity-0 group-hover:opacity-100 transition-all transform translate-x-2 group-hover:translate-x-0">
                     <button @click="edit(app)" class="p-2 text-gray-400 hover:text-primary hover:bg-primary/5 rounded-lg transition-all">
                       <Edit3 class="w-4 h-4" />
@@ -102,17 +103,21 @@
 </template>
 
 <script setup>
-import { ref, onMounted } from 'vue';
+import { ref, onMounted, computed } from 'vue';
 import { useRouter } from 'vue-router';
 import axios from '@/plugins/axios';
 import { useToastStore } from '@/stores/toast';
 import { useConfirmStore } from '@/stores/confirm';
+import { useAuthStore } from '@/stores/auth';
 import MainLayout from '@/layouts/MainLayout.vue';
 import { Plus, Edit3, Trash2, ChevronRight, FileText, Loader2 } from 'lucide-vue-next';
 
 const router = useRouter();
 const toast = useToastStore();
 const confirm = useConfirmStore();
+const authStore = useAuthStore();
+
+const isStudent = computed(() => authStore.user?.role === 'student');
 
 const applications = ref([]);
 const loading = ref(true);
@@ -128,8 +133,10 @@ const stats = ref([
 const loadApplications = async () => {
   loading.value = true;
   try {
-    const res = await axios.get('/auth/admin/applications');
-    applications.value = res.data.data.data || res.data.data || [];
+    const url = isStudent.value ? '/auth/student/applications' : '/auth/admin/applications';
+    const res = await axios.get(url);
+    const rawData = res.data.data;
+    applications.value = rawData?.data || rawData || [];
     updateStats();
   } catch (error) {
     console.error('Failed to load applications', error);

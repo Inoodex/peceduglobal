@@ -363,7 +363,7 @@ router.beforeEach(async (to, from, next) => {
     } else if (to.meta.permission) {
         const userRole = authStore.user?.role;
         const userPermissions = authStore.user?.permissions?.map((perm) => perm.slug) || [];
-        if (userRole !== 'admin' && !userPermissions.includes(to.meta.permission)) {
+        if (userRole !== 'admin' && userRole !== 'student' && !userPermissions.includes(to.meta.permission)) {
             next('/dashboard');
             return;
         }
