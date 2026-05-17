@@ -144,15 +144,21 @@ class ConsultantController extends Controller
         }
     }
 
+
+
     /**
      * Book an appointment (Public/Frontend side).
+     * Can be done by logged in user (passing student_id) or guest (passing name, email, phone).
      */
     public function bookAppointment(Request $request)
     {
         $validator = Validator::make($request->all(), [
             'schedule_id' => 'required|exists:consultant_schedules,id',
             'meeting_type' => 'required|in:online,physical',
-            'student_id' => 'required|exists:users,id',
+            'student_id' => 'nullable|exists:users,id',
+            'name' => 'required_without:student_id|string|max:255',
+            'email' => 'required_without:student_id|email',
+            'phone' => 'nullable|string|max:20',
             'student_notes' => 'nullable|string'
         ]);
 
@@ -161,9 +167,30 @@ class ConsultantController extends Controller
         }
 
         try {
-            // Use a transaction to ensure data consistency
             return \DB::transaction(function () use ($request) {
-                // Lock the schedule row for update to prevent race conditions
+                // If student_id is not provided (Guest booking)
+                $studentId = $request->student_id;
+                
+                if (!$studentId) {
+                    // Check if email already exists
+                    $existingUser = User::where('email', $request->email)->first();
+                    
+                    if ($existingUser) {
+                        $studentId = $existingUser->id;
+                    } else {
+                        // Create a new student user
+                        $newUser = User::create([
+                            'full_name' => $request->name,
+                            'email' => $request->email,
+                            'phone' => $request->phone,
+                            'password' => \Hash::make(\Str::random(10)), // Generate random password
+                            'role' => 'student',
+                            'is_active' => true
+                        ]);
+                        $studentId = $newUser->id;
+                    }
+                }
+
                 $schedule = ConsultantSchedule::where('id', $request->schedule_id)
                     ->lockForUpdate()
                     ->first();
@@ -172,32 +199,25 @@ class ConsultantController extends Controller
                     return response()->json(['success' => false, 'message' => 'Schedule not found'], 404);
                 }
 
-                // Check if slot is already booked
                 if ($schedule->status === 'booked') {
                     return response()->json(['success' => false, 'message' => 'Slot already booked'], 400);
                 }
 
-                // Double-check if there's already an appointment for this slot
                 $existingAppointment = Appointment::where('schedule_id', $schedule->id)->first();
                 if ($existingAppointment) {
-                    // Update the schedule status to reflect the existing appointment
                     $schedule->update(['status' => 'booked']);
                     return response()->json(['success' => false, 'message' => 'Slot already booked'], 400);
                 }
 
-                // Create the appointment
                 $appointment = Appointment::create([
                     'schedule_id' => $schedule->id,
-                    'student_id' => $request->student_id,
+                    'student_id' => $studentId,
                     'status' => 'confirmed',
                     'meeting_type' => $request->meeting_type,
                     'student_notes' => $request->student_notes
                 ]);
 
-                // Update schedule status to booked
                 $schedule->update(['status' => 'booked']);
-
-                // Load relationships for the response
                 $appointment->load(['schedule.consultant', 'student']);
 
                 return response()->json([
