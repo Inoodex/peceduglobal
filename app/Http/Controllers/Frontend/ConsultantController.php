@@ -57,10 +57,16 @@ class ConsultantController extends Controller
         }
 
         try {
+            // Get all slots for the consultant on the specified date
             $slots = ConsultantSchedule::where('consultant_id', $request->consultant_id)
                 ->where('slot_date', $request->date)
-                ->where('status', 'available')
-                ->get();
+                ->with('appointment') // Load appointment data to check if booked
+                ->get()
+                ->map(function ($slot) {
+                    // Add a computed field to indicate if the slot is booked
+                    $slot->is_booked = $slot->status === 'booked' || $slot->appointment !== null;
+                    return $slot;
+                });
 
             return response()->json(['success' => true, 'data' => $slots], 200);
         } catch (\Exception $e) {
@@ -107,6 +113,38 @@ class ConsultantController extends Controller
     }
 
     /**
+     * Get available dates for a specific consultant.
+     */
+    public function getAvailableDates(Request $request)
+    {
+        $validator = Validator::make($request->all(), [
+            'consultant_id' => 'required|exists:users,id',
+            'month' => 'required|integer|min:1|max:12',
+            'year' => 'required|integer|min:2020|max:2030'
+        ]);
+
+        if ($validator->fails()) {
+            return response()->json(['success' => false, 'errors' => $validator->errors()], 422);
+        }
+
+        try {
+            $startDate = Carbon::create($request->year, $request->month, 1);
+            $endDate = $startDate->copy()->endOfMonth();
+            
+            $availableDates = ConsultantSchedule::where('consultant_id', $request->consultant_id)
+                ->whereBetween('slot_date', [$startDate, $endDate])
+                ->where('status', 'available')
+                ->select('slot_date')
+                ->distinct()
+                ->pluck('slot_date');
+
+            return response()->json(['success' => true, 'data' => $availableDates], 200);
+        } catch (\Exception $e) {
+            return response()->json(['success' => false, 'message' => $e->getMessage()], 500);
+        }
+    }
+
+    /**
      * Book an appointment (Public/Frontend side).
      */
     public function bookAppointment(Request $request)
@@ -114,7 +152,7 @@ class ConsultantController extends Controller
         $validator = Validator::make($request->all(), [
             'schedule_id' => 'required|exists:consultant_schedules,id',
             'meeting_type' => 'required|in:online,physical',
-            'student_id' => 'required|exists:users,id', // If auth is handled separately
+            'student_id' => 'required|exists:users,id',
             'student_notes' => 'nullable|string'
         ]);
 
@@ -123,24 +161,53 @@ class ConsultantController extends Controller
         }
 
         try {
-            $schedule = ConsultantSchedule::findOrFail($request->schedule_id);
-            if ($schedule->status === 'booked') {
-                return response()->json(['success' => false, 'message' => 'Slot already booked'], 400);
-            }
+            // Use a transaction to ensure data consistency
+            return \DB::transaction(function () use ($request) {
+                // Lock the schedule row for update to prevent race conditions
+                $schedule = ConsultantSchedule::where('id', $request->schedule_id)
+                    ->lockForUpdate()
+                    ->first();
 
-            $appointment = Appointment::create([
-                'schedule_id' => $schedule->id,
-                'student_id' => $request->student_id,
-                'status' => 'confirmed',
-                'meeting_type' => $request->meeting_type,
-                'student_notes' => $request->student_notes
-            ]);
+                if (!$schedule) {
+                    return response()->json(['success' => false, 'message' => 'Schedule not found'], 404);
+                }
 
-            $schedule->update(['status' => 'booked']);
+                // Check if slot is already booked
+                if ($schedule->status === 'booked') {
+                    return response()->json(['success' => false, 'message' => 'Slot already booked'], 400);
+                }
 
-            return response()->json(['success' => true, 'message' => 'Booked!', 'data' => $appointment], 201);
+                // Double-check if there's already an appointment for this slot
+                $existingAppointment = Appointment::where('schedule_id', $schedule->id)->first();
+                if ($existingAppointment) {
+                    // Update the schedule status to reflect the existing appointment
+                    $schedule->update(['status' => 'booked']);
+                    return response()->json(['success' => false, 'message' => 'Slot already booked'], 400);
+                }
+
+                // Create the appointment
+                $appointment = Appointment::create([
+                    'schedule_id' => $schedule->id,
+                    'student_id' => $request->student_id,
+                    'status' => 'confirmed',
+                    'meeting_type' => $request->meeting_type,
+                    'student_notes' => $request->student_notes
+                ]);
+
+                // Update schedule status to booked
+                $schedule->update(['status' => 'booked']);
+
+                // Load relationships for the response
+                $appointment->load(['schedule.consultant', 'student']);
+
+                return response()->json([
+                    'success' => true, 
+                    'message' => 'Appointment booked successfully!', 
+                    'data' => $appointment
+                ], 201);
+            });
         } catch (\Exception $e) {
-            return response()->json(['success' => false, 'message' => $e->getMessage()], 500);
+            return response()->json(['success' => false, 'message' => 'Booking failed. Please try again.'], 500);
         }
     }
 }
