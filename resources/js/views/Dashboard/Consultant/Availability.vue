@@ -91,7 +91,7 @@
                     <td class="px-6 py-4">
                       <span 
                         class="px-2 py-1 text-[10px] font-bold rounded-lg border uppercase"
-                        :class="slot.status === 'available' ? 'bg-green-50 text-green-600 border-green-100' : 'bg-blue-50 text-blue-600 border-blue-100'"
+                        :class="getStatusClass(slot.status)"
                       >
                         {{ slot.status }}
                       </span>
@@ -99,12 +99,13 @@
                     <td class="px-6 py-4 text-right">
                       <button 
                         @click="deleteSlot(slot.id)" 
-                        v-if="slot.status === 'available'"
+                        v-if="slot.status === 'available' || slot.status === 'expired'"
                         class="p-2 text-red-500 hover:bg-red-50 rounded-lg transition-colors"
+                        title="Delete Slot"
                       >
                         <Trash2 class="w-4 h-4" />
                       </button>
-                      <span v-else class="text-xs text-gray-400 font-bold italic">Booked</span>
+                      <span v-else-if="slot.status === 'booked'" class="text-xs text-blue-500 font-bold italic">Booked</span>
                     </td>
                   </tr>
                   <tr v-if="slots.length === 0">
@@ -184,6 +185,15 @@ const formatTime = (time) => {
   const ampm = h >= 12 ? 'PM' : 'AM';
   const hh = h % 12 || 12;
   return `${hh}:${minutes} ${ampm}`;
+};
+
+const getStatusClass = (status) => {
+  switch (status) {
+    case 'available': return 'bg-green-50 text-green-600 border-green-100';
+    case 'booked': return 'bg-blue-50 text-blue-600 border-blue-100';
+    case 'expired': return 'bg-gray-100 text-gray-500 border-gray-200';
+    default: return 'bg-gray-50 text-gray-600 border-gray-100';
+  }
 };
 
 onMounted(fetchSlots);

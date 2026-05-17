@@ -30,6 +30,7 @@ class HeroSliderController extends Controller
             'sort_order' => 'integer',
             'is_active' => 'boolean',
             'image' => 'nullable|image|mimes:jpeg,png,jpg,gif,webp,avif|max:2048', // 2MB Max
+            'floating_images' => 'nullable|array|max:8',
             'floating_images.*' => 'nullable|image|mimes:jpeg,png,jpg,gif,webp,avif|max:2048' // Multiple images
         ]);
 
@@ -92,12 +93,24 @@ class HeroSliderController extends Controller
             'sort_order' => 'integer',
             'is_active' => 'boolean',
             'image' => 'nullable|image|mimes:jpeg,png,jpg,gif,webp,avif|max:2048',
+            'new_floating_images' => 'nullable|array',
             'new_floating_images.*' => 'nullable|image|mimes:jpeg,png,jpg,gif,webp,avif|max:2048',
             'retained_floating_images' => 'nullable|array' // Array of URLs of images to keep
         ]);
 
         if ($validator->fails()) {
             return response()->json(['success' => false, 'errors' => $validator->errors()], 422);
+        }
+
+        // Custom validation to ensure total floating images do not exceed 8
+        $retainedCount = is_array($request->input('retained_floating_images')) ? count($request->input('retained_floating_images')) : 0;
+        $newCount = $request->hasFile('new_floating_images') ? count($request->file('new_floating_images')) : 0;
+        
+        if (($retainedCount + $newCount) > 8) {
+            return response()->json([
+                'success' => false, 
+                'errors' => ['floating_images' => ['You can upload a maximum of 8 floating images combined.']]
+            ], 422);
         }
 
         try {

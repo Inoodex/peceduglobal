@@ -136,7 +136,7 @@
           <div>
             <label class="block text-xs font-bold text-gray-500 uppercase mb-1">Floating Images (Multiple)</label>
             <div class="space-y-3">
-              <input type="file" ref="floatingFileInput" @change="onFloatingFileChange" multiple class="text-sm text-gray-500 file:mr-4 file:py-2 file:px-4 file:rounded-xl file:border-0 file:text-sm file:font-semibold file:bg-primary/10 file:text-primary hover:file:bg-primary/20 cursor-pointer" accept="image/*">
+              <input type="file" ref="floatingFileInput" @change="handleFloatingFileSelect" multiple class="text-sm text-gray-500 file:mr-4 file:py-2 file:px-4 file:rounded-xl file:border-0 file:text-sm file:font-semibold file:bg-primary/10 file:text-primary hover:file:bg-primary/20 cursor-pointer" accept="image/*">
               
               <div class="flex flex-wrap gap-3 mt-2" v-if="form.retained_floating_images.length > 0 || newFloatingPreviews.length > 0">
                 <!-- Retained existing images -->
@@ -270,10 +270,19 @@ const onFileChange = (e) => {
   }
 };
 
-const onFloatingFileChange = (e) => {
-  const files = Array.from(e.target.files);
+const handleFloatingFileSelect = (event) => {
+  const files = Array.from(event.target.files);
   if (files.length > 0) {
-    files.forEach(file => {
+    const totalCurrent = form.value.new_floating_images.length + form.value.retained_floating_images.length;
+    
+    if (totalCurrent + files.length > 8) {
+      toast.error('You can only upload a maximum of 8 floating images.');
+      // Clear the file input so they have to re-select
+      if (floatingFileInput.value) floatingFileInput.value.value = '';
+      return;
+    }
+
+    files.forEach((file) => {
       form.value.new_floating_images.push(file);
       newFloatingPreviews.value.push(URL.createObjectURL(file));
     });
@@ -296,6 +305,12 @@ const removeNewFloatingImage = (index) => {
 const saveSlider = async () => {
   if (!form.value.title) {
     toast.error('Title is required');
+    return;
+  }
+
+  const totalFloating = form.value.new_floating_images.length + form.value.retained_floating_images.length;
+  if (totalFloating > 8) {
+    toast.error('You can only upload a maximum of 8 floating images.');
     return;
   }
 

@@ -131,7 +131,11 @@ export default {
       try {
         const formData = new FormData();
         Object.keys(this.form).forEach(key => {
-          if (this.form[key]) formData.append(key, this.form[key]);
+          if (typeof this.form[key] === 'boolean') {
+            formData.append(key, this.form[key] ? 1 : 0);
+          } else if (this.form[key] !== null && this.form[key] !== '') {
+            formData.append(key, this.form[key]);
+          }
         });
         await axios.post('/auth/admin/countries', formData, {
           headers: { 'Content-Type': 'multipart/form-data' }

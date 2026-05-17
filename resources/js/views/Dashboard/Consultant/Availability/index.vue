@@ -69,7 +69,9 @@
                 <td class="px-6 py-4 text-center">
                   <span :class="[
                     'px-2.5 py-1 text-[10px] font-black uppercase rounded-md border inline-block',
-                    s.status === 'booked' ? 'bg-blue-50 text-blue-600 border-blue-100' : 'bg-green-50 text-green-600 border-green-100'
+                    s.status === 'booked' ? 'bg-blue-50 text-blue-600 border-blue-100' : 
+                    s.status === 'expired' ? 'bg-gray-100 text-gray-500 border-gray-200' : 
+                    'bg-green-50 text-green-600 border-green-100'
                   ]">
                     {{ s.status }}
                   </span>

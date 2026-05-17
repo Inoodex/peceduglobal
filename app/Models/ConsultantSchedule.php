@@ -27,4 +27,23 @@ class ConsultantSchedule extends Model
     {
         return $this->hasOne(Appointment::class, 'schedule_id');
     }
+
+    /**
+     * Automatically mark slots as 'expired' if their time has passed.
+     */
+    public function getStatusAttribute($value)
+    {
+        // Only check slots that are currently 'available'
+        if ($value === 'available') {
+            // Combine date and time to create a full Carbon instance
+            $slotDateTime = \Carbon\Carbon::parse($this->slot_date . ' ' . $this->start_time);
+            
+            // If the time has already passed, return 'expired' instead of 'available'
+            if ($slotDateTime->isPast()) {
+                return 'expired';
+            }
+        }
+
+        return $value;
+    }
 }
