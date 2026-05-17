@@ -1,6 +1,6 @@
 <?php
 
-namespace App\Http\Controllers\Api\Student;
+namespace App\Http\Controllers\Frontend;
 
 use App\Http\Controllers\Controller;
 use App\Http\Requests\Student\StoreProfileRequest;
@@ -12,15 +12,23 @@ use Illuminate\Http\Response;
 use Illuminate\Support\Facades\Hash;
 use Illuminate\Support\Facades\Storage;
 
-class ProfileController extends Controller
+class StudentProfileController extends Controller
 {
     /**
-     * GET /auth/student/profile
-     * Return the authenticated student's profile.
+     * GET /api/auth/student/profile
+     * Return the authenticated user's profile data.
      */
     public function show(): JsonResponse
     {
-        $profile = StudentProfile::firstOrCreate(['user_id' => auth()->id()]);
+        /** @var \App\Models\User $user */
+        $user    = auth()->user();
+        
+        // Provide user's phone or blank string as default if student profile doesn't exist yet
+        $profile = StudentProfile::firstOrCreate(
+            ['user_id' => $user->id],
+            ['phone' => $user->phone ?? '']
+        );
+
         return response()->json([
             'success' => true,
             'data'    => new StudentProfileResource($profile),
@@ -28,9 +36,9 @@ class ProfileController extends Controller
     }
 
     /**
-     * PUT /auth/profile
-     * Update personal info for any authenticated user.
-     * CGPA / IELTS / address are updated only if the user is a student.
+     * POST /api/auth/student/profile  (with _method=PUT)
+     * Update profile info — name, email, phone, country, nationality, image.
+     * CGPA / IELTS / address updated only for students.
      */
     public function update(StoreProfileRequest $request): JsonResponse
     {
@@ -38,7 +46,7 @@ class ProfileController extends Controller
         $user      = auth()->user();
         $validated = $request->validated();
 
-        // Combine first + last name into full_name
+        // Merge first + last name into full_name
         $fullName = trim($validated['first_name'] . ' ' . $validated['last_name']);
 
         // Handle profile photo upload
@@ -64,10 +72,13 @@ class ProfileController extends Controller
             'profile_photo_url' => $profilePhotoUrl,
         ]);
 
-        // Update student_profiles only for students
+        // Update student_profiles table only for student role
         $profile = null;
         if ($user->role === 'student') {
-            $profile = StudentProfile::firstOrCreate(['user_id' => $user->id]);
+            $profile = StudentProfile::firstOrCreate(
+                ['user_id' => $user->id],
+                ['phone' => $validated['phone'] ?? $user->phone ?? '']
+            );
             $profile->update([
                 'phone'       => $validated['phone'] ?? null,
                 'address'     => $validated['address'] ?? null,
@@ -84,15 +95,15 @@ class ProfileController extends Controller
     }
 
     /**
-     * PUT /auth/student/profile/password
-     * Update password only – completely separate from profile info.
+     * PUT /api/auth/student/profile/password
+     * Update password only — completely separate from profile info.
      */
     public function updatePassword(UpdatePasswordRequest $request): JsonResponse
     {
         /** @var \App\Models\User $user */
         $user = auth()->user();
 
-        // Verify current password first
+        // Verify current password
         if (!Hash::check($request->current_password, $user->password)) {
             return response()->json([
                 'success' => false,
@@ -101,9 +112,7 @@ class ProfileController extends Controller
             ], Response::HTTP_UNPROCESSABLE_ENTITY);
         }
 
-        $user->update([
-            'password' => bcrypt($request->password),
-        ]);
+        $user->update(['password' => bcrypt($request->password)]);
 
         return response()->json([
             'success' => true,

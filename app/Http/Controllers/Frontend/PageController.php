@@ -10,6 +10,20 @@ use Illuminate\Http\Response;
 class PageController extends Controller
 {
     /**
+     * Get list of all active pages for navigation.
+     */
+    public function index(): JsonResponse
+    {
+        $pages = Page::where('is_active', true)
+            ->get(['id', 'title', 'slug', 'page_type']);
+
+        return response()->json([
+            'success' => true,
+            'data' => $pages,
+        ], Response::HTTP_OK);
+    }
+
+    /**
      * Fetch the "About Us" page content.
      */
     public function about(): JsonResponse
@@ -117,6 +131,44 @@ class PageController extends Controller
                 'blocks' => $page->blocks,
             ],
         ], Response::HTTP_OK);
+    }
+
+    /**
+     * Fetch a page dynamically by its slug.
+     */
+    public function show(string $slug): JsonResponse
+    {
+        $page = Page::where('slug', $slug)
+            ->where('is_active', true)
+            ->with(['blocks' => function($query) {
+                $query->orderBy('sort_order', 'asc');
+            }, 'blocks.elements'])
+            ->first();
+
+        if (!$page) {
+            return response()->json([
+                'success' => false,
+                'message' => 'Page not found.',
+            ], Response::HTTP_NOT_FOUND);
+        }
+
+        return response()->json([
+            'success' => true,
+            'data' => [
+                'title' => $page->title,
+                'page_type' => $page->page_type,
+                'slug' => $page->slug,
+                'blocks' => $page->blocks,
+            ],
+        ], Response::HTTP_OK);
+    }
+
+    /**
+     * Fetch a page dynamically by its internal page_type.
+     */
+    public function showByType(string $type): JsonResponse
+    {
+        return $this->getPageData($type);
     }
 
     /**
