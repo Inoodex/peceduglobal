@@ -16,8 +16,8 @@ class StoreUniversityRequest extends FormRequest
         return [
             'name' => 'required|string|max:255',
             'country_id' => 'required|exists:countries,id',
-            'logo' => 'nullable|file|mimes:jpeg,png,jpg,gif,svg,webp|max:2048',
-            'banner' => 'nullable|file|mimes:jpeg,png,jpg,gif,svg,webp|max:4096',
+            'logo' => 'nullable|file|mimes:jpeg,png,jpg,gif,svg,web,webp,avif|max:2048',
+            'banner' => 'nullable|file|mimes:jpeg,png,jpg,gif,svg,web,webp,avif|max:4096',
             'social_links' => 'nullable|array',
             'is_popular' => 'nullable',
             'is_partner' => 'nullable',

@@ -11,6 +11,8 @@ use App\Http\Controllers\Api\Admin\Education\StudentRegistrationController;
 use App\Http\Controllers\Api\Admin\Education\ApplicationController as AdminApplicationController;
 use App\Http\Controllers\Api\Consultant\AvailabilityController;
 use App\Http\Controllers\Api\Admin\HeroSliderController;
+use App\Http\Controllers\Api\Admin\TeamMemberController;
+use App\Http\Controllers\Frontend\TeamMemberController as FrontendTeamMemberController;
 use App\Http\Controllers\Frontend\ConsultantController as FrontendConsultantController;
 use App\Http\Controllers\Api\Student\AppointmentController;
 use App\Http\Controllers\Api\AuthController;
@@ -68,6 +70,13 @@ Route::group(['prefix' => 'auth'], function () {
 
             // Country Management
             Route::apiResource('countries', CountryController::class);
+
+            // Team Member Management
+            Route::get('team-members', [TeamMemberController::class, 'index']);
+            Route::post('team-members', [TeamMemberController::class, 'store']);
+            Route::get('team-members/{id}', [TeamMemberController::class, 'show']);
+            Route::post('team-members/{id}', [TeamMemberController::class, 'update']);
+            Route::delete('team-members/{id}', [TeamMemberController::class, 'destroy']);
 
             // Education Management
             Route::apiResource('universities', UniversityController::class);
@@ -134,6 +143,7 @@ Route::group(['prefix' => 'auth'], function () {
 // Frontend api endpoints
 Route::prefix('public')->group(function () {
     Route::get('/home', [HomeController::class, 'index']);
+    Route::get('/team-members', [FrontendTeamMemberController::class, 'index']);
     
     // University Routes
     Route::get('/universities', [FrontendUniversityController::class, 'index']);

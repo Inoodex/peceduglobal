@@ -109,6 +109,15 @@ const navigationData = [
         ]
       },
       {
+        name: 'Team Manager',
+        icon: Users,
+        permission: 'manage_pages',
+        children: [
+          { name: 'Team Members', path: '/dashboard/team-members' },
+          { name: 'Add Member', path: '/dashboard/team-members/create' }
+        ]
+      },
+      {
         name: 'Education',
         icon: School,
         permission: 'manage_education',

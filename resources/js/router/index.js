@@ -134,6 +134,25 @@ const routes = [
         component: () => import('../views/Dashboard/CountryManager/edit.vue'),
         meta: { auth: true, permission: 'manage_countries' }
     },
+    // Team Manager Routes
+    {
+        path: '/dashboard/team-members',
+        name: 'team-members',
+        component: () => import('../views/Dashboard/TeamManager/index.vue'),
+        meta: { auth: true, permission: 'manage_pages' }
+    },
+    {
+        path: '/dashboard/team-members/create',
+        name: 'team-members-create',
+        component: () => import('../views/Dashboard/TeamManager/create.vue'),
+        meta: { auth: true, permission: 'manage_pages' }
+    },
+    {
+        path: '/dashboard/team-members/edit/:id',
+        name: 'team-members-edit',
+        component: () => import('../views/Dashboard/TeamManager/edit.vue'),
+        meta: { auth: true, permission: 'manage_pages' }
+    },
     // University Manager Routes
     {
         path: '/dashboard/university-manager',
