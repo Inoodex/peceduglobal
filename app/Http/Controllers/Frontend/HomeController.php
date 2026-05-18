@@ -8,10 +8,12 @@ use App\Models\University;
 use App\Models\Page;
 use App\Models\Country;
 use App\Models\BlogPost;
+use App\Models\TeamMember;
 use App\Http\Resources\Frontend\HeroSliderResource;
 use App\Http\Resources\Frontend\UniversityResource;
 use App\Http\Resources\Admin\CountryResource;
 use App\Http\Resources\Frontend\BlogResource;
+use App\Http\Resources\Frontend\TeamMemberResource;
 use Illuminate\Http\Request;
 use Illuminate\Http\JsonResponse;
 
@@ -46,7 +48,10 @@ class HomeController extends Controller
             ->limit(3)
             ->get();
 
-        // 5. Fetch all active CMS Pages grouped by type
+        // 5. Fetch Team Members
+        $teamMembers = TeamMember::where('status', true)->get();
+
+        // 6. Fetch all active CMS Pages grouped by type
         $groupedPages = $this->getGroupedPages();
 
         return response()->json([
@@ -59,6 +64,7 @@ class HomeController extends Controller
                 //     'universities' => UniversityResource::collection($popularUniversities),
                 // ],
                 'latest_blogs' => BlogResource::collection($latestBlogs),
+                'team_members' => TeamMemberResource::collection($teamMembers),
             ], $groupedPages),
         ], 200);
     }
@@ -68,7 +74,7 @@ class HomeController extends Controller
      */
     private function getGroupedPages(): array
     {
-        $pageTypes = ['home', 'about', 'why_choose_us', 'services', 'statistics', 'comparison', 'about_the_company', 'faq'];
+        $pageTypes = ['home', 'about', 'why_choose_us', 'services', 'statistics', 'comparison', 'about_the_company', 'terms','faq'];
 
         $allPages = Page::whereIn('page_type', $pageTypes)
             ->where('is_active', true)
