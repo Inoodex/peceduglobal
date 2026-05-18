@@ -44,6 +44,27 @@
                 <input v-model="form.sort_order" type="number" class="w-full bg-gray-50 dark:bg-[#141A21] border border-gray-200 dark:border-gray-700 rounded-xl px-4 py-2.5 text-gray-900 dark:text-white focus:outline-none focus:ring-2 focus:ring-primary/20 focus:border-primary transition-all" />
               </div>
             </div>
+
+            <div>
+              <label class="block text-sm font-medium text-gray-700 dark:text-gray-300 mb-1.5">Subtitle / Badge</label>
+              <input v-model="form.settings.subtitle" type="text" placeholder="e.g. WHY CHOOSE US?" class="w-full bg-gray-50 dark:bg-[#141A21] border border-gray-200 dark:border-gray-700 rounded-xl px-4 py-2.5 text-gray-900 dark:text-white placeholder-gray-400 focus:outline-none focus:ring-2 focus:ring-primary/20 focus:border-primary transition-all" />
+            </div>
+
+            <!-- Block Settings: Section Image -->
+            <div>
+              <label class="block text-sm font-medium text-gray-700 dark:text-gray-300 mb-1.5">Section Image</label>
+              <FileUpload
+                v-model="form.settings.section_image"
+                :show-alt-input="false"
+                :multiple="false"
+                :uploading="uploadingImage"
+                placeholder="Drop or select section image"
+                hint="JPEG, PNG, GIF, WebP, SVG (Max 2MB)"
+                @select="uploadBlockImage"
+                @remove="removeBlockImage"
+              />
+            </div>
+
             <div>
               <label class="block text-sm font-medium text-gray-700 dark:text-gray-300 mb-1.5">Section Description</label>
               <AppEditor v-model="form.section_description" />
@@ -67,22 +88,28 @@
 import axios from '@/plugins/axios';
 import MainLayout from '@/layouts/MainLayout.vue';
 import AppEditor from '@/components/AppEditor.vue';
+import FileUpload from '@/components/MultipleFileUpload.vue';
 import { ChevronRight, ChevronDown, Loader2 } from 'lucide-vue-next';
 
 export default {
   name: 'BlockCreate',
-  components: { MainLayout, AppEditor, ChevronRight, ChevronDown, Loader2 },
+  components: { MainLayout, AppEditor, FileUpload, ChevronRight, ChevronDown, Loader2 },
   data() {
     return {
       sections: { details: true },
       saving: false,
+      uploadingImage: false,
       pages: [],
       form: {
         page_id: '',
         block_type: '',
         section_title: '',
         section_description: '',
-        sort_order: 0
+        sort_order: 0,
+        settings: {
+          subtitle: '',
+          section_image: ''
+        }
       },
     };
   },
@@ -92,6 +119,28 @@ export default {
   methods: {
     toggleSection(section) {
       this.sections[section] = !this.sections[section];
+    },
+    async uploadBlockImage(file) {
+      if (!file) return;
+
+      const formData = new FormData();
+      formData.append('image', file);
+
+      this.uploadingImage = true;
+      try {
+        const response = await axios.post('/auth/admin/editor/upload', formData, {
+          headers: { 'Content-Type': 'multipart/form-data' }
+        });
+        this.form.settings.section_image = response.data.url;
+      } catch (error) {
+        console.error('Error uploading block image:', error);
+        alert('Failed to upload image. Please try again.');
+      } finally {
+        this.uploadingImage = false;
+      }
+    },
+    removeBlockImage() {
+      this.form.settings.section_image = '';
     },
     async fetchPages() {
       try {

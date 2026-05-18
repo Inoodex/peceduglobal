@@ -12,12 +12,24 @@ class EditorUploadController extends Controller
     public function upload(Request $request)
     {
         $request->validate([
-            'image' => 'required|image|mimes:jpeg,png,jpg,gif,svg,webp|max:2048',
+            'image' => 'required|file|max:2048',
         ]);
 
         if ($request->hasFile('image')) {
             $file = $request->file('image');
-            $filename = Str::random(20) . '.' . $file->getClientOriginalExtension();
+            $extension = strtolower($file->getClientOriginalExtension());
+            $allowedExtensions = ['jpeg', 'png', 'jpg', 'gif', 'svg', 'webp'];
+
+            if (!in_array($extension, $allowedExtensions)) {
+                return response()->json([
+                    'message' => 'The image field must be a file of type: jpeg, png, jpg, gif, svg, webp.',
+                    'errors' => [
+                        'image' => ['The image field must be a file of type: jpeg, png, jpg, gif, svg, webp, web.']
+                    ]
+                ], 422);
+            }
+
+            $filename = Str::random(20) . '.' . $extension;
             $path = $file->storeAs('uploads/editor', $filename, 'public');
             
             return response()->json([

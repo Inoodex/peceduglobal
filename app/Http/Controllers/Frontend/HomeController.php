@@ -33,11 +33,11 @@ class HomeController extends Controller
             ->get();
 
         // 3. Fetch Popular Destinations & Universities
-        $popularCountries = Country::where('is_popular', true)->get();
-        $popularUniversities = University::with('country')
-            ->where('is_popular', true)
-            ->limit(8)
-            ->get();
+        // $popularCountries = Country::where('is_popular', true)->get();
+        // $popularUniversities = University::with('country')
+        //     ->where('is_popular', true)
+        //     ->limit(8)
+        //     ->get();
 
         // 4. Fetch Latest Blogs
         $latestBlogs = BlogPost::with(['category', 'author'])
@@ -54,10 +54,10 @@ class HomeController extends Controller
             'home' => array_merge([
                 'hero_sliders' => HeroSliderResource::collection($sliders),
                 'partners' => UniversityResource::collection($partners),
-                'popular_destinations' => [
-                    'countries' => CountryResource::collection($popularCountries),
-                    'universities' => UniversityResource::collection($popularUniversities),
-                ],
+                // 'popular_destinations' => [
+                //     'countries' => CountryResource::collection($popularCountries),
+                //     'universities' => UniversityResource::collection($popularUniversities),
+                // ],
                 'latest_blogs' => BlogResource::collection($latestBlogs),
             ], $groupedPages),
         ], 200);
@@ -105,7 +105,7 @@ class HomeController extends Controller
     }
 
     // if need dynamic
-    //      public function index(Request $request): JsonResponse
+    // public function index(Request $request): JsonResponse
     // {
     //     // 1. Fetch Hero Sliders
     //     $sliders = HeroSlider::where('is_active', true)
@@ -148,7 +148,7 @@ class HomeController extends Controller
     //     ], 200);
     // }
 
-    
+
     // private function getGroupedPages(): array
     // {
     //     // Exclude static policies and country-specific guides from the main homepage payload
@@ -158,12 +158,12 @@ class HomeController extends Controller
     //         ->whereNotIn('page_type', $excludeTypes)
     //         ->whereNull('parent_id')
     //         ->whereNull('country_id')
-    //         ->with(['blocks' => function($query) {
+    //         ->with(['blocks' => function ($query) {
     //             $query->orderBy('sort_order', 'asc');
     //         }, 'blocks.elements'])
     //         ->get();
 
-       
+
     //     $pageTypes = $allPages->pluck('page_type')->unique();
 
     //     $groupedPages = [];
