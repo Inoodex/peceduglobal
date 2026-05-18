@@ -38,13 +38,16 @@ class HomeController extends Controller
             ->limit(3)
             ->get();
 
-        // 5. Fetch the single "home" page_type which contains all home blocks (about, why_choose_us, services, statistics etc.)
-        $homePage = Page::where('page_type', 'home')
+        // 5. Fetch all active pages of types (home, about, why_choose_us, services, statistics, comparison, about_the_company, faq) to load all homepage sections in one call
+        $pageTypes = ['home', 'about', 'why_choose_us', 'services', 'statistics', 'comparison', 'about_the_company', 'faq'];
+        
+        $homePages = Page::whereIn('page_type', $pageTypes)
             ->where('is_active', true)
             ->with(['blocks' => function($query) {
                 $query->orderBy('sort_order', 'asc');
             }, 'blocks.elements'])
-            ->first();
+            ->orderBy('id', 'asc') // Order by creation sequence
+            ->get();
 
         return response()->json([
             'success' => true,
@@ -57,12 +60,16 @@ class HomeController extends Controller
                 ],
                 'latest_blogs' => \App\Http\Resources\Frontend\BlogResource::collection($latestBlogs),
                 
-                // Single unified "home" page config containing all configured blocks & elements
-                'home_page' => $homePage ? [
-                    'title'     => $homePage->title,
-                    'page_type' => $homePage->page_type,
-                    'blocks'    => $homePage->blocks
-                ] : null
+                // Return all these active homepage section pages with their blocks & elements
+                'home_pages' => $homePages->map(function ($page) {
+                    return [
+                        'id'        => $page->id,
+                        'title'     => $page->title,
+                        'page_type' => $page->page_type,
+                        'slug'      => $page->slug,
+                        'blocks'    => $page->blocks
+                    ];
+                })
             ],
         ], 200);
     }

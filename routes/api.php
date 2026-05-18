@@ -12,29 +12,21 @@ use App\Http\Controllers\Api\Admin\Education\ApplicationController as AdminAppli
 use App\Http\Controllers\Api\Consultant\AvailabilityController;
 use App\Http\Controllers\Api\Admin\HeroSliderController;
 use App\Http\Controllers\Api\Admin\TeamMemberController;
-use App\Http\Controllers\Frontend\TeamMemberController as FrontendTeamMemberController;
-use App\Http\Controllers\Frontend\ConsultantController as FrontendConsultantController;
+
 use App\Http\Controllers\Api\Student\AppointmentController;
 use App\Http\Controllers\Api\AuthController;
 use App\Http\Controllers\Api\BlogCategoryController;
 use App\Http\Controllers\Api\BlogPostController;
 use App\Http\Controllers\Api\Admin\EditorUploadController;
 use App\Http\Controllers\Api\Student\ApplicationController;
-use App\Http\Controllers\Api\Student\ProfileController;
+// use App\Http\Controllers\Api\Student\ProfileController;
 use App\Http\Controllers\Api\Admin\UserController;
 use App\Http\Controllers\Api\Admin\PermissionController;
 use App\Http\Controllers\Api\CourseIntakeController;
-use App\Http\Controllers\Frontend\HomeController;
-use App\Http\Controllers\Frontend\PageController as FrontendPageController;
-use App\Http\Controllers\Frontend\BlogController as FrontendBlogController;
-use App\Http\Controllers\Frontend\UniversityController as FrontendUniversityController;
-use App\Http\Controllers\Frontend\CourseController as FrontendCourseController;
-use App\Http\Controllers\Frontend\SearchController as FrontendSearchController;
-use App\Http\Controllers\Frontend\InquiryController as FrontendInquiryController;
+
 use App\Http\Controllers\Api\Admin\InquiryController as AdminInquiryController;
 use App\Http\Controllers\Api\Admin\AppointmentController as AdminAppointmentController;
-use App\Http\Controllers\Frontend\StudentAuthController as FrontendStudentAuthController;
-use App\Http\Controllers\Frontend\StudentProfileController as FrontendStudentProfileController;
+
 use Illuminate\Support\Facades\Route;
 
 Route::group(['prefix' => 'auth'], function () {
@@ -143,56 +135,58 @@ Route::group(['prefix' => 'auth'], function () {
     });
 });
 
-// Frontend api endpoints
-Route::prefix('public')->group(function () {
-    Route::get('/home', [HomeController::class, 'index']);
-    Route::get('/team-members', [FrontendTeamMemberController::class, 'index']);
+// Route::prefix('public')->group(function () {
+//     Route::get('/home', [HomeController::class, 'index']);
+//     Route::get('/team-members', [FrontendTeamMemberController::class, 'index']);
     
-    // University Routes
-    Route::get('/universities', [FrontendUniversityController::class, 'index']);
-    Route::get('/universities/{slug}', [FrontendUniversityController::class, 'show']);
+//     // University Routes
+//     Route::get('/universities', [FrontendUniversityController::class, 'index']);
+//     Route::get('/universities/{slug}', [FrontendUniversityController::class, 'show']);
 
-    // Course Routes
-    Route::get('/courses', [FrontendCourseController::class, 'index']);
-    Route::get('/courses/{id}', [FrontendCourseController::class, 'show']);
+//     // Course Routes
+//     Route::get('/courses', [FrontendCourseController::class, 'index']);
+//     Route::get('/courses/{id}', [FrontendCourseController::class, 'show']);
 
-    // Search Route
-    Route::get('/search', [FrontendSearchController::class, 'search']);
+//     // Search Route
+//     Route::get('/search', [FrontendSearchController::class, 'search']);
 
-    // Inquiry/Lead Submission
-    Route::post('/inquiry', [FrontendInquiryController::class, 'store']);
+//     // Inquiry/Lead Submission
+//     Route::post('/inquiry', [FrontendInquiryController::class, 'store']);
 
-    // Consultant & Booking Public Routes
-    Route::get('/consultants/search', [FrontendConsultantController::class, 'search']);
-    Route::get('/consultants/available-dates', [FrontendConsultantController::class, 'getAvailableDates']);
-    Route::get('/consultants/slots', [FrontendConsultantController::class, 'getSlots']);
-    Route::get('/consultants/global-availability', [FrontendConsultantController::class, 'getGlobalAvailability']);
-    Route::post('/consultants/book-appointment', [FrontendConsultantController::class, 'bookAppointment']);
+//     // Consultant & Booking Public Routes
+//     Route::get('/consultants/search', [FrontendConsultantController::class, 'search']);
+//     Route::get('/consultants/available-dates', [FrontendConsultantController::class, 'getAvailableDates']);
+//     Route::get('/consultants/slots', [FrontendConsultantController::class, 'getSlots']);
+//     Route::get('/consultants/global-availability', [FrontendConsultantController::class, 'getGlobalAvailability']);
+//     Route::post('/consultants/book-appointment', [FrontendConsultantController::class, 'bookAppointment']);
 
-    Route::get('/pages', [FrontendPageController::class, 'index']);
-    Route::get('/pages/about', [FrontendPageController::class, 'about']);
-    Route::get('/pages/about-the-company', [FrontendPageController::class, 'getAboutCompany']);
-    Route::get('/pages/why-choose-us', [FrontendPageController::class, 'whyChooseUs']);
-    Route::get('/pages/services', [FrontendPageController::class, 'services']);
-    Route::get('/pages/statistics', [FrontendPageController::class, 'statistics']);
-    Route::get('/pages/faq', [FrontendPageController::class, 'getFaqs']);
-    Route::get('/pages/comparison', [FrontendPageController::class, 'getComparison']);
-    Route::get('/pages/country-guide/{countryId}', [FrontendPageController::class, 'getCountryGuide']);
-    Route::get('/countries', [FrontendPageController::class, 'getCountriesForNavbar']);
-    Route::get('/pages/{slug}', [FrontendPageController::class, 'show']);
-    Route::get('/pages/type/{type}', [FrontendPageController::class, 'showByType']);
+//     Route::get('/pages', [FrontendPageController::class, 'index']);
+//     Route::get('/pages/about', [FrontendPageController::class, 'about']);
+//     Route::get('/pages/about-the-company', [FrontendPageController::class, 'getAboutCompany']);
+//     Route::get('/pages/why-choose-us', [FrontendPageController::class, 'whyChooseUs']);
+//     Route::get('/pages/services', [FrontendPageController::class, 'services']);
+//     Route::get('/pages/statistics', [FrontendPageController::class, 'statistics']);
+//     Route::get('/pages/faq', [FrontendPageController::class, 'getFaqs']);
+//     Route::get('/pages/comparison', [FrontendPageController::class, 'getComparison']);
+//     Route::get('/pages/country-guide/{countryId}', [FrontendPageController::class, 'getCountryGuide']);
+//     Route::get('/countries', [FrontendPageController::class, 'getCountriesForNavbar']);
+//     Route::get('/pages/{slug}', [FrontendPageController::class, 'show']);
+//     Route::get('/pages/type/{type}', [FrontendPageController::class, 'showByType']);
 
-    // Blog Routes
-    Route::get('/blogs', [FrontendBlogController::class, 'index']);
-    Route::get('/blogs/{slug}', [FrontendBlogController::class, 'show']);
+//     // Blog Routes
+//     Route::get('/blogs', [FrontendBlogController::class, 'index']);
+//     Route::get('/blogs/{slug}', [FrontendBlogController::class, 'show']);
 
-    // Student Authentication & Profile Management (strictly for  public frontend)
-    Route::post('/student/login', [FrontendStudentAuthController::class, 'login']);
+//     // Student Authentication & Profile Management (strictly for  public frontend)
+//     Route::post('/student/login', [FrontendStudentAuthController::class, 'login']);
     
-    Route::middleware('auth:api')->prefix('student')->group(function () {
-        Route::post('logout',           [FrontendStudentAuthController::class, 'logout']);
-        Route::get('profile',           [FrontendStudentProfileController::class, 'show']);
-        Route::post('profile',          [FrontendStudentProfileController::class, 'update']);
-        Route::put('profile/password',  [FrontendStudentProfileController::class, 'updatePassword']);
-    });
-});
+//     Route::middleware('auth:api')->prefix('student')->group(function () {
+//         Route::post('logout',           [FrontendStudentAuthController::class, 'logout']);
+//         Route::get('profile',           [FrontendStudentProfileController::class, 'show']);
+//         Route::post('profile',          [FrontendStudentProfileController::class, 'update']);
+//         Route::put('profile/password',  [FrontendStudentProfileController::class, 'updatePassword']);
+//     });
+// });
+
+
+require __DIR__.'/public.php';
