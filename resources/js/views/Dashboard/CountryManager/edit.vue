@@ -105,6 +105,7 @@ import axios from '@/plugins/axios';
 import MainLayout from '@/layouts/MainLayout.vue';
 import { ChevronRight, ChevronDown, Loader2 } from 'lucide-vue-next';
 import FileUpload from '@/components/FileUpload.vue';
+import { clearCache } from '@/utils/cacheHelper';
 
 export default {
   name: 'CountryEdit',
@@ -172,6 +173,7 @@ export default {
           headers: { 'Content-Type': 'multipart/form-data' },
           params: { _method: 'PUT' }
         });
+        clearCache('/auth/admin/countries');
         this.$router.push('/dashboard/country-manager');
       } catch (e) {
         console.error('Update failed', e);
