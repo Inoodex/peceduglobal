@@ -83,6 +83,7 @@ import MainLayout from '@/layouts/MainLayout.vue';
 import AppEditor from '@/components/AppEditor.vue';
 import FileUpload from '@/components/MultipleFileUpload.vue';
 import { ChevronRight, ChevronDown, Loader2, Upload } from 'lucide-vue-next';
+import { clearCache } from '@/utils/cacheHelper';
 
 export default {
   name: 'ElementCreate',
@@ -149,6 +150,7 @@ export default {
         await axios.post('/auth/admin/elements', formData, {
           headers: { 'Content-Type': 'multipart/form-data' }
         });
+        clearCache('/auth/admin/elements');
         this.$router.push('/dashboard/element-manager');
       } catch (error) {
         console.error('Error creating element:', error);

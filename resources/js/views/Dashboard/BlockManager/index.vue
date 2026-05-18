@@ -1,6 +1,15 @@
 <template>
   <MainLayout>
-    <div class="max-w-7xl mx-auto">
+    <!-- Loading State: Clean Centered Shimmer Progress Line (Only shown on very first load) -->
+    <div v-if="loading && blocks.length === 0" class="min-h-[75vh] flex flex-col items-center justify-center bg-transparent">
+      <!-- Premium Progress Track Line -->
+      <div class="relative w-64 h-[3px] bg-gray-200 dark:bg-gray-800/80 rounded-full overflow-hidden">
+        <div class="absolute inset-0 line-shimmer-sweep"></div>
+      </div>
+    </div>
+
+    <!-- Loaded State: Actual Page Content (Always visible once first data is loaded) -->
+    <div v-else class="max-w-7xl mx-auto">
       <!-- Header -->
       <div class="flex flex-col sm:flex-row sm:items-center sm:justify-between gap-4 mb-6">
         <div class="mt-6">
@@ -23,19 +32,27 @@
             <Search class="absolute left-3 top-1/2 -translate-y-1/2 w-5 h-5 text-gray-400" />
             <input v-model="searchQuery" type="text" placeholder="Search blocks..." class="w-full bg-gray-50 dark:bg-[#141A21] border border-gray-200 dark:border-gray-700 rounded-xl pl-10 pr-4 py-2.5 text-gray-900 dark:text-white placeholder-gray-400 focus:outline-none focus:ring-2 focus:ring-primary/20 focus:border-primary transition-all" />
           </div>
-          <div class="relative">
-            <select v-model="selectedCountry" class="w-full bg-gray-50 dark:bg-[#141A21] border border-gray-200 dark:border-gray-700 rounded-xl px-4 py-2.5 text-gray-900 dark:text-white focus:outline-none focus:ring-2 focus:ring-primary/20 focus:border-primary transition-all">
-              <option disabled value="">Select country</option>
-              <option value="">All Countries</option>
-              <option v-for="country in countries" :key="country.id" :value="country.id">{{ country.iso_code }} - {{ country.name }}</option>
-            </select>
+          <div class="relative pt-1">
+            <CustomSelect 
+              v-model="selectedCountry" 
+              :options="countries" 
+              label="Country"
+              placeholder="All Countries"
+              labelKey="name"
+              valueKey="id"
+              :clearable="true"
+            />
           </div>
-          <div class="relative">
-            <select v-model="selectedPage" class="w-full bg-gray-50 dark:bg-[#141A21] border border-gray-200 dark:border-gray-700 rounded-xl px-4 py-2.5 text-gray-900 dark:text-white focus:outline-none focus:ring-2 focus:ring-primary/20 focus:border-primary transition-all">
-              <option disabled value="">Select page</option>
-              <option value="">All Pages</option>
-              <option v-for="page in pages" :key="page.id" :value="page.id">{{ page.country?.iso_code }} - {{ page.title }}</option>
-            </select>
+          <div class="relative pt-1">
+            <CustomSelect 
+              v-model="selectedPage" 
+              :options="pageOptions" 
+              label="Page"
+              placeholder="All Pages"
+              labelKey="label"
+              valueKey="id"
+              :clearable="true"
+            />
           </div>
           <div class="flex gap-2">
             <button v-if="searchQuery || selectedCountry || selectedPage" @click="clearFilters" class="px-4 py-2 text-gray-600 dark:text-gray-400 hover:text-gray-900 dark:hover:text-white transition-colors">Clear All</button>
@@ -44,65 +61,44 @@
       </div>
 
       <!-- Blocks Table -->
-      <div class="bg-white dark:bg-[#1C252E] rounded-2xl border border-gray-200 dark:border-gray-700/50 overflow-hidden">
-        <div class="overflow-x-auto">
-          <table class="w-full">
-            <thead class="bg-gray-50 dark:bg-[#141A21] border-b border-gray-200 dark:border-gray-700/50">
-              <tr class="text-left">
-                <th class="px-6 py-4 text-xs font-semibold text-gray-500 dark:text-gray-400 uppercase tracking-wider">Block Type</th>
-                <th class="px-6 py-4 text-xs font-semibold text-gray-500 dark:text-gray-400 uppercase tracking-wider">Section Title</th>
-                <th class="px-6 py-4 text-xs font-semibold text-gray-500 dark:text-gray-400 uppercase tracking-wider">Description</th>
-                <th class="px-6 py-4 text-xs font-semibold text-gray-500 dark:text-gray-400 uppercase tracking-wider">Page</th>
-                <th class="px-6 py-4 text-right text-xs font-semibold text-gray-500 dark:text-gray-400 uppercase tracking-wider">Actions</th>
-              </tr>
-            </thead>
-            <tbody class="divide-y divide-gray-200 dark:divide-gray-700/50">
-              <tr v-if="loading" class="hover:bg-gray-50 dark:hover:bg-gray-800/50 transition-colors">
-                <td colspan="5" class="px-6 py-12 text-center text-gray-500 dark:text-gray-400">
-                  <div class="flex items-center justify-center gap-2"><Loader2 class="w-5 h-5 animate-spin" /> Loading blocks...</div>
-                </td>
-              </tr>
-              <tr v-else-if="filteredBlocks.length === 0" class="hover:bg-gray-50 dark:hover:bg-gray-800/50 transition-colors">
-                <td colspan="5" class="px-6 py-12 text-center text-gray-500 dark:text-gray-400">No blocks found</td>
-              </tr>
-              <tr v-for="block in filteredBlocks" :key="block.id" class="hover:bg-gray-50 dark:hover:bg-gray-800/50 transition-colors">
-                <td class="px-6 py-4">
-                  <span class="text-sm font-medium text-gray-900 dark:text-white">{{ block.block_type }}</span>
-                </td>
-                <td class="px-6 py-4">
-                  <span class="text-sm text-gray-600 dark:text-gray-400 truncate max-w-xs block">
-                    {{ block.section_title || 'N/A' }}
-                  </span>
-                </td>
-                <td class="px-6 py-4">
-                  <span class="text-sm text-gray-600 dark:text-gray-400 truncate max-w-xs block" v-html="block.section_description || 'N/A'"></span>
-                </td>
-                <td class="px-6 py-4">
-                  <span v-if="block.page" class="inline-flex items-center gap-1 px-2 py-1 rounded-lg bg-blue-100 dark:bg-blue-900/30 text-blue-700 dark:text-blue-300 text-xs font-medium">
-                    <span class="font-bold">{{ block.page.country?.iso_code }}</span>
-                    <span class="opacity-70">|</span>
-                    <span>{{ block.page.title }}</span>
-                  </span>
-                  <span v-else class="text-sm text-gray-400">-</span>
-                </td>
-                <td class="px-6 py-4 text-right">
-                  <div class="flex items-center justify-end gap-2">
-                    <div class="flex items-center gap-1 mr-2">
-                      <button @click="moveBlock(block, -1)" class="p-1 text-gray-400 hover:text-primary transition-colors" title="Move Up"><ArrowUp class="w-3 h-3" /></button>
-                      <button @click="moveBlock(block, 1)" class="p-1 text-gray-400 hover:text-primary transition-colors" title="Move Down"><ArrowDown class="w-3 h-3" /></button>
-                    </div>
-                    <button @click="$router.push(`/dashboard/block-manager/edit/${block.id}`)" class="p-2 text-gray-500 hover:text-primary hover:bg-primary/10 rounded-lg transition-colors" title="Edit"><Pencil class="w-4 h-4" /></button>
-                    <button @click="confirmDelete(block)" class="p-2 text-gray-500 hover:text-red-500 hover:bg-red-50 dark:hover:bg-red-900/20 rounded-lg transition-colors" title="Delete"><Trash2 class="w-4 h-4" /></button>
-                  </div>
-                </td>
-              </tr>
-            </tbody>
-          </table>
-        </div>
-        <div class="px-6 py-4 border-t border-gray-200 dark:border-gray-700/50 flex items-center justify-between">
-          <p class="text-sm text-gray-500 dark:text-gray-400">Showing {{ filteredBlocks.length }} of {{ blocks.length }} blocks</p>
-        </div>
-      </div>
+      <DataTable 
+        :columns="columns" 
+        :data="filteredBlocks" 
+        :loading="loading"
+        :pagination="pagination"
+        @page-change="fetchBlocks"
+        @per-page-change="handlePerPageChange"
+      >
+        <template #cell(block_type)="{ item }">
+          <span class="inline-flex items-center px-2.5 py-1 rounded-lg bg-gray-100 dark:bg-gray-800 text-xs font-bold text-gray-700 dark:text-gray-300 font-mono">
+            {{ item.block_type }}
+          </span>
+        </template>
+
+        <template #cell(section_title)="{ item }">
+          <span class="text-sm text-gray-900 dark:text-white font-medium truncate max-w-[180px] block">
+            {{ item.section_title || '—' }}
+          </span>
+        </template>
+
+        <template #cell(page)="{ item }">
+          <span v-if="item.page" class="inline-flex items-center gap-1 px-2 py-1 rounded-lg bg-blue-100 dark:bg-blue-900/30 text-blue-700 dark:text-blue-300 text-xs font-medium">
+            <span class="font-bold">{{ item.page.country?.iso_code }}</span>
+            <span class="opacity-50">|</span>
+            <span>{{ item.page.title }}</span>
+          </span>
+          <span v-else class="text-sm text-gray-400">—</span>
+        </template>
+
+        <template #cell(actions)="{ item }">
+          <div class="flex items-center justify-end gap-1">
+            <button @click="moveBlock(item, -1)" class="p-1.5 text-gray-400 hover:text-primary hover:bg-primary/10 rounded-lg transition-colors" title="Move Up"><ArrowUp class="w-3.5 h-3.5" /></button>
+            <button @click="moveBlock(item, 1)" class="p-1.5 text-gray-400 hover:text-primary hover:bg-primary/10 rounded-lg transition-colors" title="Move Down"><ArrowDown class="w-3.5 h-3.5" /></button>
+            <button @click="$router.push(`/dashboard/block-manager/edit/${item.id}`)" class="p-1.5 text-gray-500 hover:text-primary hover:bg-primary/10 rounded-lg transition-colors" title="Edit"><Pencil class="w-4 h-4" /></button>
+            <button @click="confirmDelete(item)" class="p-1.5 text-gray-500 hover:text-red-500 hover:bg-red-50 dark:hover:bg-red-900/20 rounded-lg transition-colors" title="Delete"><Trash2 class="w-4 h-4" /></button>
+          </div>
+        </template>
+      </DataTable>
 
       <!-- Delete Modal -->
       <div v-if="deleteModal.show" class="fixed inset-0 bg-black/50 flex items-center justify-center z-50">
@@ -128,16 +124,27 @@
 <script>
 import axios from '@/plugins/axios';
 import MainLayout from '@/layouts/MainLayout.vue';
+import DataTable from '@/components/Table/DataTable.vue';
+import CustomSelect from '@/components/Form/CustomSelect.vue';
+import { fetchWithCache, clearCache } from '@/utils/cacheHelper';
 import {
   ChevronRight, Plus, Search, Loader2, Pencil, Trash2, AlertTriangle, ArrowUp, ArrowDown,
 } from 'lucide-vue-next';
 
 export default {
   name: 'BlockList',
-  components: { MainLayout, ChevronRight, Plus, Search, Loader2, Pencil, Trash2, AlertTriangle, ArrowUp, ArrowDown },
+  components: { MainLayout, DataTable, CustomSelect, ChevronRight, Plus, Search, Loader2, Pencil, Trash2, AlertTriangle, ArrowUp, ArrowDown },
   data() {
     return {
+      columns: [
+        { key: 'block_type', label: 'Block Type' },
+        { key: 'section_title', label: 'Section Title' },
+        { key: 'page', label: 'Page' },
+        { key: 'actions', label: 'Actions', align: 'right' }
+      ],
       blocks: [],
+      pagination: null,
+      perPage: 15,
       loading: false,
       searchQuery: '',
       selectedCountry: '',
@@ -147,7 +154,11 @@ export default {
       deleteModal: { show: false, block: null, loading: false },
     };
   },
+
   computed: {
+    pageOptions() {
+      return this.pages.map(p => ({ ...p, label: `${p.country?.iso_code ? p.country.iso_code + ' - ' : ''}${p.title}` }));
+    },
     filteredBlocks() {
       if (!this.searchQuery.trim()) return this.blocks;
       const query = this.searchQuery.toLowerCase();
@@ -166,9 +177,9 @@ export default {
     selectedCountry() {
       this.selectedPage = '';
       this.fetchPages(this.selectedCountry);
-      this.fetchBlocks();
+      this.fetchBlocks(1);
     },
-    selectedPage() { this.fetchBlocks(); },
+    selectedPage() { this.fetchBlocks(1); },
   },
   methods: {
     async fetchCountries() {
@@ -194,19 +205,24 @@ export default {
       this.selectedCountry = '';
       this.selectedPage = '';
     },
-    async fetchBlocks() {
-      this.loading = true;
-      try {
-        const params = {};
-        if (this.selectedCountry) params.country_id = this.selectedCountry;
-        if (this.selectedPage) params.page_id = this.selectedPage;
-        const response = await axios.get('/auth/admin/blocks', { params });
-        this.blocks = response.data.data?.data || response.data.data || [];
-      } catch (e) {
-        console.error('Failed to load blocks', e);
-      } finally {
-        this.loading = false;
-      }
+    async fetchBlocks(page = 1) {
+      await fetchWithCache({
+        url: '/auth/admin/blocks',
+        params: {
+          page,
+          per_page: this.perPage,
+          country_id: this.selectedCountry,
+          page_id: this.selectedPage
+        },
+        component: this,
+        dataKey: 'blocks',
+        loadingKey: 'loading',
+        paginationKey: 'pagination'
+      });
+    },
+    handlePerPageChange(newPerPage) {
+      this.perPage = newPerPage;
+      this.fetchBlocks(1);
     },
     confirmDelete(block) {
       this.deleteModal.block = block;
@@ -216,6 +232,7 @@ export default {
       this.deleteModal.loading = true;
       try {
         await axios.delete(`/auth/admin/blocks/${this.deleteModal.block.id}`);
+        clearCache('/auth/admin/blocks');
         this.blocks = this.blocks.filter(b => b.id !== this.deleteModal.block.id);
         this.deleteModal.show = false;
         this.deleteModal.block = null;
@@ -242,6 +259,7 @@ export default {
           sort_order: i
         }));
         await axios.post('/auth/admin/blocks/reorder', { orders });
+        clearCache('/auth/admin/blocks');
       } catch (e) {
         console.error('Failed to update block order', e);
         // Revert on failure

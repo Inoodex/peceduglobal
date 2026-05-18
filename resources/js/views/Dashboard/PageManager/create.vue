@@ -122,6 +122,7 @@ import axios from '@/plugins/axios';
 import MainLayout from '@/layouts/MainLayout.vue';
 import FileUpload from '@/components/FileUpload.vue';
 import { ChevronRight, ChevronDown, Loader2 } from 'lucide-vue-next';
+import { clearCache } from '@/utils/cacheHelper';
 
 export default {
   name: 'PageCreate',
@@ -194,6 +195,7 @@ export default {
         await axios.post('/auth/admin/pages', formData, {
           headers: { 'Content-Type': 'multipart/form-data' },
         });
+        clearCache('/auth/admin/pages');
         this.$router.push('/dashboard/page-manager');
       } catch (error) {
         console.error('Error saving page:', error);

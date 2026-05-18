@@ -34,10 +34,19 @@ class BlockController extends Controller
             });
         }
 
-        $blocks = $query->orderBy('sort_order', 'asc')->latest()->paginate(15);
+        $perPage = $request->input('per_page', 15);
+        $blocks = $query->orderBy('sort_order', 'asc')->latest()->paginate($perPage);
         return response()->json([
             'success' => true,
             'data' => BlockResource::collection($blocks),
+            'meta' => [
+                'current_page' => $blocks->currentPage(),
+                'last_page' => $blocks->lastPage(),
+                'total' => $blocks->total(),
+                'per_page' => $blocks->perPage(),
+                'from' => $blocks->firstItem(),
+                'to' => $blocks->lastItem(),
+            ]
         ], Response::HTTP_OK);
     }
 

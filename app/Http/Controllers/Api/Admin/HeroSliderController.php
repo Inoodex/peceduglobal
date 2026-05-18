@@ -11,12 +11,21 @@ use Illuminate\Support\Str;
 
 class HeroSliderController extends Controller
 {
-    public function index()
+    public function index(Request $request)
     {
-        $sliders = HeroSlider::orderBy('sort_order', 'asc')->get();
+        $perPage = $request->input('per_page', 10);
+        $sliders = HeroSlider::orderBy('sort_order', 'asc')->paginate($perPage);
         return response()->json([
             'success' => true,
-            'data' => $sliders
+            'data' => $sliders->items(),
+            'meta' => [
+                'current_page' => $sliders->currentPage(),
+                'last_page' => $sliders->lastPage(),
+                'total' => $sliders->total(),
+                'per_page' => $sliders->perPage(),
+                'from' => $sliders->firstItem(),
+                'to' => $sliders->lastItem(),
+            ]
         ]);
     }
 

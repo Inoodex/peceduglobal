@@ -90,6 +90,7 @@ import MainLayout from '@/layouts/MainLayout.vue';
 import AppEditor from '@/components/AppEditor.vue';
 import FileUpload from '@/components/MultipleFileUpload.vue';
 import { ChevronRight, ChevronDown, Loader2 } from 'lucide-vue-next';
+import { clearCache } from '@/utils/cacheHelper';
 
 export default {
   name: 'BlockCreate',
@@ -154,6 +155,7 @@ export default {
       this.saving = true;
       try {
         await axios.post('/auth/admin/blocks', this.form);
+        clearCache('/auth/admin/blocks');
         this.$router.push('/dashboard/block-manager');
       } catch (error) {
         console.error('Error saving block:', error);

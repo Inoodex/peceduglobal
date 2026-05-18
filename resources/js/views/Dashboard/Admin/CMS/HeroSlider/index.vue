@@ -1,6 +1,15 @@
 <template>
   <MainLayout>
-    <div class="p-6 max-w-7xl mx-auto space-y-6">
+    <!-- Loading State: Clean Centered Shimmer Progress Line (Only shown on very first load) -->
+    <div v-if="loading && sliders.length === 0" class="min-h-[75vh] flex flex-col items-center justify-center bg-transparent">
+      <!-- Premium Progress Track Line -->
+      <div class="relative w-64 h-[3px] bg-gray-200 dark:bg-gray-800/80 rounded-full overflow-hidden">
+        <div class="absolute inset-0 line-shimmer-sweep"></div>
+      </div>
+    </div>
+
+    <!-- Loaded State: Actual Page Content (Always visible once first data is loaded) -->
+    <div v-else class="p-6 max-w-7xl mx-auto space-y-6">
       <div class="flex flex-col sm:flex-row justify-between items-start sm:items-center gap-4">
         <div>
           <h1 class="text-2xl font-bold text-gray-900 dark:text-white flex items-center gap-2">
@@ -16,67 +25,48 @@
         </button>
       </div>
 
-      <div class="bg-white dark:bg-[#1C252E] rounded-2xl border border-gray-100 dark:border-gray-800 shadow-sm overflow-hidden">
-        <table class="w-full text-left border-collapse">
-          <thead>
-            <tr class="bg-gray-50/50 dark:bg-[#151C24]/50 border-b border-gray-100 dark:border-gray-800">
-              <th class="px-6 py-4 text-xs font-bold uppercase text-gray-500 tracking-wider">Image</th>
-              <th class="px-6 py-4 text-xs font-bold uppercase text-gray-500 tracking-wider">Content</th>
-              <th class="px-6 py-4 text-xs font-bold uppercase text-gray-500 tracking-wider">Sort Order</th>
-              <th class="px-6 py-4 text-xs font-bold uppercase text-gray-500 tracking-wider">Status</th>
-              <th class="px-6 py-4 text-xs font-bold uppercase text-gray-500 tracking-wider text-right">Actions</th>
-            </tr>
-          </thead>
-          <tbody class="divide-y divide-gray-100 dark:divide-gray-800">
-            <tr v-if="loading" v-for="i in 3" :key="'loader-'+i">
-              <td colspan="5" class="px-6 py-4"><div class="h-16 bg-gray-50 dark:bg-[#151C24] rounded animate-pulse w-full"></div></td>
-            </tr>
-            <tr 
-              v-else-if="sliders.length > 0" 
-              v-for="slider in sliders" 
-              :key="slider.id"
-              class="hover:bg-gray-50/50 dark:hover:bg-[#151C24]/30 transition-colors"
-            >
-              <td class="px-6 py-4">
-                <div v-if="slider.background_image" class="w-32 h-16 rounded-lg bg-gray-100 dark:bg-gray-800 overflow-hidden relative">
-                  <img :src="slider.background_image" class="w-full h-full object-cover" alt="Hero">
-                </div>
-                <div v-else class="w-32 h-16 rounded-lg bg-gray-100 dark:bg-[#151C24] flex items-center justify-center text-xs text-gray-400">
-                  No Image
-                </div>
-              </td>
-              <td class="px-6 py-4">
-                <div class="text-sm font-bold text-gray-900 dark:text-white">{{ slider.title }}</div>
-                <div class="text-xs text-gray-500 mt-1">{{ slider.subtitle }}</div>
-              </td>
-              <td class="px-6 py-4 text-sm font-medium text-gray-500">{{ slider.sort_order }}</td>
-              <td class="px-6 py-4">
-                <span :class="[
-                  'px-2.5 py-1 text-[10px] font-black uppercase rounded-md border inline-block',
-                  slider.is_active ? 'bg-green-50 text-green-600 border-green-100' : 'bg-gray-50 text-gray-600 border-gray-200'
-                ]">
-                  {{ slider.is_active ? 'Active' : 'Draft' }}
-                </span>
-              </td>
-              <td class="px-6 py-4 text-right">
-                <div class="flex items-center justify-end gap-2">
-                  <button @click="openEditModal(slider)" class="p-2 text-gray-400 hover:text-primary hover:bg-primary/10 rounded-lg transition-all">
-                    <Edit class="w-4 h-4" />
-                  </button>
-                  <button @click="deleteSlider(slider.id)" class="p-2 text-gray-400 hover:text-red-500 hover:bg-red-50 dark:hover:bg-red-900/10 rounded-lg transition-all">
-                    <Trash2 class="w-4 h-4" />
-                  </button>
-                </div>
-              </td>
-            </tr>
-            <tr v-else>
-              <td colspan="5" class="px-6 py-12 text-center text-gray-500 text-sm">
-                No hero sliders found. Click "Add Slider" to create one.
-              </td>
-            </tr>
-          </tbody>
-        </table>
-      </div>
+      <DataTable 
+        :columns="columns" 
+        :data="sliders" 
+        :loading="loading"
+        :pagination="pagination"
+        @page-change="fetchSliders"
+        @per-page-change="handlePerPageChange"
+      >
+        <template #cell(image)="{ item }">
+          <div v-if="item.background_image" class="w-24 h-14 rounded-lg bg-gray-100 dark:bg-gray-800 overflow-hidden relative border border-gray-200 dark:border-gray-700/50">
+            <img :src="item.background_image" class="w-full h-full object-cover" alt="Hero">
+          </div>
+          <div v-else class="w-24 h-14 rounded-lg bg-gray-50 dark:bg-[#141A21] border border-gray-200 dark:border-gray-700/50 flex items-center justify-center text-[10px] font-medium text-gray-400">
+            No Image
+          </div>
+        </template>
+        
+        <template #cell(content)="{ item }">
+          <div class="text-sm font-bold text-gray-900 dark:text-white">{{ item.title }}</div>
+          <div class="text-xs text-gray-500 mt-0.5 truncate max-w-[200px]">{{ item.subtitle }}</div>
+        </template>
+        
+        <template #cell(status)="{ item }">
+          <span :class="[
+            'px-2.5 py-1 text-[10px] font-black uppercase rounded-md border inline-flex items-center',
+            item.is_active ? 'bg-emerald-50 dark:bg-emerald-500/10 text-emerald-600 dark:text-emerald-400 border-emerald-200 dark:border-emerald-500/20' : 'bg-gray-50 dark:bg-gray-800 text-gray-600 dark:text-gray-400 border-gray-200 dark:border-gray-700'
+          ]">
+            {{ item.is_active ? 'Published' : 'Draft' }}
+          </span>
+        </template>
+        
+        <template #cell(actions)="{ item }">
+          <div class="flex items-center justify-end gap-1">
+            <button @click="openEditModal(item)" class="p-1.5 text-gray-400 hover:text-primary hover:bg-primary/10 rounded-lg transition-all">
+              <Edit class="w-4 h-4" />
+            </button>
+            <button @click="deleteSlider(item.id)" class="p-1.5 text-gray-400 hover:text-red-500 hover:bg-red-50 dark:hover:bg-red-900/10 rounded-lg transition-all">
+              <Trash2 class="w-4 h-4" />
+            </button>
+          </div>
+        </template>
+      </DataTable>
     </div>
 
     <!-- Add/Edit Modal -->
@@ -177,12 +167,25 @@
 import { ref, onMounted } from 'vue';
 import axios from '@/plugins/axios';
 import { useToastStore } from '@/stores/toast';
+import { fetchWithCache, clearCache } from '@/utils/cacheHelper';
 import MainLayout from '@/layouts/MainLayout.vue';
+import DataTable from '@/components/Table/DataTable.vue';
 import { Image, Plus, Edit, Trash2, X, Loader2 } from 'lucide-vue-next';
+
+const columns = [ 
+  { key: 'image', label: 'Image', width: 'w-32' },
+  { key: 'content', label: 'Content' },
+  { key: 'sort_order', label: 'Sort', align: 'center', width: 'w-24' },
+  { key: 'status', label: 'Status', align: 'center', width: 'w-28' },
+  { key: 'actions', label: 'Actions', align: 'right', width: 'w-24' }
+];
+
+const pagination = ref(null);
+const perPage = ref(15);
 
 const toast = useToastStore();
 const sliders = ref([]);
-const loading = ref(false);
+const loading = ref(true);
 const showModal = ref(false);
 const isEditing = ref(false);
 const saving = ref(false);
@@ -204,16 +207,20 @@ const form = ref({
   retained_floating_images: []
 });
 
-const fetchSliders = async () => {
-  loading.value = true;
-  try {
-    const res = await axios.get('/auth/admin/hero-sliders');
-    sliders.value = res.data.data;
-  } catch (error) {
-    toast.error('Failed to load sliders');
-  } finally {
-    loading.value = false;
-  }
+const fetchSliders = async (page = 1) => {
+  await fetchWithCache({
+    url: '/auth/admin/hero-sliders',
+    params: { page, per_page: perPage.value },
+    loadingRef: loading,
+    dataRef: sliders,
+    paginationRef: pagination,
+    toast
+  });
+};
+
+const handlePerPageChange = (newPerPage) => {
+  perPage.value = newPerPage;
+  fetchSliders(1);
 };
 
 const openAddModal = () => {
@@ -352,6 +359,7 @@ const saveSlider = async () => {
     }
 
     closeModal();
+    clearCache('/auth/admin/hero-sliders');
     fetchSliders();
   } catch (error) {
     if (error.response?.data?.errors) {
@@ -371,6 +379,7 @@ const deleteSlider = async (id) => {
   try {
     await axios.delete(`/auth/admin/hero-sliders/${id}`);
     toast.success('Slider deleted successfully');
+    clearCache('/auth/admin/hero-sliders');
     fetchSliders();
   } catch (error) {
     toast.error('Failed to delete slider');

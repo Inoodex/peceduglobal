@@ -94,6 +94,7 @@ import MainLayout from '@/layouts/MainLayout.vue';
 import AppEditor from '@/components/AppEditor.vue';
 import FileUpload from '@/components/MultipleFileUpload.vue';
 import { ChevronRight, ChevronDown, Loader2 } from 'lucide-vue-next';
+import { clearCache } from '@/utils/cacheHelper';
 
 export default {
   name: 'BlockEdit',
@@ -169,6 +170,7 @@ export default {
       this.loading = true;
       try {
         await axios.put(`/auth/admin/blocks/${this.$route.params.id}`, this.form);
+        clearCache('/auth/admin/blocks');
         this.$router.push('/dashboard/block-manager');
       } catch (error) {
         console.error('Error updating block:', error);

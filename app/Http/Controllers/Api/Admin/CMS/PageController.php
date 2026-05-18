@@ -29,7 +29,8 @@ class PageController extends Controller
             });
         }
 
-        $pages = $query->paginate(15);
+        $perPage = $request->input('per_page', 15);
+        $pages = $query->paginate($perPage);
         
         return response()->json([
             'success' => true,
@@ -38,6 +39,9 @@ class PageController extends Controller
                 'current_page' => $pages->currentPage(),
                 'last_page' => $pages->lastPage(),
                 'total' => $pages->total(),
+                'per_page' => $pages->perPage(),
+                'from' => $pages->firstItem(),
+                'to' => $pages->lastItem(),
             ]
         ], Response::HTTP_OK);
     }

@@ -1,6 +1,15 @@
 <template>
   <MainLayout>
-    <div class="max-w-7xl mx-auto">
+    <!-- Loading State: Clean Centered Shimmer Progress Line (Only shown on very first load) -->
+    <div v-if="loading && elements.length === 0" class="min-h-[75vh] flex flex-col items-center justify-center bg-transparent">
+      <!-- Premium Progress Track Line -->
+      <div class="relative w-64 h-[3px] bg-gray-200 dark:bg-gray-800/80 rounded-full overflow-hidden">
+        <div class="absolute inset-0 line-shimmer-sweep"></div>
+      </div>
+    </div>
+
+    <!-- Loaded State: Actual Page Content (Always visible once first data is loaded) -->
+    <div v-else class="max-w-7xl mx-auto">
       <!-- Header -->
       <div class="flex flex-col sm:flex-row sm:items-center sm:justify-between gap-4 mb-6">
         <div class="mt-6">
@@ -23,19 +32,27 @@
             <Search class="absolute left-3 top-1/2 -translate-y-1/2 w-5 h-5 text-gray-400" />
             <input v-model="searchQuery" type="text" placeholder="Search elements..." class="w-full bg-gray-50 dark:bg-[#141A21] border border-gray-200 dark:border-gray-700 rounded-xl pl-10 pr-4 py-2.5 text-gray-900 dark:text-white placeholder-gray-400 focus:outline-none focus:ring-2 focus:ring-primary/20 focus:border-primary transition-all" />
           </div>
-          <div class="relative">
-            <select v-model="selectedCountry" class="w-full bg-gray-50 dark:bg-[#141A21] border border-gray-200 dark:border-gray-700 rounded-xl px-4 py-2.5 text-gray-900 dark:text-white focus:outline-none focus:ring-2 focus:ring-primary/20 focus:border-primary transition-all">
-              <option disabled value="">Select country</option>
-              <option value="">All Countries</option>
-              <option v-for="country in countries" :key="country.id" :value="country.id">{{ country.iso_code }} - {{ country.name }}</option>
-            </select>
+          <div class="relative pt-1">
+            <CustomSelect 
+              v-model="selectedCountry" 
+              :options="countries" 
+              label="Country"
+              placeholder="All Countries"
+              labelKey="name"
+              valueKey="id"
+              :clearable="true"
+            />
           </div>
-          <div class="relative">
-            <select v-model="selectedBlock" class="w-full bg-gray-50 dark:bg-[#141A21] border border-gray-200 dark:border-gray-700 rounded-xl px-4 py-2.5 text-gray-900 dark:text-white focus:outline-none focus:ring-2 focus:ring-primary/20 focus:border-primary transition-all">
-              <option disabled value="">Select block</option>
-              <option value="">All Blocks</option>
-              <option v-for="block in blocks" :key="block.id" :value="block.id">{{ block.page?.country?.iso_code }} - {{ block.page?.title }} | {{ block.block_type }} - {{ block.section_title }}</option>
-            </select>
+          <div class="relative pt-1">
+            <CustomSelect 
+              v-model="selectedBlock" 
+              :options="blockOptions" 
+              label="Block"
+              placeholder="All Blocks"
+              labelKey="label"
+              valueKey="id"
+              :clearable="true"
+            />
           </div>
           <div class="flex gap-2">
             <button v-if="searchQuery || selectedCountry || selectedBlock" @click="clearFilters" class="px-4 py-2 text-gray-600 dark:text-gray-400 hover:text-gray-900 dark:hover:text-white transition-colors">Clear All</button>
@@ -44,61 +61,44 @@
       </div>
 
       <!-- Elements Table -->
-      <div class="bg-white dark:bg-[#1C252E] rounded-2xl border border-gray-200 dark:border-gray-700/50 overflow-hidden">
-        <div class="overflow-x-auto">
-          <table class="w-full">
-            <thead class="bg-gray-50 dark:bg-[#141A21] border-b border-gray-200 dark:border-gray-700/50">
-              <tr class="text-left">
-                <th class="px-6 py-4 text-xs font-semibold text-gray-500 dark:text-gray-400 uppercase tracking-wider">Title</th>
-                <th class="px-6 py-4 text-xs font-semibold text-gray-500 dark:text-gray-400 uppercase tracking-wider">Block/Page</th>
-                <th class="px-6 py-4 text-xs font-semibold text-gray-500 dark:text-gray-400 uppercase tracking-wider">Image</th>
-                <th class="px-6 py-4 text-right text-xs font-semibold text-gray-500 dark:text-gray-400 uppercase tracking-wider">Actions</th>
-              </tr>
-            </thead>
-            <tbody class="divide-y divide-gray-200 dark:divide-gray-700/50">
-              <tr v-if="loading" class="hover:bg-gray-50 dark:hover:bg-gray-800/50 transition-colors">
-                <td colspan="4" class="px-6 py-12 text-center text-gray-500 dark:text-gray-400">
-                  <div class="flex items-center justify-center gap-2"><Loader2 class="w-5 h-5 animate-spin" /> Loading elements...</div>
-                </td>
-              </tr>
-              <tr v-else-if="filteredElements.length === 0" class="hover:bg-gray-50 dark:hover:bg-gray-800/50 transition-colors">
-                <td colspan="4" class="px-6 py-12 text-center text-gray-500 dark:text-gray-400">No elements found</td>
-              </tr>
-              <tr v-for="element in filteredElements" :key="element.id" class="hover:bg-gray-50 dark:hover:bg-gray-800/50 transition-colors">
-                <td class="px-6 py-4">
-                  <span class="text-sm font-medium text-gray-900 dark:text-white">{{ element.element_title || 'No Title' }}</span>
-                </td>
-                <td class="px-6 py-4">
-                  <div class="flex flex-col gap-1">
-                    <div v-if="element.page_block?.page" class="flex items-center gap-1 text-[10px] font-bold uppercase tracking-tight text-primary dark:text-primary-400 mb-1">
-                      <span class="bg-primary/10 px-1 rounded">{{ element.page_block.page.country?.iso_code }}</span>
-                      <span>{{ element.page_block.page.title }}</span>
-                    </div>
-                    <span v-if="element.page_block" class="text-xs font-medium text-gray-600 dark:text-gray-400">
-                      Block: {{ element.page_block?.block_type }}
-                    </span>
-                  </div>
-                </td>
-                <td class="px-6 py-4">
-                  <div v-if="element.image_path" class="w-10 h-10 rounded-lg overflow-hidden border border-gray-200 dark:border-gray-700">
-                    <img :src="element.image_path" class="w-full h-full object-cover" />
-                  </div>
-                  <span v-else class="text-xs text-gray-400">No Image</span>
-                </td>
-                <td class="px-6 py-4 text-right">
-                  <div class="flex items-center justify-end gap-2">
-                    <button @click="$router.push('/dashboard/element-manager/edit/' + element.id)" class="p-2 text-gray-500 hover:text-primary hover:bg-primary/10 rounded-lg transition-colors" title="Edit"><Pencil class="w-4 h-4" /></button>
-                    <button @click="confirmDelete(element)" class="p-2 text-gray-500 hover:text-red-500 hover:bg-red-50 dark:hover:bg-red-900/20 rounded-lg transition-colors" title="Delete"><Trash2 class="w-4 h-4" /></button>
-                  </div>
-                </td>
-              </tr>
-            </tbody>
-          </table>
-        </div>
-        <div class="px-6 py-4 border-t border-gray-200 dark:border-gray-700/50 flex items-center justify-between">
-          <p class="text-sm text-gray-500 dark:text-gray-400">Showing {{ filteredElements.length }} of {{ elements.length }} elements</p>
-        </div>
-      </div>
+      <DataTable 
+        :columns="columns" 
+        :data="filteredElements" 
+        :loading="loading"
+        :pagination="pagination"
+        @page-change="fetchElements"
+        @per-page-change="handlePerPageChange"
+      >
+        <template #cell(title)="{ item }">
+          <div class="font-medium text-gray-900 dark:text-white text-sm">{{ item.element_title || 'No Title' }}</div>
+        </template>
+
+        <template #cell(block_page)="{ item }">
+          <div class="flex flex-col gap-1">
+            <div v-if="item.page_block?.page" class="flex items-center gap-1">
+              <span class="text-[10px] font-bold uppercase bg-primary/10 text-primary px-1.5 py-0.5 rounded">{{ item.page_block.page.country?.iso_code }}</span>
+              <span class="text-xs font-medium text-gray-700 dark:text-gray-300">{{ item.page_block.page.title }}</span>
+            </div>
+            <span v-if="item.page_block" class="text-xs text-gray-500 dark:text-gray-400 font-mono">
+              {{ item.page_block?.block_type }}
+            </span>
+          </div>
+        </template>
+
+        <template #cell(image)="{ item }">
+          <div v-if="item.image_path" class="w-10 h-10 rounded-lg overflow-hidden border border-gray-200 dark:border-gray-700/50">
+            <img :src="item.image_path" class="w-full h-full object-cover" />
+          </div>
+          <span v-else class="text-xs text-gray-400">—</span>
+        </template>
+
+        <template #cell(actions)="{ item }">
+          <div class="flex items-center justify-end gap-1">
+            <button @click="$router.push('/dashboard/element-manager/edit/' + item.id)" class="p-1.5 text-gray-500 hover:text-primary hover:bg-primary/10 rounded-lg transition-colors" title="Edit"><Pencil class="w-4 h-4" /></button>
+            <button @click="confirmDelete(item)" class="p-1.5 text-gray-500 hover:text-red-500 hover:bg-red-50 dark:hover:bg-red-900/20 rounded-lg transition-colors" title="Delete"><Trash2 class="w-4 h-4" /></button>
+          </div>
+        </template>
+      </DataTable>
 
       <!-- Delete Modal -->
       <div v-if="deleteModal.show" class="fixed inset-0 bg-black/50 flex items-center justify-center z-50">
@@ -124,16 +124,27 @@
 <script>
 import axios from '@/plugins/axios';
 import MainLayout from '@/layouts/MainLayout.vue';
+import DataTable from '@/components/Table/DataTable.vue';
+import CustomSelect from '@/components/Form/CustomSelect.vue';
+import { fetchWithCache, clearCache } from '@/utils/cacheHelper';
 import {
   ChevronRight, Plus, Search, Loader2, Pencil, Trash2, AlertTriangle,
 } from 'lucide-vue-next';
 
 export default {
   name: 'ElementList',
-  components: { MainLayout, ChevronRight, Plus, Search, Loader2, Pencil, Trash2, AlertTriangle },
+  components: { MainLayout, DataTable, CustomSelect, ChevronRight, Plus, Search, Loader2, Pencil, Trash2, AlertTriangle },
   data() {
     return {
+      columns: [
+        { key: 'title', label: 'Title' },
+        { key: 'block_page', label: 'Block / Page' },
+        { key: 'image', label: 'Image', width: 'w-20' },
+        { key: 'actions', label: 'Actions', align: 'right' }
+      ],
       elements: [],
+      pagination: null,
+      perPage: 15,
       loading: false,
       searchQuery: '',
       selectedCountry: '',
@@ -143,7 +154,14 @@ export default {
       deleteModal: { show: false, element: null, loading: false },
     };
   },
+
   computed: {
+    blockOptions() {
+      return this.blocks.map(b => ({
+        ...b,
+        label: `${b.page?.country?.iso_code ? b.page.country.iso_code + ' | ' : ''}${b.block_type}${b.section_title ? ' - ' + b.section_title : ''}`
+      }));
+    },
     filteredElements() {
       if (!this.searchQuery.trim()) return this.elements;
       const query = this.searchQuery.toLowerCase();
@@ -162,9 +180,9 @@ export default {
     selectedCountry() {
       this.selectedBlock = '';
       this.fetchBlocksList(this.selectedCountry);
-      this.fetchElements();
+      this.fetchElements(1);
     },
-    selectedBlock() { this.fetchElements(); },
+    selectedBlock() { this.fetchElements(1); },
   },
   methods: {
     async fetchCountries() {
@@ -190,19 +208,24 @@ export default {
       this.selectedCountry = '';
       this.selectedBlock = '';
     },
-    async fetchElements() {
-      this.loading = true;
-      try {
-        const params = {};
-        if (this.selectedCountry) params.country_id = this.selectedCountry;
-        if (this.selectedBlock) params.block_id = this.selectedBlock;
-        const response = await axios.get('/auth/admin/elements', { params });
-        this.elements = response.data.data?.data || response.data.data || [];
-      } catch (e) {
-        console.error('Failed to load elements', e);
-      } finally {
-        this.loading = false;
-      }
+    async fetchElements(page = 1) {
+      await fetchWithCache({
+        url: '/auth/admin/elements',
+        params: {
+          page,
+          per_page: this.perPage,
+          country_id: this.selectedCountry,
+          block_id: this.selectedBlock
+        },
+        component: this,
+        dataKey: 'elements',
+        loadingKey: 'loading',
+        paginationKey: 'pagination'
+      });
+    },
+    handlePerPageChange(newPerPage) {
+      this.perPage = newPerPage;
+      this.fetchElements(1);
     },
     confirmDelete(element) {
       this.deleteModal.element = element;
@@ -212,6 +235,7 @@ export default {
       this.deleteModal.loading = true;
       try {
         await axios.delete(`/auth/admin/elements/${this.deleteModal.element.id}`);
+        clearCache('/auth/admin/elements');
         this.elements = this.elements.filter(e => e.id !== this.deleteModal.element.id);
         this.deleteModal.show = false;
         this.deleteModal.element = null;

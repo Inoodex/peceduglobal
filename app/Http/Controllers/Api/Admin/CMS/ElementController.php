@@ -35,10 +35,19 @@ class ElementController extends Controller
             });
         }
 
-        $elements = $query->latest()->paginate(15);
+        $perPage = $request->input('per_page', 15);
+        $elements = $query->latest()->paginate($perPage);
         return response()->json([
             'success' => true,
             'data' => BlockElementResource::collection($elements),
+            'meta' => [
+                'current_page' => $elements->currentPage(),
+                'last_page' => $elements->lastPage(),
+                'total' => $elements->total(),
+                'per_page' => $elements->perPage(),
+                'from' => $elements->firstItem(),
+                'to' => $elements->lastItem(),
+            ]
         ], Response::HTTP_OK);
     }
 
