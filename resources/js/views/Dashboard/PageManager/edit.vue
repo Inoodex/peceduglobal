@@ -27,17 +27,19 @@
               <label class="block text-sm font-medium text-gray-700 dark:text-gray-300 mb-1.5">Page Type</label>
               <select v-model="form.page_type" class="w-full bg-gray-50 dark:bg-[#141A21] border border-gray-200 dark:border-gray-700 rounded-xl px-4 py-2.5 text-gray-900 dark:text-white focus:outline-none focus:ring-2 focus:ring-primary/20 focus:border-primary transition-all">
                 <option value="">Regular Page</option>
-                <option value="home">Home Page</option>
-                <option value="about">About Us</option>
                 <option value="about_the_company">About the Company</option>
-                <option value="faq">FAQ Page</option>
+                <option value="about">About Us</option>
+                <option value="comparison">Comparison</option>
                 <option value="country_guide">Country Guide</option>
-                <option value="why_choose_us">Why Choose Us</option>
+                <option value="faq">FAQ Page</option>
+                <option value="home">Home Page</option>
+                <option value="popular_destinations">Popular Destinations</option>
+                <option value="privacy">Privacy Policy</option>
                 <option value="services">Services</option>
                 <option value="statistics">Statistics</option>
-                <option value="privacy">Privacy Policy</option>
+                <option value="study_abroad">Study Abroad</option>
                 <option value="terms">Terms & Conditions</option>
-                <option value="comparison">Comparison</option>
+                <option value="why_choose_us">Why Choose Us</option>
               </select>
             </div>
             <div>
