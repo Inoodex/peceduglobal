@@ -49,9 +49,16 @@ export async function fetchWithCache({
     if (cached) {
         setVal(dataRef, dataKey, cached.data || []);
         setVal(paginationRef, paginationKey, cached.meta || null);
-        setVal(loadingRef, loadingKey, false); // Instant render!
+        
+        // If the cache is marked as expired, we render the stale data instantly 
+        // to avoid skeleton flashing, but trigger the subtle background progress bar!
+        if (cached.expired) {
+            setVal(loadingRef, loadingKey, true);
+        } else {
+            setVal(loadingRef, loadingKey, false); // Instant clean render!
+        }
     } else {
-        setVal(loadingRef, loadingKey, true); // Trigger subtle progress bar during filters
+        setVal(loadingRef, loadingKey, true); // Trigger subtle progress bar during filters/first load
     }
 
     // 2. Fetch fresh data from the server in the background
@@ -65,8 +72,8 @@ export async function fetchWithCache({
             setVal(dataRef, dataKey, data);
             setVal(paginationRef, paginationKey, meta);
             
-            // Save to dynamic Pinia cache
-            cacheStore.set(cacheKey, { data, meta });
+            // Save to dynamic Pinia cache and explicitly mark as NOT expired
+            cacheStore.set(cacheKey, { data, meta, expired: false });
         } else {
             setVal(dataRef, dataKey, []);
             setVal(paginationRef, paginationKey, null);

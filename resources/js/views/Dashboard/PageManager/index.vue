@@ -1,14 +1,12 @@
 <template>
   <MainLayout>
-    <!-- Loading State: Clean Centered Shimmer Progress Line (Only shown on very first load) -->
+    <!-- Loading State -->
     <div v-if="loading && pages.length === 0" class="min-h-[75vh] flex flex-col items-center justify-center bg-transparent">
-      <!-- Premium Progress Track Line -->
       <div class="relative w-64 h-[3px] bg-gray-200 dark:bg-gray-800/80 rounded-full overflow-hidden">
         <div class="absolute inset-0 line-shimmer-sweep"></div>
       </div>
     </div>
 
-    <!-- Loaded State: Actual Page Content (Always visible once first data is loaded) -->
     <div v-else class="max-w-7xl mx-auto">
       <!-- Header -->
       <div class="flex flex-col sm:flex-row sm:items-center sm:justify-between gap-4 mb-6">
@@ -92,24 +90,6 @@
           </div>
         </template>
       </DataTable>
-
-      <!-- Delete Modal -->
-      <div v-if="deleteModal.show" class="fixed inset-0 bg-black/50 flex items-center justify-center z-50">
-        <div class="bg-white dark:bg-[#1C252E] rounded-2xl p-6 max-w-md w-full mx-4 shadow-xl">
-          <div class="flex items-center gap-3 mb-4">
-            <div class="w-12 h-12 rounded-full bg-red-100 dark:bg-red-900/30 flex items-center justify-center"><AlertTriangle class="w-6 h-6 text-red-600 dark:text-red-400" /></div>
-            <h3 class="text-lg font-semibold text-gray-900 dark:text-white">Delete Page</h3>
-          </div>
-          <p class="text-gray-600 dark:text-gray-400 mb-6">Are you sure you want to delete "<strong class="text-gray-900 dark:text-white">{{ deleteModal.page?.title }}</strong>"? This action cannot be undone.</p>
-          <div class="flex justify-end gap-3">
-            <button @click="deleteModal.show = false" class="px-4 py-2 text-gray-700 dark:text-gray-300 hover:bg-gray-100 dark:hover:bg-gray-800 rounded-xl transition-colors">Cancel</button>
-            <button @click="deletePage" :disabled="deleteModal.loading" class="px-4 py-2 bg-red-600 hover:bg-red-700 text-white rounded-xl transition-colors flex items-center gap-2">
-              <Loader2 v-if="deleteModal.loading" class="w-4 h-4 animate-spin" /><Trash2 v-else class="w-4 h-4" />
-              {{ deleteModal.loading ? 'Deleting...' : 'Delete' }}
-            </button>
-          </div>
-        </div>
-      </div>
     </div>
   </MainLayout>
 </template>
@@ -120,13 +100,20 @@ import MainLayout from '@/layouts/MainLayout.vue';
 import DataTable from '@/components/Table/DataTable.vue';
 import CustomSelect from '@/components/Form/CustomSelect.vue';
 import { fetchWithCache, clearCache } from '@/utils/cacheHelper';
+import { useToastStore } from '@/stores/toast';
+import { useConfirmStore } from '@/stores/confirm';
 import {
-  ChevronRight, Plus, Search, Loader2, Pencil, Trash2, AlertTriangle,
+  ChevronRight, Plus, Search, Loader2, Pencil, Trash2,
 } from 'lucide-vue-next';
 
 export default {
   name: 'PageList',
-  components: { MainLayout, DataTable, CustomSelect, ChevronRight, Plus, Search, Loader2, Pencil, Trash2, AlertTriangle },
+  components: { MainLayout, DataTable, CustomSelect, ChevronRight, Plus, Search, Loader2, Pencil, Trash2 },
+  setup() {
+    const toast = useToastStore();
+    const confirm = useConfirmStore();
+    return { toast, confirm };
+  },
   data() {
     return {
       columns: [
@@ -143,7 +130,6 @@ export default {
       searchQuery: '',
       selectedCountry: '',
       countries: [],
-      deleteModal: { show: false, page: null, loading: false },
     };
   },
 
@@ -195,22 +181,23 @@ export default {
       this.searchQuery = '';
       this.selectedCountry = '';
     },
-    confirmDelete(page) {
-      this.deleteModal.page = page;
-      this.deleteModal.show = true;
-    },
-    async deletePage() {
-      this.deleteModal.loading = true;
+    async confirmDelete(page) {
+      const confirmed = await this.confirm.ask({
+        title: 'Delete Page',
+        message: `Are you sure you want to delete "<strong>${page.title}</strong>"? This action cannot be undone.`,
+        confirmText: 'Delete',
+        variant: 'danger',
+      });
+      if (!confirmed) return;
+
       try {
-        await axios.delete(`/auth/admin/pages/${this.deleteModal.page.id}`);
+        await axios.delete(`/auth/admin/pages/${page.id}`);
         clearCache('/auth/admin/pages');
-        this.pages = this.pages.filter(p => p.id !== this.deleteModal.page.id);
-        this.deleteModal.show = false;
-        this.deleteModal.page = null;
+        this.pages = this.pages.filter(p => p.id !== page.id);
+        this.toast.success('Page deleted successfully.');
       } catch (e) {
         console.error('Failed to delete page', e);
-      } finally {
-        this.deleteModal.loading = false;
+        this.toast.error('Failed to delete page. Please try again.');
       }
     },
   },

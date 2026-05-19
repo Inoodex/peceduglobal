@@ -123,10 +123,15 @@ import MainLayout from '@/layouts/MainLayout.vue';
 import FileUpload from '@/components/FileUpload.vue';
 import { ChevronRight, ChevronDown, Loader2 } from 'lucide-vue-next';
 import { clearCache } from '@/utils/cacheHelper';
+import { useToastStore } from '@/stores/toast';
 
 export default {
   name: 'PageEdit',
   components: { MainLayout, FileUpload, ChevronRight, ChevronDown, Loader2 },
+  setup() {
+    const toast = useToastStore();
+    return { toast };
+  },
   data() {
     return {
       pageId: null,
@@ -221,10 +226,11 @@ export default {
           headers: { 'Content-Type': 'multipart/form-data' },
         });
         clearCache('/auth/admin/pages');
+        this.toast.success('Page updated successfully.');
         this.$router.push('/dashboard/page-manager');
       } catch (error) {
         console.error('Error updating page:', error);
-        alert('Error updating page. Please check your input.');
+        this.toast.error('Failed to update page. Please check your input.');
       } finally {
         this.loading = false;
       }

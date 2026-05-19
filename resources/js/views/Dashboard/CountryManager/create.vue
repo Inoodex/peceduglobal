@@ -98,10 +98,15 @@ import MainLayout from '@/layouts/MainLayout.vue';
 import { ChevronRight, ChevronDown, Loader2 } from 'lucide-vue-next';
 import FileUpload from '@/components/FileUpload.vue';
 import { clearCache } from '@/utils/cacheHelper';
+import { useToastStore } from '@/stores/toast';
 
 export default {
   name: 'CountryCreate',
   components: { MainLayout, ChevronRight, ChevronDown, Loader2, FileUpload },
+  setup() {
+    const toast = useToastStore();
+    return { toast };
+  },
   data() {
     return {
       sections: { details: true, properties: true },
@@ -142,9 +147,11 @@ export default {
           headers: { 'Content-Type': 'multipart/form-data' }
         });
         clearCache('/auth/admin/countries');
+        this.toast.success('Country created successfully.');
         this.$router.push('/dashboard/country-manager');
       } catch (e) {
         console.error('Create failed', e);
+        this.toast.error('Failed to create country. Please check your input.');
       } finally {
         this.saving = false;
       }

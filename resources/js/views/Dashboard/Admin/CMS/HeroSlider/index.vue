@@ -167,6 +167,7 @@
 import { ref, onMounted } from 'vue';
 import axios from '@/plugins/axios';
 import { useToastStore } from '@/stores/toast';
+import { useConfirmStore } from '@/stores/confirm';
 import { fetchWithCache, clearCache } from '@/utils/cacheHelper';
 import MainLayout from '@/layouts/MainLayout.vue';
 import DataTable from '@/components/Table/DataTable.vue';
@@ -184,6 +185,7 @@ const pagination = ref(null);
 const perPage = ref(15);
 
 const toast = useToastStore();
+const confirmStore = useConfirmStore();
 const sliders = ref([]);
 const loading = ref(true);
 const showModal = ref(false);
@@ -374,7 +376,14 @@ const saveSlider = async () => {
 };
 
 const deleteSlider = async (id) => {
-  if (!confirm('Are you sure you want to delete this slider?')) return;
+  const confirmed = await confirmStore.ask({
+    title: 'Delete Slider',
+    message: 'Are you sure you want to delete this slider? This action cannot be undone.',
+    confirmText: 'Delete Now',
+    variant: 'danger'
+  });
+
+  if (!confirmed) return;
   
   try {
     await axios.delete(`/auth/admin/hero-sliders/${id}`);

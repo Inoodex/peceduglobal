@@ -90,10 +90,15 @@ import AppEditor from '@/components/AppEditor.vue';
 import FileUpload from '@/components/MultipleFileUpload.vue';
 import { ChevronRight, ChevronDown, Loader2, Upload } from 'lucide-vue-next';
 import { clearCache } from '@/utils/cacheHelper';
+import { useToastStore } from '@/stores/toast';
 
 export default {
   name: 'ElementEdit',
   components: { MainLayout, AppEditor, FileUpload, ChevronRight, ChevronDown, Loader2, Upload },
+  setup() {
+    const toast = useToastStore();
+    return { toast };
+  },
   data() {
     return {
       sections: { details: true },
@@ -174,10 +179,11 @@ export default {
           headers: { 'Content-Type': 'multipart/form-data' }
         });
         clearCache('/auth/admin/elements');
+        this.toast.success('Element updated successfully.');
         this.$router.push('/dashboard/element-manager');
       } catch (error) {
         console.error('Error updating element:', error);
-        alert('Error updating element. Please check your input.');
+        this.toast.error('Failed to update element. Please check your input.');
       } finally {
         this.loading = false;
       }

@@ -1,42 +1,39 @@
 <template>
-  <div class="fixed top-6 right-6 z-[9999] flex flex-col gap-3 pointer-events-none max-w-sm w-full">
-    <TransitionGroup 
-      enter-active-class="transform ease-out duration-300 transition"
-      enter-from-class="translate-y-2 opacity-0 sm:translate-y-0 sm:translate-x-4"
-      enter-to-class="translate-y-0 opacity-100 sm:translate-x-0"
-      leave-active-class="transition ease-in duration-200"
-      leave-from-class="opacity-100"
-      leave-to-class="opacity-0"
+  <div class="fixed top-6 right-6 z-[9999] flex flex-col items-end gap-2 pointer-events-none w-full max-w-sm">
+    <TransitionGroup
+      tag="div"
+      class="flex flex-col items-center gap-2 w-full"
+      enter-active-class="transition-all duration-300 ease-out"
+      enter-from-class="opacity-0 translate-x-8 scale-95"
+      enter-to-class="opacity-100 translate-x-0 scale-100"
+      leave-active-class="transition-all duration-200 ease-in"
+      leave-from-class="opacity-100 translate-x-0 scale-100"
+      leave-to-class="opacity-0 translate-x-8 scale-95"
     >
-      <div 
-        v-for="toast in toastStore.toasts" 
+      <div
+        v-for="toast in toastStore.toasts"
         :key="toast.id"
-        class="pointer-events-auto w-full overflow-hidden rounded-2xl shadow-2xl border backdrop-blur-md"
-        :class="[
-          toast.type === 'success' ? 'bg-emerald-500/10 border-emerald-500/20 text-emerald-600 dark:text-emerald-400' : '',
-          toast.type === 'error' ? 'bg-red-500/10 border-red-500/20 text-red-600 dark:text-red-400' : '',
-          toast.type === 'warning' ? 'bg-amber-500/10 border-amber-500/20 text-amber-600 dark:text-amber-400' : ''
-        ]"
+        class="pointer-events-auto w-full flex items-center gap-3 px-4 py-3 rounded-2xl shadow-2xl border border-white/10 backdrop-blur-xl"
+        :class="bgClass(toast.type)"
       >
-        <div class="p-4 flex items-start gap-3">
-          <div class="shrink-0 pt-0.5">
-            <CheckCircle v-if="toast.type === 'success'" class="w-5 h-5" />
-            <AlertCircle v-else-if="toast.type === 'error'" class="w-5 h-5" />
-            <AlertTriangle v-else class="w-5 h-5" />
-          </div>
-          <div class="flex-1">
-            <p class="text-sm font-bold leading-tight uppercase tracking-tight opacity-50 mb-0.5">{{ toast.type }}</p>
-            <p class="text-[15px] font-medium leading-relaxed">{{ toast.message }}</p>
-          </div>
-          <button @click="toastStore.remove(toast.id)" class="shrink-0 hover:opacity-70 transition-opacity">
-            <X class="w-4 h-4 opacity-40" />
-          </button>
+        <!-- Icon -->
+        <div class="shrink-0 w-8 h-8 rounded-full flex items-center justify-center" :class="iconBgClass(toast.type)">
+          <CheckCircle v-if="toast.type === 'success'" class="w-4 h-4 text-white" />
+          <XCircle v-else-if="toast.type === 'error'" class="w-4 h-4 text-white" />
+          <AlertTriangle v-else-if="toast.type === 'warning'" class="w-4 h-4 text-white" />
+          <Info v-else class="w-4 h-4 text-white" />
         </div>
-        <!-- Progress Bar (Optional visual touch) -->
-        <div 
-          class="h-1 bg-current opacity-20 transition-all duration-300"
-          style="width: 100%"
-        ></div>
+
+        <!-- Message -->
+        <p class="flex-1 text-sm font-medium text-white leading-snug">{{ toast.message }}</p>
+
+        <!-- Close -->
+        <button
+          @click="toastStore.remove(toast.id)"
+          class="shrink-0 w-6 h-6 rounded-full flex items-center justify-center bg-white/10 hover:bg-white/20 transition-colors"
+        >
+          <X class="w-3.5 h-3.5 text-white/70" />
+        </button>
       </div>
     </TransitionGroup>
   </div>
@@ -44,7 +41,21 @@
 
 <script setup>
 import { useToastStore } from '@/stores/toast';
-import { CheckCircle, AlertCircle, AlertTriangle, X } from 'lucide-vue-next';
+import { CheckCircle, XCircle, AlertTriangle, Info, X } from 'lucide-vue-next';
 
 const toastStore = useToastStore();
+
+const bgClass = (type) => {
+  if (type === 'success') return 'bg-gray-900/90 dark:bg-gray-950/90';
+  if (type === 'error')   return 'bg-gray-900/90 dark:bg-gray-950/90';
+  if (type === 'warning') return 'bg-gray-900/90 dark:bg-gray-950/90';
+  return 'bg-gray-900/90 dark:bg-gray-950/90';
+};
+
+const iconBgClass = (type) => {
+  if (type === 'success') return 'bg-emerald-500';
+  if (type === 'error')   return 'bg-red-500';
+  if (type === 'warning') return 'bg-amber-500';
+  return 'bg-blue-500';
+};
 </script>

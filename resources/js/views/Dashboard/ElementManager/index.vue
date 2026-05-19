@@ -99,24 +99,6 @@
           </div>
         </template>
       </DataTable>
-
-      <!-- Delete Modal -->
-      <div v-if="deleteModal.show" class="fixed inset-0 bg-black/50 flex items-center justify-center z-50">
-        <div class="bg-white dark:bg-[#1C252E] rounded-2xl p-6 max-w-md w-full mx-4 shadow-xl">
-          <div class="flex items-center gap-3 mb-4">
-            <div class="w-12 h-12 rounded-full bg-red-100 dark:bg-red-900/30 flex items-center justify-center"><AlertTriangle class="w-6 h-6 text-red-600 dark:text-red-400" /></div>
-            <h3 class="text-lg font-semibold text-gray-900 dark:text-white">Delete Element</h3>
-          </div>
-          <p class="text-gray-600 dark:text-gray-400 mb-6">Are you sure you want to delete this element? This action cannot be undone.</p>
-          <div class="flex justify-end gap-3">
-            <button @click="deleteModal.show = false" class="px-4 py-2 text-gray-700 dark:text-gray-300 hover:bg-gray-100 dark:hover:bg-gray-800 rounded-xl transition-colors">Cancel</button>
-            <button @click="deleteElement" :disabled="deleteModal.loading" class="px-4 py-2 bg-red-600 hover:bg-red-700 text-white rounded-xl transition-colors flex items-center gap-2">
-              <Loader2 v-if="deleteModal.loading" class="w-4 h-4 animate-spin" /><Trash2 v-else class="w-4 h-4" />
-              {{ deleteModal.loading ? 'Deleting...' : 'Delete' }}
-            </button>
-          </div>
-        </div>
-      </div>
     </div>
   </MainLayout>
 </template>
@@ -127,13 +109,20 @@ import MainLayout from '@/layouts/MainLayout.vue';
 import DataTable from '@/components/Table/DataTable.vue';
 import CustomSelect from '@/components/Form/CustomSelect.vue';
 import { fetchWithCache, clearCache } from '@/utils/cacheHelper';
+import { useToastStore } from '@/stores/toast';
+import { useConfirmStore } from '@/stores/confirm';
 import {
-  ChevronRight, Plus, Search, Loader2, Pencil, Trash2, AlertTriangle,
+  ChevronRight, Plus, Search, Loader2, Pencil, Trash2,
 } from 'lucide-vue-next';
 
 export default {
   name: 'ElementList',
-  components: { MainLayout, DataTable, CustomSelect, ChevronRight, Plus, Search, Loader2, Pencil, Trash2, AlertTriangle },
+  components: { MainLayout, DataTable, CustomSelect, ChevronRight, Plus, Search, Loader2, Pencil, Trash2 },
+  setup() {
+    const toast = useToastStore();
+    const confirm = useConfirmStore();
+    return { toast, confirm };
+  },
   data() {
     return {
       columns: [
@@ -151,7 +140,6 @@ export default {
       selectedBlock: '',
       countries: [],
       blocks: [],
-      deleteModal: { show: false, element: null, loading: false },
     };
   },
 
@@ -227,22 +215,23 @@ export default {
       this.perPage = newPerPage;
       this.fetchElements(1);
     },
-    confirmDelete(element) {
-      this.deleteModal.element = element;
-      this.deleteModal.show = true;
-    },
-    async deleteElement() {
-      this.deleteModal.loading = true;
+    async confirmDelete(element) {
+      const confirmed = await this.confirm.ask({
+        title: 'Delete Element',
+        message: 'Are you sure you want to delete this element? This action cannot be undone.',
+        confirmText: 'Delete',
+        variant: 'danger',
+      });
+      if (!confirmed) return;
+
       try {
-        await axios.delete(`/auth/admin/elements/${this.deleteModal.element.id}`);
+        await axios.delete(`/auth/admin/elements/${element.id}`);
         clearCache('/auth/admin/elements');
-        this.elements = this.elements.filter(e => e.id !== this.deleteModal.element.id);
-        this.deleteModal.show = false;
-        this.deleteModal.element = null;
+        this.elements = this.elements.filter(e => e.id !== element.id);
+        this.toast.success('Element deleted successfully.');
       } catch (e) {
         console.error('Failed to delete element', e);
-      } finally {
-        this.deleteModal.loading = false;
+        this.toast.error('Failed to delete element. Please try again.');
       }
     },
   },

@@ -95,10 +95,15 @@ import AppEditor from '@/components/AppEditor.vue';
 import FileUpload from '@/components/MultipleFileUpload.vue';
 import { ChevronRight, ChevronDown, Loader2 } from 'lucide-vue-next';
 import { clearCache } from '@/utils/cacheHelper';
+import { useToastStore } from '@/stores/toast';
 
 export default {
   name: 'BlockEdit',
   components: { MainLayout, AppEditor, FileUpload, ChevronRight, ChevronDown, Loader2 },
+  setup() {
+    const toast = useToastStore();
+    return { toast };
+  },
   data() {
     return {
       sections: { details: true },
@@ -171,10 +176,11 @@ export default {
       try {
         await axios.put(`/auth/admin/blocks/${this.$route.params.id}`, this.form);
         clearCache('/auth/admin/blocks');
+        this.toast.success('Block updated successfully.');
         this.$router.push('/dashboard/block-manager');
       } catch (error) {
         console.error('Error updating block:', error);
-        alert('Error updating block. Please check your input.');
+        this.toast.error('Failed to update block. Please check your input.');
       } finally {
         this.loading = false;
       }

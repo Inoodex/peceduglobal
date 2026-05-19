@@ -91,10 +91,15 @@ import AppEditor from '@/components/AppEditor.vue';
 import FileUpload from '@/components/MultipleFileUpload.vue';
 import { ChevronRight, ChevronDown, Loader2 } from 'lucide-vue-next';
 import { clearCache } from '@/utils/cacheHelper';
+import { useToastStore } from '@/stores/toast';
 
 export default {
   name: 'BlockCreate',
   components: { MainLayout, AppEditor, FileUpload, ChevronRight, ChevronDown, Loader2 },
+  setup() {
+    const toast = useToastStore();
+    return { toast };
+  },
   data() {
     return {
       sections: { details: true },
@@ -156,10 +161,11 @@ export default {
       try {
         await axios.post('/auth/admin/blocks', this.form);
         clearCache('/auth/admin/blocks');
+        this.toast.success('Block created successfully.');
         this.$router.push('/dashboard/block-manager');
       } catch (error) {
         console.error('Error saving block:', error);
-        alert('Error creating block. Please check your input.');
+        this.toast.error('Failed to create block. Please check your input.');
       } finally {
         this.saving = false;
       }

@@ -1,14 +1,13 @@
 <template>
   <MainLayout>
-    <!-- Loading State: Clean Centered Shimmer Progress Line (Only shown on very first load) -->
+    <!-- Loading State -->
     <div v-if="loading && countries.length === 0" class="min-h-[75vh] flex flex-col items-center justify-center bg-transparent">
-      <!-- Premium Progress Track Line -->
       <div class="relative w-64 h-[3px] bg-gray-200 dark:bg-gray-800/80 rounded-full overflow-hidden">
         <div class="absolute inset-0 line-shimmer-sweep"></div>
       </div>
     </div>
 
-    <!-- Loaded State: Actual Page Content -->
+    <!-- Loaded State -->
     <div v-else class="max-w-7xl mx-auto">
       <!-- Header -->
       <div class="flex flex-col sm:flex-row sm:items-center sm:justify-between gap-4 mb-6">
@@ -79,27 +78,6 @@
           </div>
         </template>
       </DataTable>
-
-      <!-- Delete Modal -->
-      <div v-if="deleteModal.show" class="fixed inset-0 bg-black/50 flex items-center justify-center z-50 animate-fade-in">
-        <div class="bg-white dark:bg-[#1C252E] rounded-2xl p-6 max-w-md w-full mx-4 shadow-xl border border-gray-100 dark:border-gray-800">
-          <div class="flex items-center gap-3 mb-4">
-            <div class="w-12 h-12 rounded-full bg-red-100 dark:bg-red-900/30 flex items-center justify-center">
-              <AlertTriangle class="w-6 h-6 text-red-600 dark:text-red-400" />
-            </div>
-            <h3 class="text-lg font-semibold text-gray-900 dark:text-white">Delete Country</h3>
-          </div>
-          <p class="text-gray-600 dark:text-gray-400 mb-6">Are you sure you want to delete "<strong class="text-gray-900 dark:text-white">{{ deleteModal.country?.name }}</strong>"? This action cannot be undone.</p>
-          <div class="flex justify-end gap-3">
-            <button @click="deleteModal.show = false" class="px-4 py-2 text-gray-700 dark:text-gray-300 hover:bg-gray-100 dark:hover:bg-gray-800 rounded-xl transition-colors font-medium">Cancel</button>
-            <button @click="deleteCountry" :disabled="deleteModal.loading" class="px-4 py-2 bg-red-600 hover:bg-red-700 text-white rounded-xl transition-colors flex items-center gap-2 font-medium">
-              <Loader2 v-if="deleteModal.loading" class="w-4 h-4 animate-spin" />
-              <Trash2 v-else class="w-4 h-4" />
-              {{ deleteModal.loading ? 'Deleting...' : 'Delete' }}
-            </button>
-          </div>
-        </div>
-      </div>
     </div>
   </MainLayout>
 </template>
@@ -109,19 +87,25 @@ import axios from '@/plugins/axios';
 import MainLayout from '@/layouts/MainLayout.vue';
 import DataTable from '@/components/Table/DataTable.vue';
 import { fetchWithCache, clearCache } from '@/utils/cacheHelper';
+import { useToastStore } from '@/stores/toast';
+import { useConfirmStore } from '@/stores/confirm';
 import {
-  ChevronRight, Plus, Search, Loader2, Globe, Pencil, Trash2, AlertTriangle,
+  ChevronRight, Plus, Search, Loader2, Globe, Pencil, Trash2,
 } from 'lucide-vue-next';
 
 export default {
   name: 'CountryList',
-  components: { MainLayout, DataTable, ChevronRight, Plus, Search, Loader2, Globe, Pencil, Trash2, AlertTriangle },
+  components: { MainLayout, DataTable, ChevronRight, Plus, Search, Loader2, Globe, Pencil, Trash2 },
+  setup() {
+    const toast = useToastStore();
+    const confirm = useConfirmStore();
+    return { toast, confirm };
+  },
   data() {
     return {
       countries: [],
       loading: false,
       searchQuery: '',
-      deleteModal: { show: false, country: null, loading: false },
       columns: [
         { key: 'name', label: 'Country' },
         { key: 'slug', label: 'Slug' },
@@ -150,30 +134,29 @@ export default {
     async fetchCountries() {
       await fetchWithCache({
         url: '/auth/admin/countries',
-        params: {
-          per_page: 500 // Large limit to enable local instant searching
-        },
+        params: { per_page: 500 },
         component: this,
         loadingKey: 'loading',
         dataKey: 'countries'
       });
     },
-    confirmDelete(country) {
-      this.deleteModal.country = country;
-      this.deleteModal.show = true;
-    },
-    async deleteCountry() {
-      this.deleteModal.loading = true;
+    async confirmDelete(country) {
+      const confirmed = await this.confirm.ask({
+        title: 'Delete Country',
+        message: `Are you sure you want to delete "<strong>${country.name}</strong>"? This action cannot be undone.`,
+        confirmText: 'Delete',
+        variant: 'danger',
+      });
+      if (!confirmed) return;
+
       try {
-        await axios.delete(`/auth/admin/countries/${this.deleteModal.country.id}`);
+        await axios.delete(`/auth/admin/countries/${country.id}`);
         clearCache('/auth/admin/countries');
-        this.countries = this.countries.filter(c => c.id !== this.deleteModal.country.id);
-        this.deleteModal.show = false;
-        this.deleteModal.country = null;
+        this.countries = this.countries.filter(c => c.id !== country.id);
+        this.toast.success('Country deleted successfully.');
       } catch (e) {
         console.error('Failed to delete country', e);
-      } finally {
-        this.deleteModal.loading = false;
+        this.toast.error('Failed to delete country. Please try again.');
       }
     },
   },

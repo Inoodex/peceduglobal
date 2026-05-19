@@ -106,10 +106,15 @@ import MainLayout from '@/layouts/MainLayout.vue';
 import { ChevronRight, ChevronDown, Loader2 } from 'lucide-vue-next';
 import FileUpload from '@/components/FileUpload.vue';
 import { clearCache } from '@/utils/cacheHelper';
+import { useToastStore } from '@/stores/toast';
 
 export default {
   name: 'CountryEdit',
   components: { MainLayout, ChevronRight, ChevronDown, Loader2, FileUpload },
+  setup() {
+    const toast = useToastStore();
+    return { toast };
+  },
   data() {
     return {
       sections: { details: true, properties: true },
@@ -174,9 +179,11 @@ export default {
           params: { _method: 'PUT' }
         });
         clearCache('/auth/admin/countries');
+        this.toast.success('Country updated successfully.');
         this.$router.push('/dashboard/country-manager');
       } catch (e) {
         console.error('Update failed', e);
+        this.toast.error('Failed to update country. Please check your input.');
       } finally {
         this.saving = false;
       }
