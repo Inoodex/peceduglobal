@@ -331,6 +331,12 @@ const routes = [
         component: () => import('@/views/Dashboard/Student/Profile.vue'),
         meta: { auth: true }
     },
+    {
+        path: '/dashboard/student/academic-profile',
+        name: 'student.academic-profile',
+        component: () => import('@/views/Dashboard/Student/AcademicProfile.vue'),
+        meta: { auth: true, role: 'student' }
+    },
     // Consultant Routes
     {
         path: '/dashboard/consultant/availability',
@@ -379,6 +385,19 @@ router.beforeEach(async (to, from, next) => {
     } else {
         next();
     }
+});
+
+router.afterEach((to) => {
+    let pageTitle = to.meta.title;
+    if (!pageTitle && to.name) {
+        pageTitle = to.name
+            .toString()
+            .split('-')
+            .map(word => word.charAt(0).toUpperCase() + word.slice(1))
+            .join(' ');
+    }
+    const siteName = window.siteName || 'PecEduGlobal';
+    document.title = pageTitle ? `${pageTitle} | ${siteName}` : siteName;
 });
 
 export default router;

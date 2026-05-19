@@ -63,7 +63,8 @@ import {
   Calendar,
   Clock,
   Mail,
-  Settings
+  Settings,
+  User
 } from 'lucide-vue-next';
 
 defineProps({
@@ -183,10 +184,15 @@ const navigationData = [
     title: 'Student Portal',
     roles: ['student'],
     items: [
+      // {
+      //   name: 'My Profile',
+      //   icon: User,
+      //   path: '/dashboard/profile'
+      // },
       {
-        name: 'My Profile',
+        name: 'Academic Profile & Preferences',
         icon: GraduationCap,
-        path: '/dashboard/profile'
+        path: '/dashboard/student/academic-profile'
       },
       {
         name: 'My Applications',

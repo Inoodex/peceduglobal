@@ -20,7 +20,7 @@ use App\Http\Controllers\Api\BlogCategoryController;
 use App\Http\Controllers\Api\BlogPostController;
 use App\Http\Controllers\Api\Admin\EditorUploadController;
 use App\Http\Controllers\Api\Student\ApplicationController;
-// use App\Http\Controllers\Api\Student\ProfileController;
+use App\Http\Controllers\Api\Student\ProfileController;
 use App\Http\Controllers\Api\Admin\UserController;
 use App\Http\Controllers\Api\Admin\PermissionController;
 use App\Http\Controllers\Api\CourseIntakeController;
@@ -38,6 +38,18 @@ Route::group(['prefix' => 'auth'], function () {
         Route::post('logout', [AuthController::class, 'logout']);
         Route::post('refresh', [AuthController::class, 'refresh']);
         Route::get('me', [AuthController::class, 'me']);
+
+        // Profile Routes (Any authenticated user - supports POST and PUT)
+        Route::get('profile', [ProfileController::class, 'show']);
+        Route::match(['post', 'put'], 'profile', [ProfileController::class, 'update']);
+        Route::delete('profile/document', [ProfileController::class, 'removeDocument']);
+        Route::put('profile/password', [ProfileController::class, 'updatePassword']);
+
+        // Dropdowns data (Any authenticated user)
+        Route::get('dropdowns/countries', [CountryController::class, 'index']);
+        Route::get('dropdowns/universities', [UniversityController::class, 'index']);
+        Route::get('dropdowns/courses', [CourseController::class, 'index']);
+        Route::get('dropdowns/course-intakes', [CourseIntakeController::class, 'index']);
 
         // Blog routes (permission-protected)
         Route::middleware('auto-permission')->group(function () {
@@ -136,6 +148,12 @@ Route::group(['prefix' => 'auth'], function () {
             Route::get('applications', [ApplicationController::class, 'index']);
             Route::post('applications', [ApplicationController::class, 'store']);
             Route::get('applications/{application}', [ApplicationController::class, 'show']);
+
+            // Student Profile Routes (supports POST and PUT)
+            Route::get('profile', [ProfileController::class, 'show']);
+            Route::match(['post', 'put'], 'profile', [ProfileController::class, 'update']);
+            Route::delete('profile/document', [ProfileController::class, 'removeDocument']);
+            Route::put('profile/password', [ProfileController::class, 'updatePassword']);
         });
     });
 });

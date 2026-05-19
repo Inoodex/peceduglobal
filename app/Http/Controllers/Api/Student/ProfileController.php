@@ -11,6 +11,7 @@ use Illuminate\Http\JsonResponse;
 use Illuminate\Http\Response;
 use Illuminate\Support\Facades\Hash;
 use Illuminate\Support\Facades\Storage;
+use Illuminate\Support\Str;
 
 class ProfileController extends Controller
 {
@@ -30,7 +31,7 @@ class ProfileController extends Controller
     /**
      * PUT /auth/profile
      * Update personal info for any authenticated user.
-     * CGPA / IELTS / address are updated only if the user is a student.
+     * CGPA / IELTS / address / academic details are updated only if the user is a student.
      */
     public function update(StoreProfileRequest $request): JsonResponse
     {
@@ -68,11 +69,35 @@ class ProfileController extends Controller
         $profile = null;
         if ($user->role === 'student') {
             $profile = StudentProfile::firstOrCreate(['user_id' => $user->id]);
+
+            // Unpack new documents
+            $newDocs = $this->storeUploadedDocuments($request->file('documents'));
+            $newTrans = $this->storeUploadedDocuments($request->file('translation_docs'));
+
+            $existingDocs = is_array($profile->documents) ? $profile->documents : (json_decode($profile->documents, true) ?: []);
+            $existingTrans = is_array($profile->translation_documents) ? $profile->translation_documents : (json_decode($profile->translation_documents, true) ?: []);
+
             $profile->update([
-                'phone'       => $validated['phone'] ?? null,
-                'address'     => $validated['address'] ?? null,
-                'cgpa'        => $validated['cgpa'] ?? null,
-                'ielts_score' => $validated['ielts_score'] ?? null,
+                'phone'             => $validated['phone'] ?? $profile->phone,
+                'address'           => $validated['address'] ?? $profile->address,
+                'cgpa'              => $validated['cgpa'] ?? $profile->cgpa,
+                'ielts_score'       => $validated['ielts_score'] ?? $profile->ielts_score,
+                
+                // Rich academic fields
+                'father_name'       => $validated['father_name'] ?? $profile->father_name,
+                'mother_name'       => $validated['mother_name'] ?? $profile->mother_name,
+                'sponsor_phone'     => $validated['sponsor_phone'] ?? $profile->sponsor_phone,
+                'passport_number'   => $validated['passport_number'] ?? $profile->passport_number,
+                'passport_validity' => $validated['passport_validity'] ?? $profile->passport_validity,
+                'date_of_birth'     => $validated['date_of_birth'] ?? $profile->date_of_birth,
+                'country_id'        => $validated['country_id'] ?? $profile->country_id,
+                'university_id'     => $validated['university_id'] ?? $profile->university_id,
+                'course_id'         => $validated['course_id'] ?? $profile->course_id,
+                'course_intake_id'  => $validated['course_intake_id'] ?? $profile->course_intake_id,
+
+                // Merged documents arrays
+                'documents'             => $newDocs ? array_merge($existingDocs, $newDocs) : $existingDocs,
+                'translation_documents' => $newTrans ? array_merge($existingTrans, $newTrans) : $existingTrans,
             ]);
         }
 
@@ -81,6 +106,38 @@ class ProfileController extends Controller
             'data'    => $profile ? new StudentProfileResource($profile->fresh()) : null,
             'message' => 'Profile updated successfully.',
         ], Response::HTTP_OK);
+    }
+
+    /**
+     * DELETE /auth/profile/document
+     * Remove a specific document path from the authenticated student's profile.
+     */
+    public function removeDocument(\Illuminate\Http\Request $request): JsonResponse
+    {
+        $request->validate([
+            'type' => 'required|in:documents,translation_documents',
+            'path' => 'required|string',
+        ]);
+
+        try {
+            $profile = StudentProfile::where('user_id', auth()->id())->firstOrFail();
+            $column  = $request->type;
+            $files   = $profile->$column ?? [];
+
+            if (!is_array($files)) {
+                $files = json_decode($files, true) ?: [];
+            }
+
+            $files = array_filter($files, fn($path) => $path !== $request->path);
+
+            Storage::disk('public')->delete($request->path);
+            $profile->$column = array_values($files);
+            $profile->save();
+
+            return response()->json(['success' => true, 'message' => 'Document removed.'], Response::HTTP_OK);
+        } catch (\Exception $e) {
+            return response()->json(['success' => false, 'message' => $e->getMessage()], Response::HTTP_INTERNAL_SERVER_ERROR);
+        }
     }
 
     /**
@@ -109,5 +166,18 @@ class ProfileController extends Controller
             'success' => true,
             'message' => 'Password updated successfully.',
         ], Response::HTTP_OK);
+    }
+
+    protected function storeUploadedDocuments($files): ?array
+    {
+        if (!$files) return null;
+        $list = is_array($files) ? $files : [$files];
+        $paths = [];
+        foreach ($list as $file) {
+            if (!$file) continue;
+            $name = (string) Str::uuid().'.'.$file->getClientOriginalExtension();
+            $paths[] = $file->storeAs('students/profiles', $name, 'public');
+        }
+        return $paths === [] ? null : $paths;
     }
 }

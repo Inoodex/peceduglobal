@@ -4,7 +4,7 @@
       <!-- Header -->
       <div class="mb-6">
         <h1 class="text-2xl font-bold text-gray-900 dark:text-white">My Profile</h1>
-        <p class="text-sm text-gray-500 dark:text-gray-400">Manage your personal information and account security separately.</p>
+        <p class="text-sm text-gray-500 dark:text-gray-400">Manage your personal information and account security.</p>
       </div>
 
       <!-- Loading State -->
@@ -67,7 +67,6 @@
                 <Settings :size="20" class="text-primary" /> General Information
               </h3>
               <p class="text-xs text-gray-400 mb-6">Update your name, contact details, and academic scores.</p>
-
 
               <div class="grid grid-cols-1 sm:grid-cols-2 gap-5">
                 <!-- First Name -->
@@ -154,14 +153,13 @@
             </div>
           </form>
 
-          <!-- ── CARD 2: Change Password (Separate) ── -->
+          <!-- ── CARD 2: Change Password ── -->
           <form @submit.prevent="savePassword">
             <div class="bg-white dark:bg-[#1C252E] p-8 rounded-2xl border border-gray-200 dark:border-gray-700/50 shadow-sm">
               <h3 class="text-lg font-bold mb-1 flex items-center gap-2 text-gray-900 dark:text-white">
                 <Lock :size="20" class="text-primary" /> Change Password
               </h3>
               <p class="text-xs text-gray-400 mb-6">Update your account security by setting a new password.</p>
-
 
               <div class="grid grid-cols-1 sm:grid-cols-3 gap-5">
                 <!-- Current Password -->
@@ -252,7 +250,7 @@ const passwordForm = ref({
 const fetchProfile = async () => {
   loadingProfile.value = true;
 
-  // ① Instant pre-fill from Pinia auth.user (no wait for API)
+  // ① Instant pre-fill from Pinia auth.user
   if (auth.user) {
     const nameParts = (auth.user.full_name || '').split(' ');
     profileForm.value.first_name  = nameParts[0] || '';
@@ -267,7 +265,6 @@ const fetchProfile = async () => {
     }
   }
 
-  // ② Then override with full profile data from API (includes academic fields etc.)
   try {
     const res     = await axios.get('/auth/profile');
     const profile = res.data.data;
