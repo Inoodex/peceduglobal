@@ -32,7 +32,21 @@
             </div>
             <div>
               <label class="block text-sm font-medium text-gray-700 dark:text-gray-300 mb-1.5">Block Type <span class="text-red-500">*</span></label>
-              <input v-model="form.block_type" type="text" placeholder="e.g. Hero, Features" class="w-full bg-gray-50 dark:bg-[#141A21] border border-gray-200 dark:border-gray-700 rounded-xl px-4 py-2.5 text-gray-900 dark:text-white placeholder-gray-400 focus:outline-none focus:ring-2 focus:ring-primary/20 focus:border-primary transition-all" required />
+              <select v-model="form.block_type" class="w-full bg-gray-50 dark:bg-[#141A21] border border-gray-200 dark:border-gray-700 rounded-xl px-4 py-2.5 text-gray-900 dark:text-white focus:outline-none focus:ring-2 focus:ring-primary/20 focus:border-primary transition-all" required>
+                <option value="">Select Block Type</option>
+                <option value="hero">Hero Section</option>
+                <option value="grid">Feature Grid</option>
+                <option value="faq">FAQ Section</option>
+                <option value="cta">Call to Action</option>
+                <option value="text_content">Text & Image Content</option>
+                <option value="university_slider">University Slider</option>
+                <option value="scholarship_list">Scholarship List</option>
+                <option value="country_cards">Country Cards</option>
+                <option value="testimonial_slider">Testimonial Slider</option>
+                <option value="team_member">Team Members</option>
+                <option value="process_steps">Process Steps</option>
+                <option value="video_section">Video Section</option>
+              </select>
             </div>
             <div class="grid grid-cols-1 md:grid-cols-2 gap-4">
               <div>

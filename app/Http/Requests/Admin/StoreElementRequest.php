@@ -15,6 +15,7 @@ class StoreElementRequest extends FormRequest
     {
         return [
             'page_block_id' => 'required|exists:page_blocks,id',
+            'element_type' => 'required|string|in:text,image,button,icon',
             'element_title' => 'nullable|string|max:255',
             'element_body' => 'nullable|string',
             'images' => 'nullable|array',

@@ -132,7 +132,7 @@
 
 <script>
 import { ChevronLeft, ChevronRight, ChevronDown, Inbox as InboxIcon } from 'lucide-vue-next';
-import Skeleton from '../UI/Skeleton.vue';
+import Skeleton from '../ui/Skeleton.vue';
 
 export default {
   name: 'DataTable',

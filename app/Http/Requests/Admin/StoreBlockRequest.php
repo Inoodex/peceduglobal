@@ -15,7 +15,7 @@ class StoreBlockRequest extends FormRequest
     {
         return [
             'page_id' => 'required|exists:pages,id',
-            'block_type' => 'required|string',
+            'block_type' => 'required|string|in:hero,grid,faq,cta,text_content,university_slider,scholarship_list,country_cards,testimonial_slider,team_member,process_steps,video_section',
             'section_title' => 'nullable|string|max:255',
             'section_description' => 'nullable|string',
             'sort_order' => 'nullable|integer',

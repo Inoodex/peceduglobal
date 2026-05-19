@@ -33,6 +33,15 @@
               </select>
             </div>
             <div>
+              <label class="block text-sm font-medium text-gray-700 dark:text-gray-300 mb-1.5">Element Type <span class="text-red-500">*</span></label>
+              <select v-model="form.element_type" class="w-full bg-gray-50 dark:bg-[#141A21] border border-gray-200 dark:border-gray-700 rounded-xl px-4 py-2.5 text-gray-900 dark:text-white focus:outline-none focus:ring-2 focus:ring-primary/20 focus:border-primary transition-all" required>
+                <option value="text">Text / Content</option>
+                <option value="image">Image / Gallery</option>
+                <option value="button">Button / Link</option>
+                <option value="icon">Icon / Feature</option>
+              </select>
+            </div>
+            <div>
               <label class="block text-sm font-medium text-gray-700 dark:text-gray-300 mb-1.5">{{ selectedBlockType === 'faq' ? 'Question' : 'Element Title' }}</label>
               <input v-model="form.element_title" type="text" :placeholder="selectedBlockType === 'faq' ? 'e.g. What are the requirements?' : 'e.g. Top Ranked University'" class="w-full bg-gray-50 dark:bg-[#141A21] border border-gray-200 dark:border-gray-700 rounded-xl px-4 py-2.5 text-gray-900 dark:text-white placeholder-gray-400 focus:outline-none focus:ring-2 focus:ring-primary/20 focus:border-primary transition-all" />
             </div>
@@ -101,6 +110,7 @@ export default {
       blocks: [],
       form: {
         page_block_id: '',
+        element_type: 'text',
         element_title: '',
         element_body: '',
         images: [],
