@@ -285,6 +285,7 @@ import {
   Image as ImageIcon
 } from 'lucide-vue-next';
 import FileUpload from '@/components/FileUpload.vue';
+import { useToastStore } from '@/stores/toast';
 
 export default {
   name: 'BlogCreate',
@@ -307,7 +308,8 @@ export default {
   },
   setup() {
     const layout = useLayoutStore();
-    return { layout };
+    const toast = useToastStore();
+    return { layout, toast };
   },
   data() {
     return {
@@ -364,11 +366,11 @@ export default {
           this.form.featured_image_url = response.data.url;
           console.log('Image uploaded:', response.data.url);
         } else {
-          alert('Failed to upload image');
+          this.toast.error('Failed to upload image');
         }
       } catch (e) {
         console.error('Image upload failed', e);
-        alert(e.response?.data?.message || 'Failed to upload image');
+        this.toast.error(e.response?.data?.message || 'Failed to upload image');
         // Clear preview on error
         this.form.featured_image_url = '';
       } finally {
@@ -398,14 +400,14 @@ export default {
         }
 
         await axios.post('/auth/blog-posts', payload);
-        alert('Post created successfully!');
-        this.$router.push('/blog-post');
+        this.toast.success('Post created successfully!');
+        this.$router.push('/dashboard/blog-post');
       } catch (e) {
         console.error('Create failed', e);
         if (e.response?.status === 401) {
           this.$router.push('/login');
         } else {
-          alert(e.response?.data?.message || 'Failed to create post. Check console for details.');
+          this.toast.error(e.response?.data?.message || 'Failed to create post. Check console for details.');
         }
       }
     },

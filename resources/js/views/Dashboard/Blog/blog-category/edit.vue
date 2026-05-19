@@ -163,6 +163,7 @@ import {
   ChevronRight,
   ChevronDown,
 } from 'lucide-vue-next';
+import { useToastStore } from '@/stores/toast';
 
 export default {
   name: 'BlogCategoryEdit',
@@ -170,6 +171,10 @@ export default {
     MainLayout,
     ChevronRight,
     ChevronDown,
+  },
+  setup() {
+    const toast = useToastStore();
+    return { toast };
   },
   data() {
     return {
@@ -207,8 +212,8 @@ export default {
         };
       } catch (e) {
         console.error('Failed to load category', e);
-        alert('Failed to load category data');
-        this.$router.push('/blog-category');
+        this.toast.error('Failed to load category data');
+        this.$router.push('/dashboard/blog-category');
       } finally {
         this.loading = false;
       }
@@ -226,14 +231,14 @@ export default {
         }
 
         await axios.put(`/auth/blog-categories/${categoryId}`, payload);
-        alert('Category updated successfully!');
-        this.$router.push('/blog-category');
+        this.toast.success('Category updated successfully!');
+        this.$router.push('/dashboard/blog-category');
       } catch (e) {
         console.error('Update failed', e);
         if (e.response?.status === 401) {
           this.$router.push('/login');
         } else {
-          alert(e.response?.data?.message || 'Failed to update category. Check console for details.');
+          this.toast.error(e.response?.data?.message || 'Failed to update category. Check console for details.');
         }
       }
     },

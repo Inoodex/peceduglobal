@@ -138,7 +138,7 @@ export default {
         this.form.settings.section_image = response.data.url;
       } catch (error) {
         console.error('Error uploading block image:', error);
-        alert('Failed to upload image. Please try again.');
+        this.toast.error('Failed to upload image. Please try again.');
       } finally {
         this.uploadingImage = false;
       }

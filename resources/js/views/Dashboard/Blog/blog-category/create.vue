@@ -155,6 +155,7 @@ import {
   ChevronRight,
   ChevronDown,
 } from 'lucide-vue-next';
+import { useToastStore } from '@/stores/toast';
 
 export default {
   name: 'BlogCategoryCreate',
@@ -162,6 +163,10 @@ export default {
     MainLayout,
     ChevronRight,
     ChevronDown,
+  },
+  setup() {
+    const toast = useToastStore();
+    return { toast };
   },
   data() {
     return {
@@ -193,14 +198,14 @@ export default {
         }
 
         await axios.post('/auth/blog-categories', payload);
-        alert('Category created successfully!');
-        this.$router.push('/blog-category');
+        this.toast.success('Category created successfully!');
+        this.$router.push('/dashboard/blog-category');
       } catch (e) {
         console.error('Create failed', e);
         if (e.response?.status === 401) {
           this.$router.push('/login');
         } else {
-          alert(e.response?.data?.message || 'Failed to create category. Check console for details.');
+          this.toast.error(e.response?.data?.message || 'Failed to create category. Check console for details.');
         }
       }
     },
