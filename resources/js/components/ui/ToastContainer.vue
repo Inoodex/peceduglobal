@@ -1,5 +1,5 @@
 <template>
-  <div class="fixed top-6 right-6 z-[9999] flex flex-col items-end gap-2 pointer-events-none w-full max-w-sm">
+  <div class="fixed top-6 right-6 z-9999 flex flex-col items-end gap-2 pointer-events-none w-full max-w-sm">
     <TransitionGroup
       tag="div"
       class="flex flex-col items-center gap-2 w-full"

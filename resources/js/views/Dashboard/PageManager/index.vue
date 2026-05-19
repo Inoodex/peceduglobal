@@ -184,7 +184,7 @@ export default {
     async confirmDelete(page) {
       const confirmed = await this.confirm.ask({
         title: 'Delete Page',
-        message: `Are you sure you want to delete "<strong>${page.title}</strong>"? This action cannot be undone.`,
+        message: `Are you sure you want to delete "${page.title}"? This action cannot be undone.`,
         confirmText: 'Delete',
         variant: 'danger',
       });

@@ -65,7 +65,7 @@
     >
       <div
         v-if="isOpen"
-        class="absolute z-[60] w-full mt-1.5 bg-white dark:bg-[#1C252E] border border-gray-100 dark:border-gray-700/80 rounded-xl shadow-xl shadow-gray-200/30 dark:shadow-black/50 overflow-hidden"
+        class="absolute z-60 w-full mt-1.5 bg-white dark:bg-[#1C252E] border border-gray-100 dark:border-gray-700/80 rounded-xl shadow-xl shadow-gray-200/30 dark:shadow-black/50 overflow-hidden"
       >
         <!-- Options List -->
         <ul class="py-1.5 max-h-64 overflow-y-auto custom-scrollbar">
@@ -92,7 +92,7 @@
             <img
               v-if="imageKey && option[imageKey]"
               :src="option[imageKey]"
-              class="w-5 h-5 rounded-full object-cover border border-gray-100 dark:border-gray-700/50 flex-shrink-0"
+              class="w-5 h-5 rounded-full object-cover border border-gray-100 dark:border-gray-700/50 shrink-0"
             />
 
             <!-- Slot for custom option display -->
@@ -101,7 +101,7 @@
             </slot>
 
             <!-- Checkmark for selected -->
-            <span v-if="isSelected(option)" class="ml-auto flex-shrink-0">
+            <span v-if="isSelected(option)" class="ml-auto shrink-0">
               <Check class="w-3.5 h-3.5 text-primary" />
             </span>
           </li>
