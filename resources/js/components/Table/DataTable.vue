@@ -75,7 +75,7 @@
               @click="toggleDropdown" 
               class="flex items-center gap-1.5 text-gray-900 dark:text-white font-medium hover:bg-gray-100 dark:hover:bg-gray-800/60 px-2 py-1 rounded-lg transition-all duration-200 text-sm focus:outline-none select-none border border-transparent hover:border-gray-200 dark:hover:border-gray-700/50"
             >
-              <span>{{ pagination.per_page }}</span>
+              <span>{{ currentPerPageLabel }}</span>
               <ChevronDown 
                 class="w-4 h-4 text-gray-500 transition-transform duration-200" 
                 :class="{ 'rotate-180 text-primary': dropdownOpen }" 
@@ -89,18 +89,18 @@
                 class="absolute bottom-full left-0 mb-2 w-20 bg-white dark:bg-[#1C252E] border border-gray-200 dark:border-gray-700/60 rounded-xl shadow-xl z-50 overflow-hidden py-1.5 focus:outline-none"
               >
                 <button 
-                  v-for="size in [5, 10, 15, 25, 50, 100]" 
-                  :key="size" 
-                  @click="selectSize(size)"
+                  v-for="size in pageSizes" 
+                  :key="size.value" 
+                  @click="selectSize(size.value)"
                   class="w-full text-left px-3 py-1.5 text-xs font-semibold transition-colors flex items-center justify-between focus:outline-none"
                   :class="[
-                    pagination.per_page === size 
+                    pagination.per_page === size.value 
                       ? 'bg-blue-50 text-blue-600 dark:bg-blue-900/20 dark:text-blue-400' 
                       : 'text-gray-700 dark:text-gray-300 hover:bg-gray-50 dark:hover:bg-gray-800/40'
                   ]"
                 >
-                  <span>{{ size }}</span>
-                  <span v-if="pagination.per_page === size" class="text-blue-600 dark:text-blue-400 text-[10px]">✓</span>
+                  <span>{{ size.label }}</span>
+                  <span v-if="pagination.per_page === size.value" class="text-blue-600 dark:text-blue-400 text-[10px]">✓</span>
                 </button>
               </div>
             </transition>
@@ -166,7 +166,13 @@ export default {
   },
   data() {
     return {
-      dropdownOpen: false
+      dropdownOpen: false,
+      pageSizes: [
+        { label: '15',  value: 15 },
+        { label: '50',  value: 50 },
+        { label: '100', value: 100 },
+        // { label: 'All', value: 9999 },
+      ]
     };
   },
   mounted() {
@@ -198,6 +204,12 @@ export default {
       if (this.$refs.dropdownContainer && !this.$refs.dropdownContainer.contains(e.target)) {
         this.closeDropdown();
       }
+    }
+  },
+  computed: {
+    currentPerPageLabel() {
+      const found = this.pageSizes.find(s => s.value === this.pagination?.per_page);
+      return found ? found.label : this.pagination?.per_page;
     }
   }
 }

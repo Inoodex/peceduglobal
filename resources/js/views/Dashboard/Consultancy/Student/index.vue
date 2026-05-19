@@ -50,7 +50,13 @@
         <template #cell(email)="{ item: student }">
           <span class="text-sm text-gray-600 dark:text-gray-400">{{ student.email }}</span>
         </template>
-        <!-- Created By -->
+        <!-- Role -->
+        <template #cell(role)="{ item: student }">
+          <span class="px-2 py-1 text-[10px] font-bold uppercase rounded-md bg-blue-50 text-blue-600 dark:bg-blue-900/20 dark:text-blue-400 border border-blue-100 dark:border-blue-800">
+            {{ student.role }}
+          </span>
+        </template>
+         <!-- Created By -->
         <template #cell(created_by)="{ item: student }">
           <div class="flex items-center gap-2">
             <div class="w-6 h-6 rounded-full bg-purple-100 dark:bg-purple-900/30 flex items-center justify-center text-purple-600 dark:text-purple-400 text-[10px] font-bold">
@@ -58,12 +64,6 @@
             </div>
             <span class="text-sm text-gray-700 dark:text-gray-300 font-medium">{{ student.created_by || 'Admin' }}</span>
           </div>
-        </template>
-        <!-- Role -->
-        <template #cell(role)="{ item: student }">
-          <span class="px-2 py-1 text-[10px] font-bold uppercase rounded-md bg-blue-50 text-blue-600 dark:bg-blue-900/20 dark:text-blue-400 border border-blue-100 dark:border-blue-800">
-            {{ student.role }}
-          </span>
         </template>
         <!-- Created At -->
         <template #cell(created_at)="{ item: student }">
@@ -102,8 +102,8 @@ const perPage = ref(15);
 const columns = [
   { key: 'student', label: 'Student Name' },
   { key: 'email', label: 'Email' },
-  { key: 'created_by', label: 'Created By' },
   { key: 'role', label: 'Role' },
+  { key: 'created_by', label: 'Created By' },
   { key: 'created_at', label: 'Created At' },
   { key: 'actions', label: 'Actions', align: 'right' }
 ];

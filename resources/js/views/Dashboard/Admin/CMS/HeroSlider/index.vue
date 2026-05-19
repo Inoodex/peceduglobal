@@ -155,7 +155,7 @@
           </button>
           <button @click="saveSlider" :disabled="saving" class="flex items-center gap-2 px-6 py-2 rounded-xl text-sm font-bold text-white bg-primary hover:bg-primary-dark transition-all disabled:opacity-50">
             <Loader2 v-if="saving" class="w-4 h-4 animate-spin" />
-            {{ saving ? 'Saving...' : 'Save Slider' }}
+            {{ isEditing ? 'Update Slider' : 'Add Slider' }}
           </button>
         </div>
       </div>
