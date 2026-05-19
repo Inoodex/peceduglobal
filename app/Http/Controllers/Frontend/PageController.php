@@ -3,6 +3,7 @@
 namespace App\Http\Controllers\Frontend;
 
 use App\Http\Controllers\Controller;
+use App\Models\Country;
 use App\Models\Page;
 use Illuminate\Http\JsonResponse;
 use Illuminate\Http\Response;
@@ -84,7 +85,7 @@ class PageController extends Controller
      */
     public function getCountriesForNavbar(): JsonResponse
     {
-        $countries = \App\Models\Country::orderBy('name', 'asc')->get(['id', 'name', 'iso_code']);
+        $countries = Country::orderBy('name', 'asc')->get(['id', 'name', 'iso_code']);
 
         return response()->json([
             'success' => true,

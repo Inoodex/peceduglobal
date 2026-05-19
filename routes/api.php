@@ -12,6 +12,7 @@ use App\Http\Controllers\Api\Admin\Education\ApplicationController as AdminAppli
 use App\Http\Controllers\Api\Consultant\AvailabilityController;
 use App\Http\Controllers\Api\Admin\HeroSliderController;
 use App\Http\Controllers\Api\Admin\TeamMemberController;
+use App\Http\Controllers\Api\Admin\SettingController;
 
 use App\Http\Controllers\Api\Student\AppointmentController;
 use App\Http\Controllers\Api\AuthController;
@@ -107,6 +108,10 @@ Route::group(['prefix' => 'auth'], function () {
             Route::get('booking-stats', [AdminAppointmentController::class, 'getStats']);
             Route::get('all-schedules', [AdminAppointmentController::class, 'getAllSchedules']);
             Route::get('appointments', [AdminAppointmentController::class, 'index']);
+
+            // Settings Management
+            Route::get('settings', [SettingController::class, 'get']);
+            Route::post('settings', [SettingController::class, 'update']);
         });
 
         // Booking & Appointment Management (Clean Prefix)

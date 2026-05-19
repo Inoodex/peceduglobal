@@ -22,6 +22,7 @@ class DatabaseSeeder extends Seeder
             ['name' => 'Manage Education', 'slug' => 'manage_education', 'description' => 'Can manage universities and courses'],
             ['name' => 'View Applications', 'slug' => 'view_applications', 'description' => 'Can view student applications'],
             ['name' => 'Edit Student Info', 'slug' => 'edit_student', 'description' => 'Can update student profiles'],
+            ['name' => 'Manage Settings', 'slug' => 'manage_settings', 'description' => 'Can manage site settings'],
         ];
 
         foreach ($permissions as $perm) {

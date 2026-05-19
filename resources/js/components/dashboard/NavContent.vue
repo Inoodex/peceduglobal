@@ -62,7 +62,8 @@ import {
   FileText,
   Calendar,
   Clock,
-  Mail
+  Mail,
+  Settings
 } from 'lucide-vue-next';
 
 defineProps({
@@ -207,6 +208,12 @@ const navigationData = [
         name: 'User Management',
         icon: Users,
         path: '/dashboard/user-management'
+      },
+      {
+        name: 'Settings',
+        icon: Settings,
+        path: '/dashboard/settings',
+        permission: 'manage_settings'
       },
     ]
   },

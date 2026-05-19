@@ -293,6 +293,12 @@ const routes = [
         meta: { auth: true, role: 'admin' }
     },
     {
+        path: '/dashboard/settings',
+        name: 'settings',
+        component: () => import('../views/Dashboard/Setting/index.vue'),
+        meta: { auth: true, permission: 'manage_settings' }
+    },
+    {
         path: '/dashboard/student-inquiries',
         name: 'student-inquiries',
         component: () => import('../views/Dashboard/InquiryManager/index.vue'),
