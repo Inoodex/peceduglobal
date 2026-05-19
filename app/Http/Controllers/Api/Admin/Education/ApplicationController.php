@@ -57,7 +57,7 @@ class ApplicationController extends Controller
     public function getCourses(Request $request)
     {
         try {
-            $query = \App\Models\Course::query();
+            $query =Course::query();
             if ($request->filled('university_id')) {
                 $query->where('university_id', $request->query('university_id'));
             }

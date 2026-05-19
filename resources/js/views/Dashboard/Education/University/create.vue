@@ -162,9 +162,12 @@ import MainLayout from '@/layouts/MainLayout.vue';
 import AppEditor from '@/components/AppEditor.vue';
 import FileUpload from '@/components/FileUpload.vue';
 import { ChevronRight, Loader2, Upload, X, Facebook, Twitter, Linkedin, Instagram } from 'lucide-vue-next';
+import { useToastStore } from '@/stores/toast';
+import { clearCache } from '@/utils/cacheHelper';
 
 const route = useRoute();
 const router = useRouter();
+const toast = useToastStore();
 
 const isEdit = computed(() => !!route.params.id);
 const countries = ref([]);
@@ -218,7 +221,7 @@ const fetchCountries = async () => {
     const response = await axios.get('/auth/admin/countries');
     countries.value = response.data.data?.data || response.data.data || [];
   } catch (e) {
-    console.error('Failed to fetch countries', e);
+    toast.error('Failed to load countries.');
   }
 };
 
@@ -255,7 +258,7 @@ const fetchUniversity = async () => {
     if (data.logo) logoUrl.value = data.logo;
     if (data.banner) bannerUrl.value = data.banner;
   } catch (e) {
-    console.error('Failed to fetch university', e);
+    toast.error('Failed to fetch university details.');
   }
 };
 
@@ -289,14 +292,17 @@ const save = async () => {
       await axios.post(`/auth/admin/universities/${route.params.id}`, formData, {
         headers: { 'Content-Type': 'multipart/form-data' }
       });
+      toast.success('University updated successfully.');
     } else {
       await axios.post('/auth/admin/universities', formData, {
         headers: { 'Content-Type': 'multipart/form-data' }
       });
+      toast.success('University created successfully.');
     }
+    clearCache('/auth/admin/universities');
     router.push('/dashboard/university-manager');
   } catch (e) {
-    console.error('Save failed', e);
+    toast.error(e.response?.data?.message || 'Operation failed.');
   } finally {
     saving.value = false;
   }

@@ -17,7 +17,7 @@ class CourseLevelController extends Controller
         return response()->json([
             'success' => true,
             'data' => $levels,
-        ], Response::HTTP_OK);
+        ], 200);
     }
 
     public function store(Request $request): JsonResponse
@@ -34,7 +34,7 @@ class CourseLevelController extends Controller
             'success' => true,
             'data' => $level,
             'message' => 'Course Level created successfully.'
-        ], Response::HTTP_CREATED);
+        ], 201);
     }
 
     public function update(Request $request, CourseLevel $courseLevel): JsonResponse
@@ -51,7 +51,7 @@ class CourseLevelController extends Controller
             'success' => true,
             'data' => $courseLevel,
             'message' => 'Course Level updated successfully.'
-        ], Response::HTTP_OK);
+        ], 200);
     }
 
     public function destroy(CourseLevel $courseLevel): JsonResponse
@@ -61,13 +61,13 @@ class CourseLevelController extends Controller
             return response()->json([
                 'success' => false,
                 'message' => 'Cannot delete level as it is being used by courses.'
-            ], Response::HTTP_UNPROCESSABLE_ENTITY);
+            ], 422);
         }
 
         $courseLevel->delete();
         return response()->json([
             'success' => true,
             'message' => 'Course Level deleted successfully.'
-        ], Response::HTTP_OK);
+        ], 200);
     }
 }

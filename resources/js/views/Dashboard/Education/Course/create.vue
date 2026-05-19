@@ -118,9 +118,12 @@ import axios from '@/plugins/axios';
 import MainLayout from '@/layouts/MainLayout.vue';
 import AppEditor from '@/components/AppEditor.vue';
 import { ChevronRight, Loader2 } from 'lucide-vue-next';
+import { useToastStore } from '@/stores/toast';
+import { clearCache } from '@/utils/cacheHelper';
 
 const route = useRoute();
 const router = useRouter();
+const toast = useToastStore();
 
 const isEdit = computed(() => !!route.params.id);
 const universities = ref([]);
@@ -145,7 +148,7 @@ const fetchUniversities = async () => {
     const response = await axios.get('/auth/admin/universities');
     universities.value = response.data.data?.data || response.data.data || [];
   } catch (e) {
-    console.error('Failed to fetch universities', e);
+    toast.error('Failed to load universities.');
   }
 };
 
@@ -154,7 +157,7 @@ const fetchLevels = async () => {
     const response = await axios.get('/auth/admin/course-levels');
     levels.value = response.data.data || [];
   } catch (e) {
-    console.error('Failed to fetch levels', e);
+    toast.error('Failed to load levels.');
   }
 };
 
@@ -175,7 +178,7 @@ const fetchCourse = async () => {
       is_popular: !!data.is_popular
     };
   } catch (e) {
-    console.error('Failed to fetch course', e);
+    toast.error('Failed to load course details.');
   }
 };
 
@@ -184,12 +187,15 @@ const save = async () => {
   try {
     if (isEdit.value) {
       await axios.put(`/auth/admin/courses/${route.params.id}`, form.value);
+      toast.success('Course updated successfully.');
     } else {
       await axios.post('/auth/admin/courses', form.value);
+      toast.success('Course created successfully.');
     }
+    clearCache('/auth/admin/courses');
     router.push('/dashboard/course-manager');
   } catch (e) {
-    console.error('Save failed', e);
+    toast.error(e.response?.data?.message || 'Failed to save course.');
   } finally {
     saving.value = false;
   }

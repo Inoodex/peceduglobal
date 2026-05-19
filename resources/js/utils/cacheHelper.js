@@ -46,7 +46,7 @@ export async function fetchWithCache({
 
     // 1. Try to fetch from the Pinia Cache store instantly
     const cached = cacheStore.get(cacheKey);
-    if (cached) {
+    if (cached && Array.isArray(cached.data)) {
         setVal(dataRef, dataKey, cached.data || []);
         setVal(paginationRef, paginationKey, cached.meta || null);
         
@@ -65,9 +65,16 @@ export async function fetchWithCache({
     try {
         const response = await axios.get(url, { params: cleanParams });
         const res = response.data;
-        if (res && res.success) {
-            const data = res.data || [];
-            const meta = res.meta || null;
+        if (res && (res.success !== false)) {
+            // Support both standard success wrapper and direct resource collections
+            let data = res.data || res || [];
+            let meta = res.meta || null;
+            
+            // Handle Laravel's nested Resource Collection format (where data contains data, links, meta)
+            if (!Array.isArray(data) && data !== null && typeof data === 'object' && Array.isArray(data.data)) {
+                meta = data.meta || meta;
+                data = data.data;
+            }
             
             setVal(dataRef, dataKey, data);
             setVal(paginationRef, paginationKey, meta);

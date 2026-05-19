@@ -157,6 +157,7 @@ import { useRouter, useRoute } from 'vue-router';
 import axios from '@/plugins/axios';
 import { useToastStore } from '@/stores/toast';
 import MainLayout from '@/layouts/MainLayout.vue';
+import { clearCache } from '@/utils/cacheHelper';
 import { ChevronRight, Loader2, User, FileText, GraduationCap } from 'lucide-vue-next';
 
 const router = useRouter();
@@ -316,6 +317,8 @@ const submit = async () => {
   try {
     await axios.put(`/auth/admin/applications/${route.params.id}`, form.value);
     toast.success('Application updated successfully!');
+    clearCache('/auth/admin/applications');
+    clearCache('/auth/student/applications');
     router.push('/dashboard/applications');
   } catch (error) {
     const message = error.response?.data?.message || 'Failed to update application';

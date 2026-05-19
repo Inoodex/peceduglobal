@@ -338,18 +338,19 @@ const routes = [
         meta: { auth: true, role: 'student' }
     },
     // Consultant Routes
-    {
-        path: '/dashboard/consultant/availability',
-        name: 'consultant-availability',
-        component: () => import('../views/Dashboard/Consultant/Availability.vue'),
-        meta: { auth: true, role: 'consultant' }
-    },
-    {
-        path: '/dashboard/consultant/appointments',
-        name: 'consultant-appointments',
-        component: () => import('../views/Dashboard/Consultant/StudentAppointments.vue'),
-        meta: { auth: true, role: 'consultant' }
-    },
+    //if need letter
+    // {
+    //     path: '/dashboard/consultant/availability',
+    //     name: 'consultant-availability',
+    //     component: () => import('../views/Dashboard/Consultant/Availability.vue'),
+    //     meta: { auth: true, role: 'consultant' }
+    // },
+    // {
+    //     path: '/dashboard/consultant/appointments',
+    //     name: 'consultant-appointments',
+    //     component: () => import('../views/Dashboard/Consultant/StudentAppointments.vue'),
+    //     meta: { auth: true, role: 'consultant' }
+    // },
     {
         path: '/',
         redirect: '/dashboard'

@@ -204,9 +204,12 @@
 import { ref, computed, watch, onMounted } from 'vue';
 import { useRoute, useRouter } from 'vue-router';
 import axios from '@/plugins/axios';
+import { useToastStore } from '@/stores/toast';
 import MainLayout from '@/layouts/MainLayout.vue';
+import { clearCache } from '@/utils/cacheHelper';
 import { ChevronRight, Loader2, User, FileText, GraduationCap, UploadCloud } from 'lucide-vue-next';
 
+const toast = useToastStore();
 const route = useRoute();
 const router = useRouter();
 const loading = ref(false);
@@ -310,7 +313,7 @@ const fetchStudent = async () => {
     existingTransDocs.value = student.translation_documents || [];
 
   } catch (e) {
-    alert('Error fetching student details');
+    toast.error('Error fetching student details');
   } finally {
     loadingStudent.value = false;
   }
@@ -328,8 +331,9 @@ const removeFile = async (path, type) => {
     } else {
       existingTransDocs.value = existingTransDocs.value.filter(d => d.path !== path);
     }
+    toast.success('Document removed successfully');
   } catch (e) {
-    alert('Error removing document');
+    toast.error('Error removing document');
   }
 };
 
@@ -368,12 +372,14 @@ const submit = async () => {
       headers: { 'Content-Type': 'multipart/form-data' },
     });
 
+    toast.success('Student updated successfully!');
+    clearCache('/auth/admin/students');
     router.push('/dashboard/students');
   } catch (e) {
     const msg = e.response?.data?.errors
       ? Object.values(e.response.data.errors).flat().join('\n')
       : e.response?.data?.message || 'Something went wrong';
-    alert('Error: ' + msg);
+    toast.error(msg);
   } finally {
     loading.value = false;
   }

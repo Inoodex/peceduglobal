@@ -34,88 +34,52 @@
         </div>
 
         <!-- My Appointment Slots Table -->
-        <div class="bg-white dark:bg-[#1C252E] rounded-2xl border border-gray-100 dark:border-gray-800 shadow-sm overflow-hidden">
-          <table class="w-full text-left border-collapse">
-            <thead>
-              <tr class="bg-gray-50/50 dark:bg-[#151C24]/50 border-b border-gray-100 dark:border-gray-800">
-                <th class="px-6 py-4 text-xs font-bold uppercase text-gray-500 tracking-wider">Day & Date</th>
-                <th class="px-6 py-4 text-xs font-bold uppercase text-gray-500 tracking-wider">Time Window</th>
-                <th class="px-6 py-4 text-xs font-bold uppercase text-gray-500 tracking-wider text-center">Status</th>
-                <th class="px-6 py-4 text-xs font-bold uppercase text-gray-500 tracking-wider text-right">Action</th>
-              </tr>
-            </thead>
-            <tbody class="divide-y divide-gray-100 dark:divide-gray-800">
-              <tr v-if="loadingMy" v-for="i in 5" :key="'loader-'+i">
-                <td v-for="j in 4" :key="j" class="px-6 py-4"><div class="h-4 bg-gray-50 dark:bg-[#151C24] rounded animate-pulse w-full"></div></td>
-              </tr>
-              <tr 
-                v-else-if="mySlots.length > 0" 
-                v-for="s in mySlots" 
-                :key="s.id"
-                class="hover:bg-gray-50/50 dark:hover:bg-[#151C24]/30 transition-colors group"
-              >
-                <td class="px-6 py-4">
-                  <div class="flex flex-col">
-                    <span class="text-sm font-bold text-gray-900 dark:text-white">{{ formatDate(s.slot_date) }}</span>
-                    <span class="text-[10px] text-primary font-bold uppercase">{{ s.day_of_week }}</span>
-                  </div>
-                </td>
-                <td class="px-6 py-4">
-                  <div class="flex items-center gap-2 text-sm text-gray-600 dark:text-gray-400">
-                    <Clock class="w-3 h-3" />
-                    {{ formatTime(s.start_time) }} - {{ formatTime(s.end_time) }}
-                  </div>
-                </td>
-                <td class="px-6 py-4 text-center">
-                  <span :class="[
-                    'px-2.5 py-1 text-[10px] font-black uppercase rounded-md border inline-block',
-                    s.status === 'booked' ? 'bg-blue-50 text-blue-600 border-blue-100' : 
-                    s.status === 'expired' ? 'bg-gray-100 text-gray-500 border-gray-200' : 
-                    'bg-green-50 text-green-600 border-green-100'
-                  ]">
-                    {{ s.status }}
-                  </span>
-                </td>
-                <td class="px-6 py-4 text-right">
-                  <button 
-                    v-if="s.status !== 'booked'"
-                    class="p-2 text-gray-400 hover:text-red-500 hover:bg-red-50 dark:hover:bg-red-900/10 rounded-lg transition-all"
-                    @click="releaseSlot(s.id)"
-                  >
-                    <Trash2 class="w-4 h-4" />
-                  </button>
-                  <span v-else class="text-[10px] font-bold text-gray-400 italic">Locked</span>
-                </td>
-              </tr>
-              <tr v-else>
-                <td colspan="4" class="px-6 py-12 text-center text-gray-500 italic text-sm">
-                  No appointment slots found. Use the button above to add one.
-                </td>
-              </tr>
-            </tbody>
-          </table>
-
-          <!-- Pagination Footer -->
-          <div v-if="meta.last_page > 1" class="px-6 py-4 bg-gray-50/30 dark:bg-[#151C24]/30 border-t border-gray-100 dark:border-gray-800 flex items-center justify-between">
-            <span class="text-xs text-gray-500">Page {{ meta.current_page }} of {{ meta.last_page }}</span>
-            <div class="flex gap-2">
-              <button 
-                @click="changePage(meta.current_page - 1)" 
-                :disabled="meta.current_page === 1"
-                class="p-2 border border-gray-100 dark:border-gray-800 rounded-lg hover:bg-white dark:hover:bg-[#1C252E] disabled:opacity-50 transition-all"
-              >
-                <ChevronLeft class="w-4 h-4" />
-              </button>
-              <button 
-                @click="changePage(meta.current_page + 1)" 
-                :disabled="meta.current_page === meta.last_page"
-                class="p-2 border border-gray-100 dark:border-gray-800 rounded-lg hover:bg-white dark:hover:bg-[#1C252E] disabled:opacity-50 transition-all"
-              >
-                <ChevronRight class="w-4 h-4" />
-              </button>
+        <DataTable 
+          :columns="columns" 
+          :data="mySlots" 
+          :loading="loadingMy"
+          :pagination="pagination"
+          @page-change="fetchMySlots"
+          @per-page-change="handlePerPageChange"
+        >
+          <!-- Day & Date -->
+          <template #cell(datetime)="{ item: s }">
+            <div class="flex flex-col">
+              <span class="text-sm font-bold text-gray-900 dark:text-white">{{ formatDate(s.slot_date) }}</span>
+              <span class="text-[10px] text-primary font-bold uppercase">{{ s.day_of_week }}</span>
             </div>
-          </div>
-        </div>
+          </template>
+          <!-- Time Window -->
+          <template #cell(window)="{ item: s }">
+            <div class="flex items-center gap-2 text-sm text-gray-600 dark:text-gray-400">
+              <Clock class="w-3 h-3" />
+              {{ formatTime(s.start_time) }} - {{ formatTime(s.end_time) }}
+            </div>
+          </template>
+          <!-- Status -->
+          <template #cell(status)="{ item: s }">
+            <span :class="[
+              'px-2.5 py-1 text-[10px] font-black uppercase rounded-md border inline-block',
+              s.status === 'booked' ? 'bg-blue-50 text-blue-600 border-blue-100' : 
+              s.status === 'expired' ? 'bg-gray-100 text-gray-500 border-gray-200' : 
+              'bg-green-50 text-green-600 border-green-100'
+            ]">
+              {{ s.status }}
+            </span>
+          </template>
+          <!-- Action -->
+          <template #cell(action)="{ item: s }">
+            <button 
+              v-if="s.status !== 'booked'"
+              class="p-2 text-gray-400 hover:text-red-500 hover:bg-red-50 dark:hover:bg-red-900/10 rounded-lg transition-all"
+              @click="confirmReleaseSlot(s)"
+              title="Delete Slot"
+            >
+              <Trash2 class="w-4 h-4" />
+            </button>
+            <span v-else class="text-[10px] font-bold text-gray-400 italic">Locked</span>
+          </template>
+        </DataTable>
       </div>
 
       <!-- Create Slot Modal -->
@@ -159,25 +123,33 @@
 </template>
 
 <script setup>
-import { ref, onMounted } from 'vue';
+import { ref, computed, onMounted } from 'vue';
 import axios from '@/plugins/axios';
 import { useToastStore } from '@/stores/toast';
+import { useConfirmStore } from '@/stores/confirm';
 import MainLayout from '@/layouts/MainLayout.vue';
+import DataTable from '@/components/Table/DataTable.vue';
+import { fetchWithCache, clearCache } from '@/utils/cacheHelper';
 import { Calendar, CheckCircle, Clock, Trash2, Loader2, Plus, X, Search, ChevronLeft, ChevronRight } from 'lucide-vue-next';
 
 const toast = useToastStore();
+const confirm = useConfirmStore();
 const mySlots = ref([]);
 const loadingMy = ref(false);
 const showCreateModal = ref(false);
 const creating = ref(false);
 const searchQuery = ref('');
+const pagination = ref(null);
+const perPage = ref(10);
 
-const meta = ref({
-  current_page: 1,
-  last_page: 1,
-  total: 0,
-  per_page: 10
-});
+const meta = computed(() => pagination.value || { total: 0 });
+
+const columns = [
+  { key: 'datetime', label: 'Day & Date' },
+  { key: 'window', label: 'Time Window' },
+  { key: 'status', label: 'Status', align: 'center' },
+  { key: 'action', label: 'Action', align: 'right' }
+];
 
 const newSlot = ref({
   slot_date: new Date().toISOString().split('T')[0],
@@ -185,31 +157,24 @@ const newSlot = ref({
   end_time: '11:00'
 });
 
+const handlePerPageChange = (newPerPage) => {
+  perPage.value = newPerPage;
+  fetchMySlots(1);
+};
+
 const fetchMySlots = async (page = 1) => {
-  loadingMy.value = true;
-  try {
-    const res = await axios.get('/auth/booking/consultant/my-claimed-slots', {
-      params: { 
-        page, 
-        search: searchQuery.value,
-        per_page: meta.value.per_page
-      }
-    });
-    mySlots.value = res.data.data || [];
-    meta.value = res.data.meta;
-  } catch (e) {
-    console.error(e);
-  } finally {
-    loadingMy.value = false;
-  }
+  await fetchWithCache({
+    url: '/auth/booking/consultant/my-claimed-slots',
+    params: { page, search: searchQuery.value, per_page: perPage.value },
+    loadingRef: loadingMy,
+    dataRef: mySlots,
+    paginationRef: pagination,
+    toast
+  });
 };
 
 const onSearch = () => {
   fetchMySlots(1);
-};
-
-const changePage = (page) => {
-  fetchMySlots(page);
 };
 
 const createSlot = async () => {
@@ -217,8 +182,9 @@ const createSlot = async () => {
   try {
     await axios.post('/auth/booking/consultant/available-slots', newSlot.value);
     toast.success('Slot created successfully');
+    clearCache('/auth/booking/consultant/my-claimed-slots');
     showCreateModal.value = false;
-    fetchMySlots();
+    fetchMySlots(1);
   } catch (error) {
     toast.error(error.response?.data?.message || 'Failed to create slot');
   } finally {
@@ -237,13 +203,21 @@ const claimSlot = async (slotId) => {
   }
 };
 
-const releaseSlot = async (scheduleId) => {
-  try {
-    await axios.delete('/auth/booking/consultant/release-slot', { params: { schedule_id: scheduleId } });
-    toast.success('Slot deleted successfully');
-    fetchMySlots();
-  } catch (error) {
-    toast.error(error.response?.data?.message || 'Failed to delete slot');
+const confirmReleaseSlot = async (slot) => {
+  const ok = await confirm.ask({
+    title: 'Delete Slot?',
+    message: `Are you sure you want to delete this available slot?`
+  });
+
+  if (ok) {
+    try {
+      await axios.delete('/auth/booking/consultant/release-slot', { params: { schedule_id: slot.id } });
+      clearCache('/auth/booking/consultant/my-claimed-slots');
+      toast.success('Slot deleted successfully');
+      fetchMySlots(1);
+    } catch (error) {
+      toast.error(error.response?.data?.message || 'Failed to delete slot');
+    }
   }
 };
 
@@ -256,7 +230,5 @@ const formatTime = (time) => {
 };
 const formatDate = (date) => new Date(date).toLocaleDateString('en-US', { month: 'short', day: 'numeric', year: 'numeric' });
 
-onMounted(() => {
-  fetchMySlots();
-});
+onMounted(() => fetchMySlots(1));
 </script>

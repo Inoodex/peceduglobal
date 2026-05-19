@@ -25,79 +25,56 @@
       </div>
 
       <!-- Table Container -->
-      <div class="bg-white dark:bg-[#1C252E] border border-gray-100 dark:border-gray-800/50 rounded-2xl overflow-hidden shadow-sm transition-colors duration-300">
-        <div class="overflow-x-auto">
-          <table class="w-full text-left border-collapse">
-            <thead>
-              <tr class="bg-gray-50/50 dark:bg-[#151C24]/50 border-b border-gray-100 dark:border-gray-800">
-                <th class="px-6 py-4 text-xs font-semibold text-gray-500 dark:text-gray-400 uppercase tracking-wider">App Number</th>
-                <th class="px-6 py-4 text-xs font-semibold text-gray-500 dark:text-gray-400 uppercase tracking-wider">Student</th>
-                <th class="px-6 py-4 text-xs font-semibold text-gray-500 dark:text-gray-400 uppercase tracking-wider">University & Course</th>
-                <th class="px-6 py-4 text-xs font-semibold text-gray-500 dark:text-gray-400 uppercase tracking-wider">Country</th>
-                <th class="px-6 py-4 text-xs font-semibold text-gray-500 dark:text-gray-400 uppercase tracking-wider">Status</th>
-                <th v-if="!isStudent" class="px-6 py-4 text-xs font-semibold text-gray-500 dark:text-gray-400 uppercase tracking-wider text-right">Actions</th>
-              </tr>
-            </thead>
-            <tbody class="divide-y divide-gray-100 dark:divide-gray-800/50">
-              <tr v-if="loading" v-for="i in 3" :key="i" class="animate-pulse">
-                <td colspan="6" class="px-6 py-4"><div class="h-10 bg-gray-100 dark:bg-gray-800/50 rounded-xl w-full"></div></td>
-              </tr>
-              <tr v-else-if="applications.length === 0">
-                <td colspan="6" class="px-6 py-12 text-center">
-                   <div class="flex flex-col items-center gap-2">
-                      <div class="p-3 bg-gray-50 dark:bg-gray-800/50 rounded-full">
-                        <FileText class="w-6 h-6 text-gray-400" />
-                      </div>
-                      <p class="text-sm text-gray-500 dark:text-gray-400">No applications found.</p>
-                   </div>
-                </td>
-              </tr>
-              <tr v-for="app in applications" :key="app.id" class="hover:bg-gray-50/80 dark:hover:bg-[#151C24] transition-all group">
-                <td class="px-6 py-4">
-                  <span class="text-sm font-bold text-primary bg-primary/5 px-2 py-1 rounded-lg">#{{ app.application_number }}</span>
-                </td>
-                <td class="px-6 py-4">
-                  <div class="flex items-center gap-3">
-                    <div class="w-9 h-9 rounded-full bg-gray-100 dark:bg-gray-800 border border-gray-200 dark:border-gray-700 flex items-center justify-center text-xs font-bold text-gray-600 dark:text-gray-400 shadow-sm">
-                      {{ app.student?.user?.full_name?.charAt(0) || 'S' }}
-                    </div>
-                    <div>
-                      <p class="text-sm font-semibold text-gray-900 dark:text-white group-hover:text-primary transition-colors">{{ app.student?.user?.full_name }}</p>
-                      <p class="text-xs text-gray-500 dark:text-gray-400">{{ app.student?.user?.email }}</p>
-                    </div>
-                  </div>
-                </td>
-                <td class="px-6 py-4">
-                  <p class="text-sm font-medium text-gray-900 dark:text-white">{{ app.university?.name }}</p>
-                  <p class="text-xs text-gray-500 dark:text-gray-400 line-clamp-1">{{ app.course?.name || app.course_name }}</p>
-                </td>
-                <td class="px-6 py-4">
-                  <div class="flex items-center gap-1.5 text-sm text-gray-600 dark:text-gray-400">
-                    <span class="w-1.5 h-1.5 rounded-full bg-primary/40"></span>
-                    {{ app.country?.name || 'N/A' }}
-                  </div>
-                </td>
-                <td class="px-6 py-4">
-                  <span :class="statusClass(app.status)" class="px-2.5 py-1 rounded-lg text-[10px] font-bold uppercase tracking-wider border shadow-sm">
-                    {{ app.status?.replace('_', ' ') }}
-                  </span>
-                </td>
-                <td v-if="!isStudent" class="px-6 py-4 text-right">
-                  <div class="flex items-center justify-end gap-1 opacity-0 group-hover:opacity-100 transition-all transform translate-x-2 group-hover:translate-x-0">
-                    <button @click="edit(app)" class="p-2 text-gray-400 hover:text-primary hover:bg-primary/5 rounded-lg transition-all">
-                      <Edit3 class="w-4 h-4" />
-                    </button>
-                    <button @click="confirmDelete(app)" class="p-2 text-gray-400 hover:text-red-500 hover:bg-red-50/50 dark:hover:bg-red-900/10 rounded-lg transition-all" :disabled="deleteLoading">
-                      <Loader2 v-if="deleteLoading" class="w-4 h-4 animate-spin" />
-                      <Trash2 v-else class="w-4 h-4" />
-                    </button>
-                  </div>
-                </td>
-              </tr>
-            </tbody>
-          </table>
-        </div>
-      </div>
+      <DataTable 
+        :columns="columns" 
+        :data="filteredApplications" 
+        :loading="loading"
+        :pagination="pagination"
+        @page-change="loadApplications"
+        @per-page-change="handlePerPageChange"
+      >
+        <!-- App Number -->
+        <template #cell(app_number)="{ item: app }">
+          <span class="text-sm font-bold text-primary bg-primary/5 px-2 py-1 rounded-lg">#{{ app.application_number }}</span>
+        </template>
+        <!-- Student -->
+        <template #cell(student)="{ item: app }">
+          <div class="flex items-center gap-3">
+            <div class="w-9 h-9 rounded-full bg-gray-100 dark:bg-gray-800 border border-gray-200 dark:border-gray-700 flex items-center justify-center text-xs font-bold text-gray-600 dark:text-gray-400 shadow-sm">
+              {{ app.student?.user?.full_name?.charAt(0) || 'S' }}
+            </div>
+            <div>
+              <p class="text-sm font-semibold text-gray-900 dark:text-white group-hover:text-primary transition-colors">{{ app.student?.user?.full_name }}</p>
+              <p class="text-xs text-gray-500 dark:text-gray-400">{{ app.student?.user?.email }}</p>
+            </div>
+          </div>
+        </template>
+        <!-- University & Course -->
+        <template #cell(university_course)="{ item: app }">
+          <p class="text-sm font-medium text-gray-900 dark:text-white">{{ app.university?.name }}</p>
+          <p class="text-xs text-gray-500 dark:text-gray-400 line-clamp-1">{{ app.course?.name || app.course_name }}</p>
+        </template>
+        <!-- Country -->
+        <template #cell(country)="{ item: app }">
+          <div class="flex items-center gap-1.5 text-sm text-gray-600 dark:text-gray-400">
+            <span class="w-1.5 h-1.5 rounded-full bg-primary/40"></span>
+            {{ app.country?.name || 'N/A' }}
+          </div>
+        </template>
+        <!-- Status -->
+        <template #cell(status)="{ item: app }">
+          <span :class="statusClass(app.status)" class="px-2.5 py-1 rounded-lg text-[10px] font-bold uppercase tracking-wider border shadow-sm">
+            {{ app.status?.replace('_', ' ') }}
+          </span>
+        </template>
+        <!-- Actions -->
+        <template #cell(actions)="{ item: app }">
+          <div class="flex items-center justify-end gap-2">
+            <button @click="edit(app)" class="p-2 text-gray-500 hover:text-primary hover:bg-primary/10 rounded-lg transition-colors" title="Edit"><Edit3 class="w-4 h-4" /></button>
+            <button @click="confirmDelete(app)" class="p-2 text-gray-500 hover:text-red-500 hover:bg-red-50 dark:hover:bg-red-900/20 rounded-lg transition-colors" title="Delete"><Trash2 class="w-4 h-4" /></button>
+          </div>
+        </template>
+      </DataTable>
     </div>
   </MainLayout>
 </template>
@@ -110,6 +87,8 @@ import { useToastStore } from '@/stores/toast';
 import { useConfirmStore } from '@/stores/confirm';
 import { useAuthStore } from '@/stores/auth';
 import MainLayout from '@/layouts/MainLayout.vue';
+import DataTable from '@/components/Table/DataTable.vue';
+import { fetchWithCache, clearCache } from '@/utils/cacheHelper';
 import { Plus, Edit3, Trash2, ChevronRight, FileText, Loader2 } from 'lucide-vue-next';
 
 const router = useRouter();
@@ -120,8 +99,35 @@ const authStore = useAuthStore();
 const isStudent = computed(() => authStore.user?.role === 'student');
 
 const applications = ref([]);
-const loading = ref(true);
+const loading = ref(false);
 const deleteLoading = ref(false);
+const pagination = ref(null);
+const perPage = ref(15);
+const searchQuery = ref('');
+
+const columns = computed(() => {
+  const cols = [
+    { key: 'app_number', label: 'App Number' },
+    { key: 'student', label: 'Student' },
+    { key: 'university_course', label: 'University & Course' },
+    { key: 'country', label: 'Country' },
+    { key: 'status', label: 'Status' }
+  ];
+  if (!isStudent.value) {
+    cols.push({ key: 'actions', label: 'Actions', align: 'right' });
+  }
+  return cols;
+});
+
+const filteredApplications = computed(() => {
+  if (!searchQuery.value.trim()) return applications.value;
+  const query = searchQuery.value.toLowerCase();
+  return applications.value.filter(app => 
+    app.application_number?.toLowerCase().includes(query) ||
+    app.student?.user?.full_name?.toLowerCase().includes(query) ||
+    app.university?.name?.toLowerCase().includes(query)
+  );
+});
 
 const stats = ref([
   { label: 'Total Apps', value: 0 },
@@ -130,19 +136,22 @@ const stats = ref([
   { label: 'Visa Process', value: 0 },
 ]);
 
-const loadApplications = async () => {
-  loading.value = true;
-  try {
-    const url = isStudent.value ? '/auth/student/applications' : '/auth/admin/applications';
-    const res = await axios.get(url);
-    const rawData = res.data.data;
-    applications.value = rawData?.data || rawData || [];
-    updateStats();
-  } catch (error) {
-    console.error('Failed to load applications', error);
-  } finally {
-    loading.value = false;
-  }
+const handlePerPageChange = (newPerPage) => {
+  perPage.value = newPerPage;
+  loadApplications(1);
+};
+
+const loadApplications = async (page = 1) => {
+  const url = isStudent.value ? '/auth/student/applications' : '/auth/admin/applications';
+  await fetchWithCache({
+    url,
+    params: { page, per_page: perPage.value },
+    loadingRef: loading,
+    dataRef: applications,
+    paginationRef: pagination,
+    toast
+  });
+  updateStats();
 };
 
 const updateStats = () => {
@@ -172,16 +181,14 @@ const confirmDelete = async (app) => {
   });
 
   if (ok) {
-    deleteLoading.value = true;
     try {
       await axios.delete(`/auth/admin/applications/${app.id}`);
-      applications.value = applications.value.filter(a => a.id !== app.id);
-      updateStats();
+      clearCache('/auth/admin/applications');
+      clearCache('/auth/student/applications');
       toast.success('Application deleted successfully');
+      loadApplications(1);
     } catch (error) {
       toast.error('Failed to delete application');
-    } finally {
-      deleteLoading.value = false;
     }
   }
 };

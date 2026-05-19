@@ -182,9 +182,12 @@
 import { ref, computed, watch, onMounted } from 'vue';
 import { useRouter } from 'vue-router';
 import axios from '@/plugins/axios';
+import { useToastStore } from '@/stores/toast';
 import MainLayout from '@/layouts/MainLayout.vue';
+import { clearCache } from '@/utils/cacheHelper';
 import { ChevronRight, Loader2, User, FileText, GraduationCap, UploadCloud } from 'lucide-vue-next';
 
+const toast = useToastStore();
 const router = useRouter();
 const loading = ref(false);
 const countries = ref([]);
@@ -354,12 +357,14 @@ const submit = async () => {
     await axios.post('/auth/admin/students/register', fd, {
       headers: { 'Content-Type': 'multipart/form-data' },
     });
+    toast.success('Student registered successfully!');
+    clearCache('/auth/admin/students');
     router.push('/dashboard/students');
   } catch (e) {
     const msg = e.response?.data?.errors
       ? Object.values(e.response.data.errors).flat().join('\n')
       : e.response?.data?.message || 'Something went wrong';
-    alert('Error: ' + msg);
+    toast.error(msg);
   } finally {
     loading.value = false;
   }

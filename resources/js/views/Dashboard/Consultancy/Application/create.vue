@@ -194,6 +194,7 @@ import { useRouter } from 'vue-router';
 import axios from '@/plugins/axios';
 import { useToastStore } from '@/stores/toast';
 import MainLayout from '@/layouts/MainLayout.vue';
+import { clearCache } from '@/utils/cacheHelper';
 import { ChevronRight, Loader2, User, FileText, GraduationCap, Search, Check } from 'lucide-vue-next';
 
 const router = useRouter();
@@ -381,6 +382,8 @@ const submit = async () => {
   try {
     await axios.post('/auth/admin/applications', form.value);
     toast.success('Application created successfully!');
+    clearCache('/auth/admin/applications');
+    clearCache('/auth/student/applications');
     router.push('/dashboard/applications');
   } catch (error) {
     const message = error.response?.data?.message || 'Failed to create application';

@@ -22,20 +22,27 @@ class StudentRegistrationController extends Controller
     {
         try {
             $students = User::where('role', 'student')
-                ->with('profile')
+                ->with(['profile', 'consultant:id,full_name,email'])
                 ->orderBy('created_at', 'desc')
-                ->get();
+                ->get()
+                ->map(function ($student) {
+                    return array_merge($student->toArray(), [
+                        'created_by' => $student->consultant
+                            ? $student->consultant->full_name
+                            : 'Admin',
+                    ]);
+                });
 
             return response()->json([
                 'success' => true,
                 'data' => $students,
                 'message' => 'Students retrieved successfully.',
-            ], Response::HTTP_OK);
+            ], 200);
         } catch (\Exception $e) {
             return response()->json([
                 'success' => false,
                 'message' => 'Failed to fetch students: '.$e->getMessage(),
-            ], Response::HTTP_INTERNAL_SERVER_ERROR);
+            ], 500);
         }
     }
 

@@ -105,9 +105,12 @@
   import axios from '@/plugins/axios';
   import MainLayout from '@/layouts/MainLayout.vue';
   import { ChevronRight, Loader2 } from 'lucide-vue-next';
+  import { useToastStore } from '@/stores/toast';
+  import { clearCache } from '@/utils/cacheHelper';
 
   const route = useRoute();
   const router = useRouter();
+  const toast = useToastStore();
 
   const isEdit = computed(() => !!route.params.id);
   const courses = ref([]);
@@ -134,14 +137,14 @@
     try {
       const response = await axios.get('/auth/admin/courses');
       courses.value = response.data.data?.data || response.data.data || [];
-    } catch (e) { console.error(e); }
+    } catch (e) { toast.error('Failed to load courses.'); }
   };
 
   const fetchUniversities = async () => {
     try {
       const response = await axios.get('/auth/admin/universities');
       universities.value = response.data.data?.data || response.data.data || [];
-    } catch (e) { console.error(e); }
+    } catch (e) { toast.error('Failed to load universities.'); }
   };
 
   const onUniversityChange = () => {
@@ -154,7 +157,7 @@
     try {
       const response = await axios.get(`/auth/admin/course-intakes/${route.params.id}`);
       form.value = response.data.data;
-    } catch (e) { console.error(e); }
+    } catch (e) { toast.error('Failed to load intake details.'); }
   };
 
   const save = async () => {
@@ -162,12 +165,15 @@
     try {
       if (isEdit.value) {
         await axios.put(`/auth/admin/course-intakes/${route.params.id}`, form.value);
+        toast.success('Course intake updated successfully.');
       } else {
         await axios.post('/auth/admin/course-intakes', form.value);
+        toast.success('Course intake created successfully.');
       }
+      clearCache('/auth/admin/course-intakes');
       router.push('/dashboard/course-intakes');
     } catch (e) {
-      console.error('Save failed', e);
+      toast.error(e.response?.data?.message || 'Failed to save intake.');
     } finally {
       saving.value = false;
     }

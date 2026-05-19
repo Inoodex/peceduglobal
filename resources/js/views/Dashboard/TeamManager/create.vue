@@ -112,10 +112,16 @@ import axios from '@/plugins/axios';
 import MainLayout from '@/layouts/MainLayout.vue';
 import { ChevronRight, Loader2 } from 'lucide-vue-next';
 import FileUpload from '@/components/FileUpload.vue';
+import { useToastStore } from '@/stores/toast';
+import { clearCache } from '@/utils/cacheHelper';
 
 export default {
   name: 'TeamMemberCreate',
   components: { MainLayout, ChevronRight, Loader2, FileUpload },
+  setup() {
+    const toast = useToastStore();
+    return { toast };
+  },
   data() {
     return {
       saving: false,
@@ -165,9 +171,12 @@ export default {
         await axios.post('/auth/admin/team-members', formData, {
           headers: { 'Content-Type': 'multipart/form-data' }
         });
+        clearCache('/auth/admin/team-members');
+        this.toast.success('Team member created successfully.');
         this.$router.push('/dashboard/team-members');
       } catch (e) {
         console.error('Create failed', e);
+        this.toast.error('Failed to create team member. Please try again.');
       } finally {
         this.saving = false;
       }

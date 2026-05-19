@@ -28,51 +28,35 @@
       </div>
 
       <!-- Levels Table -->
-      <div class="bg-white dark:bg-[#1C252E] rounded-2xl border border-gray-200 dark:border-gray-700/50 overflow-hidden shadow-sm">
-        <div class="overflow-x-auto">
-          <table class="w-full">
-            <thead class="bg-gray-50 dark:bg-[#141A21] border-b border-gray-200 dark:border-gray-700/50">
-              <tr>
-                <th class="px-6 py-4 text-left text-xs font-semibold text-gray-500 dark:text-gray-400 uppercase tracking-wider">Level Name</th>
-                <th class="px-6 py-4 text-left text-xs font-semibold text-gray-500 dark:text-gray-400 uppercase tracking-wider">Slug</th>
-                <th class="px-6 py-4 text-right text-xs font-semibold text-gray-500 dark:text-gray-400 uppercase tracking-wider">Actions</th>
-              </tr>
-            </thead>
-            <tbody class="divide-y divide-gray-200 dark:divide-gray-700/50">
-              <tr v-if="loading" class="hover:bg-gray-50 dark:hover:bg-gray-800/50 transition-colors">
-                <td colspan="3" class="px-6 py-12 text-center text-gray-500 dark:text-gray-400">
-                  <div class="flex items-center justify-center gap-2"><Loader2 class="w-5 h-5 animate-spin" /> Loading levels...</div>
-                </td>
-              </tr>
-              <tr v-else-if="filteredLevels.length === 0" class="hover:bg-gray-50 dark:hover:bg-gray-800/50 transition-colors">
-                <td colspan="3" class="px-6 py-12 text-center text-gray-500 dark:text-gray-400">No levels found</td>
-              </tr>
-              <tr v-for="level in filteredLevels" :key="level.id" class="hover:bg-gray-50 dark:hover:bg-gray-800/50 transition-colors">
-                <td class="px-6 py-4">
-                  <div class="flex items-center gap-3">
-                    <div class="w-10 h-10 rounded-lg bg-primary/10 flex items-center justify-center shrink-0">
-                      <BookOpen class="w-5 h-5 text-primary" />
-                    </div>
-                    <span class="font-medium text-gray-900 dark:text-white">{{ level.name }}</span>
-                  </div>
-                </td>
-                <td class="px-6 py-4">
-                  <span class="text-sm text-gray-500 dark:text-gray-400">{{ level.slug }}</span>
-                </td>
-                <td class="px-6 py-4 text-right">
-                  <div class="flex items-center justify-end gap-2">
-                    <button @click="openModal(level)" class="p-2 text-gray-500 hover:text-primary hover:bg-primary/10 rounded-lg transition-colors" title="Edit"><Pencil class="w-4 h-4" /></button>
-                    <button @click="confirmDelete(level)" class="p-2 text-gray-500 hover:text-red-500 hover:bg-red-50 dark:hover:bg-red-900/20 rounded-lg transition-colors" title="Delete"><Trash2 class="w-4 h-4" /></button>
-                  </div>
-                </td>
-              </tr>
-            </tbody>
-          </table>
-        </div>
-        <div class="px-6 py-4 border-t border-gray-200 dark:border-gray-700/50 flex items-center justify-between">
-          <p class="text-sm text-gray-500 dark:text-gray-400">Showing {{ filteredLevels.length }} levels</p>
-        </div>
-      </div>
+      <DataTable 
+        :columns="columns" 
+        :data="filteredLevels" 
+        :loading="loading"
+        :pagination="pagination"
+        @page-change="fetchLevels"
+        @per-page-change="handlePerPageChange"
+      >
+        <!-- Level Name -->
+        <template #cell(level)="{ item: level }">
+          <div class="flex items-center gap-3">
+            <div class="w-10 h-10 rounded-lg bg-primary/10 flex items-center justify-center shrink-0">
+              <BookOpen class="w-5 h-5 text-primary" />
+            </div>
+            <span class="font-medium text-gray-900 dark:text-white">{{ level.name }}</span>
+          </div>
+        </template>
+        <!-- Slug -->
+        <template #cell(slug)="{ item: level }">
+          <span class="text-sm text-gray-500 dark:text-gray-400">{{ level.slug }}</span>
+        </template>
+        <!-- Actions -->
+        <template #cell(actions)="{ item: level }">
+          <div class="flex items-center justify-end gap-2">
+            <button @click="openModal(level)" class="p-2 text-gray-500 hover:text-primary hover:bg-primary/10 rounded-lg transition-colors" title="Edit"><Pencil class="w-4 h-4" /></button>
+            <button @click="confirmDelete(level)" class="p-2 text-gray-500 hover:text-red-500 hover:bg-red-50 dark:hover:bg-red-900/20 rounded-lg transition-colors" title="Delete"><Trash2 class="w-4 h-4" /></button>
+          </div>
+        </template>
+      </DataTable>
 
       <!-- Add/Edit Modal -->
       <div v-if="modal.show" class="fixed inset-0 bg-black/70 flex items-center justify-center z-50">
@@ -99,27 +83,6 @@
           </form>
         </div>
       </div>
-
-      <!-- Delete Modal -->
-      <div v-if="deleteModal.show" class="fixed inset-0 bg-black/70 flex items-center justify-center z-50">
-        <div class="bg-white dark:bg-[#1C252E] rounded-2xl p-6 max-w-md w-full mx-4 shadow-xl border border-gray-200 dark:border-gray-700/50">
-          <div class="flex items-center gap-3 mb-4">
-            <div class="w-12 h-12 rounded-full bg-red-100 dark:bg-red-900/30 flex items-center justify-center">
-              <AlertTriangle class="w-6 h-6 text-red-600 dark:text-red-400" />
-            </div>
-            <h3 class="text-lg font-semibold text-gray-900 dark:text-white">Delete Level</h3>
-          </div>
-          <p class="text-gray-600 dark:text-gray-400 mb-6">Are you sure you want to delete "<strong class="text-gray-900 dark:text-white">{{ deleteModal.level?.name }}</strong>"? This action cannot be undone.</p>
-          <div class="flex justify-end gap-3">
-            <button @click="deleteModal.show = false" class="px-6 py-2.5 text-gray-700 dark:text-gray-300 hover:bg-gray-100 dark:hover:bg-gray-800 rounded-xl font-medium transition-colors">Cancel</button>
-            <button @click="deleteLevel" :disabled="deleteModal.loading" class="px-6 py-2.5 bg-red-600 hover:bg-red-700 text-white rounded-xl font-bold transition-colors flex items-center gap-2 shadow-lg shadow-red-600/20">
-              <Loader2 v-if="deleteModal.loading" class="w-4 h-4 animate-spin" />
-              <Trash2 v-else class="w-4 h-4" />
-              {{ deleteModal.loading ? 'Deleting...' : 'Delete' }}
-            </button>
-          </div>
-        </div>
-      </div>
     </div>
   </MainLayout>
 </template>
@@ -128,15 +91,29 @@
 import { ref, computed, onMounted } from 'vue';
 import axios from '@/plugins/axios';
 import MainLayout from '@/layouts/MainLayout.vue';
+import DataTable from '@/components/Table/DataTable.vue';
+import { useToastStore } from '@/stores/toast';
+import { useConfirmStore } from '@/stores/confirm';
+import { fetchWithCache, clearCache } from '@/utils/cacheHelper';
 import {
   ChevronRight, Plus, Loader2, Pencil, Trash2, AlertTriangle, Search, BookOpen, X
 } from 'lucide-vue-next';
+
+const toast = useToastStore();
+const confirm = useConfirmStore();
 
 const levels = ref([]);
 const loading = ref(false);
 const searchQuery = ref('');
 const modal = ref({ show: false, editId: null, form: { name: '' }, saving: false, error: '' });
-const deleteModal = ref({ show: false, level: null, loading: false });
+const pagination = ref(null);
+const perPage = ref(15);
+
+const columns = [
+  { key: 'level', label: 'Level Name' },
+  { key: 'slug', label: 'Slug' },
+  { key: 'actions', label: 'Actions', align: 'right' }
+];
 
 const filteredLevels = computed(() => {
   if (!searchQuery.value.trim()) return levels.value;
@@ -144,16 +121,20 @@ const filteredLevels = computed(() => {
   return levels.value.filter(l => l.name.toLowerCase().includes(query) || l.slug.toLowerCase().includes(query));
 });
 
-const fetchLevels = async () => {
-  loading.value = true;
-  try {
-    const response = await axios.get('/auth/admin/course-levels');
-    levels.value = response.data.data || [];
-  } catch (e) {
-    console.error('Failed to load levels', e);
-  } finally {
-    loading.value = false;
-  }
+const handlePerPageChange = (newPerPage) => {
+  perPage.value = newPerPage;
+  fetchLevels(1);
+};
+
+const fetchLevels = async (page = 1) => {
+  await fetchWithCache({
+    url: '/auth/admin/course-levels',
+    params: { page, per_page: perPage.value },
+    loadingRef: loading,
+    dataRef: levels,
+    paginationRef: pagination,
+    toast
+  });
 };
 
 const openModal = (level = null) => {
@@ -169,35 +150,42 @@ const saveLevel = async () => {
   try {
     if (modal.value.editId) {
       await axios.put(`/auth/admin/course-levels/${modal.value.editId}`, modal.value.form);
+      toast.success('Course level updated successfully.');
     } else {
       await axios.post('/auth/admin/course-levels', modal.value.form);
+      toast.success('Course level created successfully.');
     }
+    clearCache('/auth/admin/course-levels');
     fetchLevels();
     modal.value.show = false;
   } catch (e) {
     modal.value.error = e.response?.data?.message || 'Something went wrong';
+    toast.error('Failed to save course level.');
   } finally {
     modal.value.saving = false;
   }
 };
 
-const confirmDelete = (level) => {
-  deleteModal.value.level = level;
-  deleteModal.value.show = true;
-};
+const confirmDelete = async (level) => {
+  const confirmed = await confirm.ask({
+    title: 'Delete Course Level',
+    message: `Are you sure you want to delete "${level.name}"? This action cannot be undone.`,
+    confirmText: 'Delete',
+    variant: 'danger',
+  });
+  if (!confirmed) return;
 
-const deleteLevel = async () => {
-  deleteModal.value.loading = true;
   try {
-    await axios.delete(`/auth/admin/course-levels/${deleteModal.value.level.id}`);
-    fetchLevels();
-    deleteModal.value.show = false;
+    await axios.delete(`/auth/admin/course-levels/${level.id}`);
+    clearCache('/auth/admin/course-levels');
+    toast.success('Course level deleted successfully.');
+    fetchLevels(1);
   } catch (e) {
-    alert(e.response?.data?.message || 'Failed to delete');
-  } finally {
-    deleteModal.value.loading = false;
+    toast.error(e.response?.data?.message || 'Failed to delete level.');
   }
 };
 
-onMounted(fetchLevels);
+onMounted(() => {
+  fetchLevels(1);
+});
 </script>

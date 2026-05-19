@@ -27,7 +27,10 @@ class TeamMemberController extends Controller
 
         $members = $query->paginate($perPage);
 
-        return TeamMemberResource::collection($members);
+        return response()->json([
+            'success' => true,
+            'data' => TeamMemberResource::collection($members)->response()->getData(true)
+        ], 200);
     }
 
     public function store(StoreTeamMemberRequest $request)

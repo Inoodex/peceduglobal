@@ -3,12 +3,11 @@
     <div class="max-w-3xl mx-auto pb-20">
       <!-- Header -->
       <div class="mb-6">
-        <h1 class="text-2xl font-bold text-gray-900 dark:text-white mb-2">Create a new category</h1>
+        <h1 class="text-2xl font-bold text-gray-900 dark:text-white mb-2">Create a new Student</h1>
         <nav class="flex items-center gap-2 text-sm text-gray-500 dark:text-gray-400">
           <span class="hover:text-gray-700 dark:hover:text-gray-300 cursor-pointer" @click="$router.push('/dashboard')">Dashboard</span>
           <ChevronRight class="w-4 h-4" />
           <span class="hover:text-gray-700 dark:hover:text-gray-300 cursor-pointer" @click="$router.push('/dashboard/students')">Students</span>
-          <ChevronRight class="w-4 h-4" />
           <ChevronRight class="w-4 h-4" />
           <span class="text-gray-900 dark:text-white">Create</span>
         </nav>
@@ -148,11 +147,12 @@
 import { ref, onMounted } from 'vue';
 import { useRouter } from 'vue-router';
 import axios from '@/plugins/axios';
+import { useToastStore } from '@/stores/toast';
+import { clearCache } from '@/utils/cacheHelper';
 import MainLayout from '@/layouts/MainLayout.vue';
-import {
-  ChevronRight,
-  ChevronDown,
-} from 'lucide-vue-next';
+import { ChevronRight } from 'lucide-vue-next';
+
+const toast = useToastStore();
 
 const router = useRouter();
 const countries = ref([]);
@@ -183,12 +183,14 @@ const submit = async () => {
       full_name: `${form.value.first_name} ${form.value.last_name}`.trim()
     };
     await axios.post('/auth/admin/students/register', payload);
+    toast.success('Student registered successfully!');
+    clearCache('/auth/admin/students');
     router.push('/dashboard/students');
   } catch (e) {
     const msg = e.response?.data?.errors
       ? Object.values(e.response.data.errors).flat().join('\n')
       : e.response?.data?.message || 'Something went wrong';
-    alert('Registration failed:\n' + msg);
+    toast.error(msg);
   }
 };
 

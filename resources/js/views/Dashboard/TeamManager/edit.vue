@@ -116,10 +116,16 @@ import axios from '@/plugins/axios';
 import MainLayout from '@/layouts/MainLayout.vue';
 import { ChevronRight, Loader2 } from 'lucide-vue-next';
 import FileUpload from '@/components/FileUpload.vue';
+import { useToastStore } from '@/stores/toast';
+import { clearCache } from '@/utils/cacheHelper';
 
 export default {
   name: 'TeamMemberEdit',
   components: { MainLayout, ChevronRight, Loader2, FileUpload },
+  setup() {
+    const toast = useToastStore();
+    return { toast };
+  },
   data() {
     return {
       loading: true,
@@ -202,9 +208,12 @@ export default {
         await axios.post(`/auth/admin/team-members/${id}`, formData, {
           headers: { 'Content-Type': 'multipart/form-data' }
         });
+        clearCache('/auth/admin/team-members');
+        this.toast.success('Team member updated successfully.');
         this.$router.push('/dashboard/team-members');
       } catch (e) {
         console.error('Update failed', e);
+        this.toast.error('Failed to update team member. Please try again.');
       } finally {
         this.saving = false;
       }
