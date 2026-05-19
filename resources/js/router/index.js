@@ -299,6 +299,30 @@ const routes = [
         meta: { auth: true, permission: 'manage_settings' }
     },
     {
+        path: '/dashboard/footer-info',
+        name: 'footer-info',
+        component: () => import('../views/Dashboard/Admin/CMS/FooterInfo/index.vue'),
+        meta: { auth: true, permission: 'manage_footer' }
+    },
+    {
+        path: '/dashboard/footer-socials',
+        name: 'footer-socials',
+        component: () => import('../views/Dashboard/Admin/CMS/FooterSocial/index.vue'),
+        meta: { auth: true, permission: 'manage_footer' }
+    },
+    {
+        path: '/dashboard/footer-socials/create',
+        name: 'footer-socials-create',
+        component: () => import('../views/Dashboard/Admin/CMS/FooterSocial/create.vue'),
+        meta: { auth: true, permission: 'manage_footer' }
+    },
+    {
+        path: '/dashboard/footer-socials/:id/edit',
+        name: 'footer-socials-edit',
+        component: () => import('../views/Dashboard/Admin/CMS/FooterSocial/edit.vue'),
+        meta: { auth: true, permission: 'manage_footer' }
+    },
+    {
         path: '/dashboard/student-inquiries',
         name: 'student-inquiries',
         component: () => import('../views/Dashboard/InquiryManager/index.vue'),

@@ -3,6 +3,8 @@
 use App\Http\Controllers\Api\Admin\CMS\BlockController;
 use App\Http\Controllers\Api\Admin\CMS\ElementController;
 use App\Http\Controllers\Api\Admin\CMS\PageController;
+use App\Http\Controllers\Api\Admin\CMS\FooterInfoController;
+use App\Http\Controllers\Api\Admin\CMS\FooterSocialController;
 use App\Http\Controllers\Api\Admin\CountryController;
 use App\Http\Controllers\Api\Admin\Education\UniversityController;
 use App\Http\Controllers\Api\Admin\Education\CourseController;
@@ -124,6 +126,11 @@ Route::group(['prefix' => 'auth'], function () {
             // Settings Management
             Route::get('settings', [SettingController::class, 'get']);
             Route::post('settings', [SettingController::class, 'update']);
+
+            // Footer Management
+            Route::get('footer-info', [FooterInfoController::class, 'get']);
+            Route::post('footer-info', [FooterInfoController::class, 'update']);
+            Route::apiResource('footer-socials', FooterSocialController::class);
         });
 
         // Booking & Appointment Management (Clean Prefix)

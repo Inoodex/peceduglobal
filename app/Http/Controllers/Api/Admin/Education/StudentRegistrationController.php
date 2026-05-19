@@ -15,6 +15,8 @@ use Illuminate\Support\Facades\Validator;
 use Illuminate\Support\Str;
 use Illuminate\Support\Facades\Storage;
 use Carbon\Carbon;
+use Illuminate\Support\Facades\Mail;
+use App\Mail\StudentRegisteredMail;
 
 class StudentRegistrationController extends Controller
 {
@@ -100,6 +102,17 @@ class StudentRegistrationController extends Controller
                 'consultant_id' => auth()->id(),
             ]);
 
+            try {
+                Mail::to($user->email)->send(new StudentRegisteredMail(
+                    $user->full_name,
+                    $user->email,
+                    $request->password,
+                    auth()->user()->full_name ?? null
+                ));
+            } catch (\Exception $mailException) {
+                \Illuminate\Support\Facades\Log::error('Failed to send registration email: ' . $mailException->getMessage());
+            }
+
             return response()->json([
                 'success' => true,
                 'data' => $user,
@@ -150,6 +163,17 @@ class StudentRegistrationController extends Controller
 
                 return compact('user', 'profile');
             });
+
+            try {
+                Mail::to($result['user']->email)->send(new StudentRegisteredMail(
+                    $result['user']->full_name,
+                    $result['user']->email,
+                    $request->password,
+                    auth()->user()->full_name ?? null
+                ));
+            } catch (\Exception $mailException) {
+                \Illuminate\Support\Facades\Log::error('Failed to send registration email (with profile): ' . $mailException->getMessage());
+            }
 
             return response()->json([
                 'success' => true,

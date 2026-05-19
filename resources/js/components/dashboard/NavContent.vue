@@ -221,6 +221,15 @@ const navigationData = [
         path: '/dashboard/settings',
         permission: 'manage_settings'
       },
+      {
+        name: 'Footer',
+        icon: Globe,
+        permission: 'manage_footer',
+        children: [
+          { name: 'Footer Info', path: '/dashboard/footer-info' },
+          { name: 'Social Links', path: '/dashboard/footer-socials' }
+        ]
+      },
     ]
   },
   {
