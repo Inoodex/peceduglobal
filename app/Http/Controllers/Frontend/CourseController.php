@@ -15,7 +15,7 @@ class CourseController extends Controller
      */
     public function index(Request $request)
     {
-        $query = Course::with(['university.country', 'level', 'intake']);
+        $query = Course::with(['university.country', 'courseLevel']);
 
         // Search by name
         if ($request->has('search')) {
