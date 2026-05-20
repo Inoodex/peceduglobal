@@ -94,6 +94,34 @@ class PageController extends Controller
     }
 
     /**
+     * Fetch popular countries with their guide page title for the navbar.
+     */
+    public function getPopularDestinations(): JsonResponse
+    {
+        $countries = Country::where('is_popular', true)
+            ->with(['guidePage' => function($query) {
+                $query->select('id', 'country_id', 'title', 'slug');
+            }])
+            ->get(['id', 'name', 'iso_code', 'thumbnail']);
+
+        $data = $countries->map(function($country) {
+            return [
+                'id' => $country->id,
+                'name' => $country->name,
+                'iso_code' => $country->iso_code,
+                'thumbnail' => $country->thumbnail ? (str_starts_with($country->thumbnail, '/storage/') ? $country->thumbnail : '/storage/' . $country->thumbnail) : null,
+                'page_title' => $country->guidePage?->title,
+                'page_slug' => $country->guidePage?->slug,
+            ];
+        });
+
+        return response()->json([
+            'success' => true,
+            'popular_destinations' => $data,
+        ], Response::HTTP_OK);
+    }
+
+    /**
      * Fetch the country guide page based on country ID.
      */
     public function getCountryGuide($countryId): JsonResponse

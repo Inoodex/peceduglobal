@@ -58,6 +58,7 @@ Route::prefix('public')->group(function () {
     Route::get('/pages/comparison', [FrontendPageController::class, 'getComparison']);
     Route::get('/pages/country-guide/{countryId}', [FrontendPageController::class, 'getCountryGuide']);
     Route::get('/pages/university-guide/{universityId}', [FrontendPageController::class, 'getUniversityGuide']);
+    Route::get('/popular-destinations', [FrontendPageController::class, 'getPopularDestinations']);
     Route::get('/countries', [FrontendPageController::class, 'getCountriesForNavbar']);
     Route::get('/pages/{slug}', [FrontendPageController::class, 'show']);
     Route::get('/pages/type/{type}', [FrontendPageController::class, 'showByType']);

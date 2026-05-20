@@ -26,4 +26,9 @@ class Country extends Model
     {
         return $this->hasMany(University::class);
     }
+
+    public function guidePage()
+    {
+        return $this->hasOne(Page::class)->where('page_type', 'country_guide')->where('is_active', true);
+    }
 }
