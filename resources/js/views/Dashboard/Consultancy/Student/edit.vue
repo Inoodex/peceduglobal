@@ -271,10 +271,10 @@ const unwrapList = (res) => {
 const loadDropdownData = async () => {
   try {
     const [c, u, co, ink] = await Promise.all([
-      axios.get('/auth/admin/countries', { params: { per_page: 500 } }),
-      axios.get('/auth/admin/universities', { params: { per_page: 500 } }),
-      axios.get('/auth/admin/courses', { params: { per_page: 500 } }),
-      axios.get('/auth/admin/course-intakes'),
+      axios.get('/auth/dropdowns/countries', { params: { per_page: 500 } }),
+      axios.get('/auth/dropdowns/universities', { params: { per_page: 500 } }),
+      axios.get('/auth/dropdowns/courses', { params: { per_page: 500 } }),
+      axios.get('/auth/dropdowns/course-intakes'),
     ]);
     countries.value = unwrapList(c);
     universities.value = unwrapList(u);

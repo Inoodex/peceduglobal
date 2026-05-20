@@ -168,8 +168,8 @@ const form = ref({
 
 const fetchCountries = async () => {
   try {
-    const { data } = await axios.get('/auth/admin/countries');
-    countries.value = data.data;
+    const { data } = await axios.get('/auth/dropdowns/countries');
+    countries.value = data.data?.data || data.data || [];
   } catch (e) {
     console.error('Error fetching countries:', e);
   }

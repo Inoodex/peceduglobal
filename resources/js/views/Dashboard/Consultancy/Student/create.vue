@@ -253,7 +253,7 @@ watch(
     if (!countryId) return;
     loadingUniversities.value = true;
     try {
-      const res = await axios.get('/auth/admin/universities', {
+      const res = await axios.get('/auth/dropdowns/universities', {
         params: { per_page: 500, country_id: countryId },
       });
       universities.value = unwrapList(res);
@@ -272,7 +272,7 @@ watch(
     if (!universityId) return;
     loadingCourses.value = true;
     try {
-      const res = await axios.get('/auth/admin/courses', {
+      const res = await axios.get('/auth/dropdowns/courses', {
         params: { per_page: 500, university_id: universityId },
       });
       courses.value = unwrapList(res);
@@ -291,7 +291,7 @@ watch(
     if (!courseId) return;
     loadingIntakes.value = true;
     try {
-      const res = await axios.get('/auth/admin/course-intakes', {
+      const res = await axios.get('/auth/dropdowns/course-intakes', {
         params: { course_id: courseId },
       });
       intakes.value = res.data?.data ?? res.data ?? [];
@@ -316,7 +316,7 @@ const unwrapList = (res) => {
 
 const loadCountries = async () => {
   try {
-    const c = await axios.get('/auth/admin/countries', { params: { per_page: 500 } });
+    const c = await axios.get('/auth/dropdowns/countries', { params: { per_page: 500 } });
     countries.value = unwrapList(c);
   } catch (e) {
     console.error('Failed to load countries', e);
