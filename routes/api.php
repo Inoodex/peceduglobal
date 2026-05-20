@@ -96,6 +96,7 @@ Route::group(['prefix' => 'auth'], function () {
             // Content Management (Pages, Blocks, etc.)
             Route::apiResource('pages', PageController::class);
             Route::apiResource('blocks', BlockController::class);
+            Route::get('blocks/available-types/{pageId}', [App\Http\Controllers\Admin\CmsBlockController::class, 'getAvailableBlocks']);
             Route::post('blocks/reorder', [BlockController::class, 'updateOrder']);
             Route::apiResource('elements', ElementController::class);
             Route::post('editor/upload', [EditorUploadController::class, 'upload']);

@@ -32,21 +32,20 @@
             </div>
             <div>
               <label class="block text-sm font-medium text-gray-700 dark:text-gray-300 mb-1.5">Block Type <span class="text-red-500">*</span></label>
-              <select v-model="form.block_type" class="w-full bg-gray-50 dark:bg-[#141A21] border border-gray-200 dark:border-gray-700 rounded-xl px-4 py-2.5 text-gray-900 dark:text-white focus:outline-none focus:ring-2 focus:ring-primary/20 focus:border-primary transition-all" required>
-                <option value="">Select Block Type</option>
-                <option value="hero">Hero Section</option>
-                <option value="grid">Feature Grid</option>
-                <option value="faq">FAQ Section</option>
-                <option value="cta">Call to Action</option>
-                <option value="text_content">Text & Image Content</option>
-                <option value="university_slider">University Slider</option>
-                <option value="scholarship_list">Scholarship List</option>
-                <option value="country_cards">Country Cards</option>
-                <option value="testimonial_slider">Testimonial Slider</option>
-                <option value="team_member">Team Members</option>
-                <option value="process_steps">Process Steps</option>
-                <option value="video_section">Video Section</option>
-              </select>
+              <div class="flex gap-2">
+                <select v-model="form.block_type" class="flex-1 bg-gray-50 dark:bg-[#141A21] border border-gray-200 dark:border-gray-700 rounded-xl px-4 py-2.5 text-gray-900 dark:text-white focus:outline-none focus:ring-2 focus:ring-primary/20 focus:border-primary transition-all" required>
+                  <option value="">Select Block Type</option>
+                  <option v-for="(label, type) in availableBlocks" :key="type" :value="type">{{ label }}</option>
+                  <option value="custom">-- Add Custom Type --</option>
+                </select>
+                <input 
+                  v-if="form.block_type === 'custom'" 
+                  v-model="customBlockType" 
+                  type="text" 
+                  placeholder="Enter custom type" 
+                  class="flex-1 bg-gray-50 dark:bg-[#141A21] border border-gray-200 dark:border-gray-700 rounded-xl px-4 py-2.5 text-gray-900 dark:text-white placeholder-gray-400 focus:outline-none focus:ring-2 focus:ring-primary/20 focus:border-primary transition-all" 
+                />
+              </div>
             </div>
             <div class="grid grid-cols-1 md:grid-cols-2 gap-4">
               <div>
@@ -120,6 +119,8 @@ export default {
       saving: false,
       uploadingImage: false,
       pages: [],
+      availableBlocks: {},
+      customBlockType: '',
       form: {
         page_id: '',
         block_type: '',
@@ -133,12 +134,31 @@ export default {
       },
     };
   },
+  watch: {
+    'form.page_id': async function(newPageId) {
+      this.form.block_type = '';
+      if (newPageId) {
+        await this.fetchAvailableBlocks(newPageId);
+      } else {
+        this.availableBlocks = {};
+      }
+    }
+  },
   mounted() {
     this.fetchPages();
   },
   methods: {
     toggleSection(section) {
       this.sections[section] = !this.sections[section];
+    },
+    async fetchAvailableBlocks(pageId) {
+      try {
+        const response = await axios.get(`/auth/admin/blocks/available-types/${pageId}`);
+        this.availableBlocks = response.data.data || {};
+      } catch (error) {
+        console.error('Error fetching available blocks:', error);
+        this.toast.error('Failed to load block types for this page.');
+      }
     },
     async uploadBlockImage(file) {
       if (!file) return;
@@ -173,7 +193,14 @@ export default {
     async save() {
       this.saving = true;
       try {
-        await axios.post('/auth/admin/blocks', this.form);
+        const payload = { ...this.form };
+        
+        // If custom block type is selected, use the value from the input field
+        if (this.form.block_type === 'custom') {
+          payload.block_type = this.customBlockType;
+        }
+
+        await axios.post('/auth/admin/blocks', payload);
         clearCache('/auth/admin/blocks');
         this.toast.success('Block created successfully.');
         this.$router.push('/dashboard/block-manager');
