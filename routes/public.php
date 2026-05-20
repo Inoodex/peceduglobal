@@ -1,5 +1,6 @@
 <?php
 
+use App\Http\Controllers\Frontend\FooterController;
 use Illuminate\Support\Facades\Route;
 use App\Http\Controllers\Frontend\HomeController;
 use App\Http\Controllers\Frontend\TeamMemberController as FrontendTeamMemberController;
@@ -76,4 +77,6 @@ Route::prefix('public')->group(function () {
         Route::post('profile',          [FrontendStudentProfileController::class, 'update']);
         Route::put('profile/password',  [FrontendStudentProfileController::class, 'updatePassword']);
     });
+    //footer
+    Route::get('/site_info', [FooterController::class, 'index']);
 });
