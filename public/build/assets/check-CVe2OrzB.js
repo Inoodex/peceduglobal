@@ -1,1 +1,0 @@
-import{n as e}from"./info-D5o2vAJI.js";var t=e(`check`,[[`path`,{d:`M20 6 9 17l-5-5`,key:`1gmf2c`}]]);export{t};
