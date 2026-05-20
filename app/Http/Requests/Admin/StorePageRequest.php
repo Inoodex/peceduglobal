@@ -27,6 +27,7 @@ class StorePageRequest extends FormRequest
             'slug' => 'nullable|string|unique:pages,slug,' . $this->route('page')?->id,
             'page_type' => 'nullable|string|max:50',
             'country_id' => 'nullable|exists:countries,id',
+            'university_id' => 'nullable|exists:universities,id',
             'parent_id' => 'nullable|exists:pages,id',
             'meta_title' => 'nullable|string|max:255',
             'meta_description' => 'nullable|string',

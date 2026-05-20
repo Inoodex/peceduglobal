@@ -16,6 +16,7 @@ class Page extends Model
         'slug',
         'page_type',
         'country_id',
+        'university_id',
         'parent_id',
         'meta_title',
         'meta_description',
@@ -41,5 +42,10 @@ class Page extends Model
     public function country(): BelongsTo
     {
         return $this->belongsTo(Country::class);
+    }
+
+    public function university(): BelongsTo
+    {
+        return $this->belongsTo(University::class);
     }
 }

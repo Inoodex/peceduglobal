@@ -135,6 +135,45 @@ class PageController extends Controller
     }
 
     /**
+     * Fetch the university guide page based on university ID.
+     */
+    public function getUniversityGuide($universityId): JsonResponse
+    {
+        $page = Page::where('page_type', 'university_guide')
+            ->where('university_id', $universityId)
+            ->where('is_active', true)
+            ->with(['blocks' => function($query) {
+                $query->orderBy('sort_order', 'asc');
+            }, 'blocks.elements'])
+            ->first();
+
+        if (!$page) {
+            return response()->json([
+                'success' => false,
+                'message' => 'University guide page not found for this university.',
+            ], Response::HTTP_NOT_FOUND);
+        }
+
+        // Attach courses to specific blocks if they exist
+        foreach ($page->blocks as $block) {
+            if ($block->block_type === 'course_list') {
+                $block->courses = \App\Models\Course::where('university_id', $universityId)
+                    ->with('courseLevel')
+                    ->get();
+            }
+        }
+
+        return response()->json([
+            'success' => true,
+            'data' => [
+                'title' => $page->title,
+                'page_type' => $page->page_type,
+                'blocks' => $page->blocks,
+            ],
+        ], Response::HTTP_OK);
+    }
+
+    /**
      * Fetch a page dynamically by its slug.
      */
     public function show(string $slug): JsonResponse

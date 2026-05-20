@@ -31,6 +31,7 @@
                 <option value="about">About Us</option>
                 <option value="comparison">Comparison</option>
                 <option value="country_guide">Country Guide</option>
+                <option value="university_guide">University Guide</option>
                 <option value="faq">FAQ Page</option>
                 <option value="home">Home Page</option>
                 <option value="popular_destinations">Popular Destinations</option>
@@ -52,6 +53,15 @@
                 <option value="">Select a country (optional)</option>
                 <option v-for="country in countries" :key="country.id" :value="country.id">
                   {{ country.name }}
+                </option>
+              </select>
+            </div>
+            <div>
+              <label class="block text-sm font-medium text-gray-700 dark:text-gray-300 mb-1.5">University</label>
+              <select v-model="form.university_id" class="w-full bg-gray-50 dark:bg-[#141A21] border border-gray-200 dark:border-gray-700 rounded-xl px-4 py-2.5 text-gray-900 dark:text-white focus:outline-none focus:ring-2 focus:ring-primary/20 focus:border-primary transition-all">
+                <option value="">Select a university (optional)</option>
+                <option v-for="uni in universities" :key="uni.id" :value="uni.id">
+                  {{ uni.name }}
                 </option>
               </select>
             </div>
@@ -141,11 +151,13 @@ export default {
       loading: false,
       thumbnailUrl: '',
       countries: [],
+      universities: [],
       pages: [],
       form: {
         title: '',
         page_type: '',
         country_id: '',
+        university_id: '',
         parent_id: '',
         meta_title: '',
         meta_description: '',
@@ -162,6 +174,7 @@ export default {
   mounted() {
     this.pageId = this.$route.params.id;
     this.fetchCountries();
+    this.fetchUniversities();
     this.fetchPages();
     this.fetchPage();
   },
@@ -175,6 +188,14 @@ export default {
         this.countries = response.data.data?.data || response.data.data || [];
       } catch (error) {
         console.error('Error fetching countries:', error);
+      }
+    },
+    async fetchUniversities() {
+      try {
+        const response = await axios.get('/auth/dropdowns/universities');
+        this.universities = response.data.data?.data || response.data.data || [];
+      } catch (error) {
+        console.error('Error fetching universities:', error);
       }
     },
     async fetchPages() {
@@ -193,6 +214,7 @@ export default {
           title: page.title,
           page_type: page.page_type || '',
           country_id: page.country_id || '',
+          university_id: page.university_id || '',
           parent_id: page.parent_id || '',
           meta_title: page.meta_title || '',
           meta_description: page.meta_description || '',
