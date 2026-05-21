@@ -113,6 +113,7 @@ const editor = useEditor({
       openOnClick: false,
     }),
     ImageResize.configure({
+      inline: true,
       HTMLAttributes: {
         class: 'resizable-image',
       },
@@ -229,13 +230,29 @@ watch(() => props.modelValue, (value) => {
 /* Image Resize Styles */
 .ProseMirror img {
   @apply cursor-pointer transition-all;
-  display: block;
-  margin-left: auto;
-  margin-right: auto;
+  display: inline-block !important;
+  vertical-align: middle !important;
+  max-width: 100%;
 }
 
 .ProseMirror img.ProseMirror-selectednode {
   @apply ring-4 ring-primary/30 outline-none rounded-lg;
+}
+
+/* Ensure wrappers don't break the inline flow */
+.ProseMirror *:has(> img.resizable-image) {
+  display: inline-block !important;
+  vertical-align: middle !important;
+}
+
+/* Ensure text can wrap around floated images properly */
+.ProseMirror p {
+  clear: none;
+}
+.ProseMirror::after {
+  content: "";
+  display: table;
+  clear: both;
 }
 
 /* Table styles inside editor */
