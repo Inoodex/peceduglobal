@@ -40,6 +40,9 @@
                 <option value="statistics">Statistics</option>
                 <option value="study_abroad">Study Abroad</option>
                 <option value="terms">Terms & Conditions</option>
+                 <option value="travel_destinations">Travel Destinations</option>
+                <option value="air_ticket">Air Ticket</option>
+                <option value="medical_travel_insurance">Medical Travel Insurance</option>
                 <option value="why_choose_us">Why Choose Us</option>
               </select>
             </div>
