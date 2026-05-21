@@ -163,6 +163,47 @@ class PageController extends Controller
     }
 
     /**
+     * Fetch a country-specific page by its type and country ID.
+     */
+    public function getCountryPageByType($countryId, $pageType): JsonResponse
+    {
+        $page = Page::where('page_type', $pageType)
+            ->where('country_id', $countryId)
+            ->where('is_active', true)
+            ->with(['blocks' => function($query) {
+                $query->orderBy('sort_order', 'asc');
+            }, 'blocks.elements'])
+            ->first();
+
+        if (!$page) {
+            return response()->json([
+                'success' => false,
+                'message' => 'Page not found for this country and type.',
+            ], Response::HTTP_NOT_FOUND);
+        }
+
+        // Attach universities to specific blocks if they exist
+        foreach ($page->blocks as $block) {
+            if ($block->block_type === 'partners' || $block->block_type === 'university_list') {
+                $block->universities = \App\Models\University::where('country_id', $countryId)
+                    ->where(function($q) {
+                        $q->where('is_partner', true)->orWhere('is_popular', true);
+                    })
+                    ->get();
+            }
+        }
+
+        return response()->json([
+            'success' => true,
+            'data' => [
+                'title' => $page->title,
+                'page_type' => $page->page_type,
+                'blocks' => $page->blocks,
+            ],
+        ], Response::HTTP_OK);
+    }
+
+    /**
      * Fetch the university guide page based on university ID.
      */
     public function getUniversityGuide($universityId): JsonResponse
