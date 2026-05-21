@@ -58,6 +58,10 @@
                     <label class="block text-sm font-medium text-gray-700 dark:text-gray-300 mb-1.5">Tuition Range</label>
                     <input v-model="form.tuition_range" type="text" placeholder="e.g. £20,000 - £40,000" class="w-full bg-gray-50 dark:bg-[#141A21] border border-gray-200 dark:border-gray-700 rounded-xl px-4 py-2.5 text-gray-900 dark:text-white focus:ring-2 focus:ring-primary/20 focus:border-primary outline-none transition-all" />
                   </div>
+                  <div>
+                    <label class="block text-sm font-medium text-gray-700 dark:text-gray-300 mb-1.5">Total Students</label>
+                    <input v-model="form.total_students" type="text" placeholder="e.g. 25,000+" class="w-full bg-gray-50 dark:bg-[#141A21] border border-gray-200 dark:border-gray-700 rounded-xl px-4 py-2.5 text-gray-900 dark:text-white focus:ring-2 focus:ring-primary/20 focus:border-primary outline-none transition-all" />
+                  </div>
                 </div>
                 <div>
                   <label class="block text-sm font-medium text-gray-700 dark:text-gray-300 mb-1.5">Intake Months</label>
@@ -182,6 +186,7 @@ const form = ref({
   website: '',
   ranking: '',
   tuition_range: '',
+  total_students: '',
   intake_months: '',
   description: '',
   is_popular: false,

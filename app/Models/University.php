@@ -20,6 +20,7 @@ class University extends Model
         'location',
         'ranking',
         'tuition_range',
+        'total_students',
         'intake_months',
         'description',
         'website',

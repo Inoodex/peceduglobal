@@ -62,11 +62,11 @@ class CountryController extends Controller
             $path = $request->file('thumbnail')->store('countries/thumbnails', 'public');
             $validated['thumbnail'] = '/storage/' . $path;
         }
-        if (empty($validated['slug']) && !empty($validated['name'])) {
-            $slug = Str::slug($validated['name']);
+        if ((!empty($validated['name']) && $validated['name'] !== $country->name) || empty($validated['slug'])) {
+            $slug = Str::slug($validated['name'] ?? $country->name);
             $originalSlug = $slug;
             $count = 1;
-            while (Country::where('slug', $slug)->exists()) {
+            while (Country::where('slug', $slug)->where('id', '!=', $country->id)->exists()) {
                 $slug = $originalSlug . '-' . $count++;
             }
             $validated['slug'] = $slug;
