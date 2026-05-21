@@ -43,8 +43,12 @@
               </select>
             </div>
             <div>
-              <label class="block text-sm font-medium text-gray-700 dark:text-gray-300 mb-1.5">Title <span class="text-red-500">*</span></label>
-              <input v-model="form.title" type="text" placeholder="Page title" class="w-full bg-gray-50 dark:bg-[#141A21] border border-gray-200 dark:border-gray-700 rounded-xl px-4 py-2.5 text-gray-900 dark:text-white placeholder-gray-400 focus:outline-none focus:ring-2 focus:ring-primary/20 focus:border-primary transition-all" required />
+              <FloatingInput 
+                v-model="form.title" 
+                label="Title" 
+                placeholder="Page title" 
+                required 
+              />
             </div>
             <div>
               <label class="block text-sm font-medium text-gray-700 dark:text-gray-300 mb-1.5">Country</label>
@@ -88,8 +92,11 @@
           </button>
           <div v-show="sections.properties" class="p-4 pt-0 border-t border-gray-200 dark:border-gray-700/50 space-y-4">
             <div>
-              <label class="block text-sm font-medium text-gray-700 dark:text-gray-300 mb-1.5">Meta Title</label>
-              <input v-model="form.meta_title" type="text" placeholder="Meta title for search engines" class="w-full bg-gray-50 dark:bg-[#141A21] border border-gray-200 dark:border-gray-700 rounded-xl px-4 py-2.5 text-gray-900 dark:text-white placeholder-gray-400 focus:outline-none focus:ring-2 focus:ring-primary/20 focus:border-primary transition-all" />
+              <FloatingInput 
+                v-model="form.meta_title" 
+                label="Meta Title" 
+                placeholder="Meta title for search engines" 
+              />
             </div>
             <div>
               <label class="block text-sm font-medium text-gray-700 dark:text-gray-300 mb-1.5">Meta Description</label>

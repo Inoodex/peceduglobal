@@ -29,19 +29,13 @@ class PageController extends Controller
             });
         }
 
-        $perPage = $request->input('per_page', 15);
-        $pages = $query->paginate($perPage);
+        $pages = $query->get();
         
         return response()->json([
             'success' => true,
             'data' => PageResource::collection($pages),
             'meta' => [
-                'current_page' => $pages->currentPage(),
-                'last_page' => $pages->lastPage(),
-                'total' => $pages->total(),
-                'per_page' => $pages->perPage(),
-                'from' => $pages->firstItem(),
-                'to' => $pages->lastItem(),
+                'total' => $pages->count(),
             ]
         ], Response::HTTP_OK);
     }

@@ -23,12 +23,17 @@
             <ChevronDown class="w-5 h-5 text-gray-400 transition-transform" :class="{ 'rotate-180': sections.details }" />
           </button>
           <div v-show="sections.details" class="p-4 pt-0 border-t border-gray-200 dark:border-gray-700/50 space-y-4">
-            <div>
+            <div class="flex flex-col">
               <label class="block text-sm font-medium text-gray-700 dark:text-gray-300 mb-1.5">Target Page <span class="text-red-500">*</span></label>
-              <select v-model="form.page_id" class="w-full bg-gray-50 dark:bg-[#141A21] border border-gray-200 dark:border-gray-700 rounded-xl px-4 py-2.5 text-gray-900 dark:text-white focus:outline-none focus:ring-2 focus:ring-primary/20 focus:border-primary transition-all" required>
-                <option value="">Select Page</option>
-                <option v-for="page in pages" :key="page.id" :value="page.id">{{ page.title }} - ({{ page.country?.iso_code }}  {{ page.country?.name }})</option>
-              </select>
+              <CustomSelect 
+                v-model="form.page_id" 
+                :options="pages.map(p => ({ label: `${p.title} - (${p.country?.iso_code} ${p.country?.name})`, value: p.id }))"
+                label="Target Page"
+                placeholder="Select Page"
+                label-key="label"
+                value-key="value"
+                required
+              />
             </div>
             <div>
               <label class="block text-sm font-medium text-gray-700 dark:text-gray-300 mb-1.5">Block Type <span class="text-red-500">*</span></label>
@@ -59,8 +64,11 @@
             </div>
 
             <div>
-              <label class="block text-sm font-medium text-gray-700 dark:text-gray-300 mb-1.5">Subtitle / Badge</label>
-              <input v-model="form.settings.subtitle" type="text" placeholder="e.g. WHY CHOOSE US?" class="w-full bg-gray-50 dark:bg-[#141A21] border border-gray-200 dark:border-gray-700 rounded-xl px-4 py-2.5 text-gray-900 dark:text-white placeholder-gray-400 focus:outline-none focus:ring-2 focus:ring-primary/20 focus:border-primary transition-all" />
+              <FloatingInput 
+                v-model="form.settings.subtitle" 
+                label="Subtitle / Badge" 
+                placeholder="e.g. WHY CHOOSE US?" 
+              />
             </div>
 
             <!-- Block Settings: Section Image -->
@@ -102,13 +110,15 @@ import axios from '@/plugins/axios';
 import MainLayout from '@/layouts/MainLayout.vue';
 import AppEditor from '@/components/AppEditor.vue';
 import FileUpload from '@/components/MultipleFileUpload.vue';
+import CustomSelect from '@/components/Form/CustomSelect.vue';
+import FloatingInput from '@/components/Form/FloatingInput.vue';
 import { ChevronRight, ChevronDown, Loader2 } from 'lucide-vue-next';
 import { clearCache } from '@/utils/cacheHelper';
 import { useToastStore } from '@/stores/toast';
 
 export default {
   name: 'BlockCreate',
-  components: { MainLayout, AppEditor, FileUpload, ChevronRight, ChevronDown, Loader2 },
+  components: { MainLayout, AppEditor, FileUpload, CustomSelect, FloatingInput, ChevronRight, ChevronDown, Loader2 },
   setup() {
     const toast = useToastStore();
     return { toast };
