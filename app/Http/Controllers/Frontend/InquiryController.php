@@ -49,11 +49,17 @@ class InquiryController extends Controller
             }
         }
 
+        $additionalInfoFileName = null;
+        $additionalInfoFilePath = null;
+
         // Handle uploaded file for additional info (if any)
         if ($request->hasFile('additional_info_file')) {
             $file = $request->file('additional_info_file');
             $path = $file->store('inquiries', 'public');
-            // store public URL and path in the additional info array
+            $additionalInfoFileName = $file->getClientOriginalName();
+            $additionalInfoFilePath = $path;
+
+            // store public URL and path in the additional info array for compatibility
             $additionalInfo['uploaded_file'] = Storage::url($path);
             $additionalInfo['uploaded_file_path'] = $path;
         }
@@ -82,6 +88,8 @@ class InquiryController extends Controller
             'phone' => $request->phone,
             'type' => $request->type ?? 'general',
             'additional_info' => $additionalInfo,
+            'additional_info_file_name' => $additionalInfoFileName,
+            'additional_info_file_path' => $additionalInfoFilePath,
             'status' => 'new',
         ]);
 

@@ -132,6 +132,16 @@
                   </div>
                   <p v-else class="text-sm font-medium text-gray-900 dark:text-gray-200">{{ formatValue(value) }}</p>
                 </div>
+                <div v-if="selectedInquiry.additional_info_file_url" class="p-3 bg-white dark:bg-[#1C252E] rounded-xl border border-gray-200 dark:border-gray-700/50">
+                  <p class="text-[10px] uppercase font-bold text-gray-400 mb-0.5">Uploaded File</p>
+                  <div class="flex items-center gap-3">
+                    <a :href="selectedInquiry.additional_info_file_url" target="_blank" rel="noopener noreferrer" class="text-sm font-medium text-primary underline flex items-center gap-2">
+                      <svg xmlns="http://www.w3.org/2000/svg" class="h-4 w-4" viewBox="0 0 24 24" fill="none" stroke="currentColor"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M12 5v14m7-7H5"/></svg>
+                      <span>{{ selectedInquiry.additional_info_file_name || extractFilename(selectedInquiry.additional_info_file_url) }}</span>
+                    </a>
+                    <button @click.prevent="downloadFile(selectedInquiry.additional_info_file_url, selectedInquiry.additional_info_file_name || extractFilename(selectedInquiry.additional_info_file_url))" class="px-3 py-1 text-xs font-semibold bg-gray-100 dark:bg-gray-800 rounded-md hover:bg-gray-200 dark:hover:bg-gray-700">Download</button>
+                  </div>
+                </div>
               </div>
             </div>
 
