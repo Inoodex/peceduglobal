@@ -7,6 +7,7 @@ use App\Models\Inquiry;
 use Illuminate\Http\Request;
 use Illuminate\Http\Response;
 use Illuminate\Support\Facades\Validator;
+use Illuminate\Support\Facades\Storage;
 
 class InquiryController extends Controller
 {
@@ -21,7 +22,8 @@ class InquiryController extends Controller
             'email' => 'required|email|max:255',
             'phone' => 'required|string|max:20',
             'type' => 'nullable|string|max:50',
-            'additional_info' => 'nullable|array',
+            'additional_info' => 'nullable', // allow array or JSON string when multipart/form-data
+            'additional_info_file' => 'nullable|file|mimes:pdf,doc,docx,jpg,jpeg,png,webp|max:5120', // max 5MB
         ]);
 
         if ($validator->fails()) {
@@ -32,6 +34,23 @@ class InquiryController extends Controller
         }
 
         $additionalInfo = $request->additional_info ?? [];
+
+        // If additional_info was sent as a JSON string (common with multipart/form-data), decode it
+        if (is_string($additionalInfo)) {
+            $decoded = json_decode($additionalInfo, true);
+            if (json_last_error() === JSON_ERROR_NONE && is_array($decoded)) {
+                $additionalInfo = $decoded;
+            }
+        }
+
+        // Handle uploaded file for additional info (if any)
+        if ($request->hasFile('additional_info_file')) {
+            $file = $request->file('additional_info_file');
+            $path = $file->store('inquiries', 'public');
+            // store public URL and path in the additional info array
+            $additionalInfo['uploaded_file'] = Storage::url($path);
+            $additionalInfo['uploaded_file_path'] = $path;
+        }
 
         // Automatically resolve IDs to names and replace the keys
         if (isset($additionalInfo['university_id'])) {

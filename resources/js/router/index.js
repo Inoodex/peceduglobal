@@ -337,6 +337,13 @@ const routes = [
         meta: { auth: true, permission: 'manage_inquiries' }
     },
     {
+        path: '/dashboard/career-opportunities',
+        name: 'career-opportunities',
+        component: () => import('../views/Dashboard/InquiryManager/index.vue'),
+        props: { type: 'carrer_oppurtunity' },
+        meta: { auth: true, permission: 'manage_inquiries' }
+    },
+    {
         path: '/dashboard/booking-manager',
         name: 'booking-manager',
         component: () => import('../views/Dashboard/BookingManager/index.vue'),

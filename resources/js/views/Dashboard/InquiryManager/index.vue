@@ -123,7 +123,13 @@
               <div class="grid grid-cols-1 sm:grid-cols-2 gap-4">
                 <div v-for="(value, key) in selectedInquiry.additional_info" :key="key" class="p-3 bg-white dark:bg-[#1C252E] rounded-xl border border-gray-200 dark:border-gray-700/50">
                   <p class="text-[10px] uppercase font-bold text-gray-400 mb-0.5">{{ formatKey(key) }}</p>
-                  <p class="text-sm font-medium text-gray-900 dark:text-gray-200">{{ value || 'N/A' }}</p>
+                  <div v-if="key === 'uploaded_file' && value">
+                    <a :href="value" target="_blank" rel="noopener noreferrer" class="text-sm font-medium text-primary underline flex items-center gap-2">
+                      <svg xmlns="http://www.w3.org/2000/svg" class="h-4 w-4" viewBox="0 0 24 24" fill="none" stroke="currentColor"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M12 5v14m7-7H5"/></svg>
+                      <span>{{ extractFilename(value) }}</span>
+                    </a>
+                  </div>
+                  <p v-else class="text-sm font-medium text-gray-900 dark:text-gray-200">{{ formatValue(value) }}</p>
                 </div>
               </div>
             </div>
@@ -183,6 +189,7 @@ export default {
       switch (this.filters.type) {
         case 'university_apply': return 'Student Inquiries';
         case 'air_ticket': return 'Air Ticket Bookings';
+        case 'career_opportunity': return 'Career Opportunities';
         case 'consultation': return 'Consultation Requests';
         default: return 'Leads & Inquiries';
       }
@@ -191,6 +198,7 @@ export default {
       switch (this.filters.type) {
         case 'university_apply': return 'student university applications and inquiries';
         case 'air_ticket': return 'flight details and ticket booking requests';
+        case 'career_opportunity': return 'career opportunities submitted by students/leads';
         case 'consultation': return 'consultation and counseling appointments';
         default: return 'all types of student inquiries and leads';
       }
@@ -259,6 +267,27 @@ export default {
         closed: 'bg-emerald-50 text-emerald-700 border-emerald-100 dark:bg-emerald-900/10 dark:text-emerald-500 dark:border-emerald-900/20',
       };
       return map[status] || 'bg-gray-50 text-gray-700 border-gray-100';
+    }
+    ,
+    formatValue(value) {
+      if (value === null || value === undefined || value === '') return 'N/A';
+      if (typeof value === 'object') {
+        try {
+          return JSON.stringify(value);
+        } catch (e) {
+          return String(value);
+        }
+      }
+      return String(value);
+    },
+    extractFilename(url) {
+      if (!url) return 'file';
+      try {
+        const parts = url.split('/');
+        return parts[parts.length - 1] || url;
+      } catch (e) {
+        return url;
+      }
     }
   }
 };
