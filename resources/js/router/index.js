@@ -344,6 +344,13 @@ const routes = [
         meta: { auth: true, permission: 'manage_inquiries' }
     },
     {
+        path: '/dashboard/agent-applications',
+        name: 'agent-applications',
+        component: () => import('../views/Dashboard/InquiryManager/index.vue'),
+        props: { type: 'agent_application' },
+        meta: { auth: true, permission: 'manage_inquiries' }
+    },
+    {
         path: '/dashboard/booking-manager',
         name: 'booking-manager',
         component: () => import('../views/Dashboard/BookingManager/index.vue'),

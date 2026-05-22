@@ -153,6 +153,7 @@ const navigationData = [
           { name: 'Student Inquiries', path: '/dashboard/student-inquiries' },
           { name: 'Air Ticket Booking', path: '/dashboard/air-ticket-bookings' },
           { name: 'Career Opportunities', path: '/dashboard/career-opportunities' },
+          { name: 'Agent Applications', path: '/dashboard/agent-applications' },
           { name: 'Booking Manager', path: '/dashboard/booking-manager', roles: ['admin'] },
           { name: 'Contact List', path: '/dashboard/contact-list' },
           // { name: 'Consultation Requests', path: '/dashboard/consultation-requests' },
