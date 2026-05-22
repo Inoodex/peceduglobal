@@ -145,6 +145,7 @@ Route::group(['prefix' => 'auth'], function () {
                 Route::delete('release-slot', [AvailabilityController::class, 'releaseSlot']);
                 Route::get('my-claimed-slots', [AvailabilityController::class, 'getMyClaimedSlots']);
                 Route::get('student-appointments', [AppointmentController::class, 'getConsultantAppointments']);
+                Route::patch('appointments/{id}/status', [AppointmentController::class, 'updateStatus']);
             });
 
             // Student Booking Routes

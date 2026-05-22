@@ -47,6 +47,7 @@ Route::prefix('public')->group(function () {
     Route::get('/consultants/search', [FrontendConsultantController::class, 'search']);
     Route::get('/consultants/available-dates', [FrontendConsultantController::class, 'getAvailableDates']);
     Route::get('/consultants/slots', [FrontendConsultantController::class, 'getSlots']);
+    Route::get('/consultants/slots-by-date', [FrontendConsultantController::class, 'getSlotsByDate']);
     Route::get('/consultants/global-availability', [FrontendConsultantController::class, 'getGlobalAvailability']);
     Route::post('/consultants/book-appointment', [FrontendConsultantController::class, 'bookAppointment']);
 

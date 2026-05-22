@@ -75,6 +75,39 @@ class ConsultantController extends Controller
     }
 
     /**
+     * Get all available slots for any consultant on a specific date.
+     */
+    public function getSlotsByDate(Request $request)
+    {
+        $validator = Validator::make($request->all(), [
+            'date' => 'required|date'
+        ]);
+
+        if ($validator->fails()) {
+            return response()->json(['success' => false, 'errors' => $validator->errors()], 422);
+        }
+
+        try {
+            $slots = ConsultantSchedule::where('slot_date', $request->date)
+                ->where('status', 'available')
+                ->orderBy('start_time')
+                ->get()
+                ->map(function ($slot) {
+                    return [
+                        'id'         => $slot->id,
+                        'slot_date'  => $slot->slot_date,
+                        'start_time' => $slot->start_time,
+                        'end_time'   => $slot->end_time,
+                    ];
+                });
+
+            return response()->json(['success' => true, 'data' => $slots], 200);
+        } catch (\Exception $e) {
+            return response()->json(['success' => false, 'message' => $e->getMessage()], 500);
+        }
+    }
+
+    /**
      * Get unified availability for all consultants.
      */
     public function getGlobalAvailability(Request $request)

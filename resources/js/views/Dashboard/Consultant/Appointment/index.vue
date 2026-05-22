@@ -98,25 +98,85 @@
         </template> -->
         <!-- Status -->
         <template #cell(status)="{ item: app }">
-          <div class="px-3 py-1 rounded-full bg-green-50 text-green-600 border border-green-100 text-[10px] font-bold uppercase tracking-wider inline-block">
+          <span :class="[
+            'px-2.5 py-1 rounded-full text-[10px] font-black uppercase border tracking-wider',
+            app.status === 'confirmed' ? 'bg-blue-50 border-blue-100 text-blue-600' : '',
+            app.status === 'pending' ? 'bg-yellow-50 border-yellow-100 text-yellow-600' : '',
+            app.status === 'completed' ? 'bg-green-50 border-green-100 text-green-600' : '',
+            app.status === 'cancelled' ? 'bg-red-50 border-red-100 text-red-600' : ''
+          ]">
             {{ app.status }}
-          </div>
+          </span>
         </template>
         <!-- Actions -->
-        <!-- <template #cell(actions)="{ item: app }">
-          <div class="flex items-center justify-end gap-2">
+        <template #cell(actions)="{ item: app }">
+          <div class="flex items-center justify-end">
             <button 
-              v-if="app.meeting_type === 'online'"
-              class="px-3 py-2 rounded-lg bg-primary text-white hover:bg-primary/90 transition-all flex items-center gap-2 text-xs font-bold"
+              @click="openStatusModal(app)"
+              class="px-3 py-1.5 text-[10px] font-black uppercase bg-primary text-white rounded-lg hover:bg-primary/90 transition-all"
             >
-              <Video :size="14" /> Start Meeting
-            </button>
-            <button class="p-2 rounded-lg bg-gray-500/10 text-gray-500 hover:bg-gray-500/20 transition-all">
-              <MoreVertical :size="14" />
+              Update Status
             </button>
           </div>
-        </template> -->
+        </template>
       </DataTable>
+
+      <!-- Status Update Modal -->
+      <div v-if="showModal" class="fixed inset-0 z-50 flex items-center justify-center bg-black/50 backdrop-blur-sm p-4">
+        <div class="bg-white dark:bg-[#1C252E] border border-gray-100 dark:border-gray-800 rounded-2xl w-full max-w-md shadow-2xl p-6 relative">
+          <h2 class="text-lg font-bold text-gray-900 dark:text-white mb-2">
+            Update Appointment
+          </h2>
+          <p class="text-xs text-gray-500 mb-4">
+            Updating appointment for <strong>{{ selectedApp?.booker_name }}</strong> on {{ formatDate(selectedApp?.date) }}.
+          </p>
+
+          <div class="space-y-4">
+            <div>
+              <label class="block text-xs font-bold uppercase text-gray-500 dark:text-gray-400 mb-1">
+                Status
+              </label>
+              <select 
+                v-model="selectedStatus" 
+                class="w-full text-sm border border-gray-200 dark:border-gray-700 rounded-xl p-3 bg-white dark:bg-[#1C252E] text-gray-900 dark:text-white focus:outline-none focus:ring-2 focus:ring-primary focus:border-transparent"
+              >
+                <option value="pending">Pending</option>
+                <option value="confirmed">Confirmed</option>
+                <option value="completed">Completed</option>
+                <option value="cancelled">Cancelled</option>
+              </select>
+            </div>
+
+            <div>
+              <label class="block text-xs font-bold uppercase text-gray-500 dark:text-gray-400 mb-1">
+                Consultant Notes / Notes
+              </label>
+              <textarea 
+                v-model="notes" 
+                rows="4" 
+                class="w-full text-sm border border-gray-200 dark:border-gray-700 rounded-xl p-3 bg-transparent text-gray-900 dark:text-white focus:outline-none focus:ring-2 focus:ring-primary focus:border-transparent resize-none"
+                placeholder="Enter feedback or cancellation reason..."
+              ></textarea>
+            </div>
+
+            <div class="flex justify-end gap-3">
+              <button 
+                @click="closeModal" 
+                class="px-4 py-2 text-xs font-bold text-gray-500 bg-gray-100 dark:bg-gray-800 rounded-xl hover:bg-gray-200 dark:hover:bg-gray-700 transition"
+              >
+                Cancel
+              </button>
+              <button 
+                @click="submitStatusUpdate" 
+                :disabled="submitting"
+                class="px-4 py-2 text-xs font-bold text-white bg-primary rounded-xl hover:bg-primary/95 transition flex items-center gap-1 disabled:opacity-50"
+              >
+                {{ submitting ? 'Updating...' : 'Save Changes' }}
+              </button>
+            </div>
+          </div>
+        </div>
+      </div>
 
     </div>
   </MainLayout>
@@ -137,12 +197,18 @@ const loading = ref(false);
 const pagination = ref(null);
 const perPage = ref(15);
 
+// Modal states
+const showModal = ref(false);
+const selectedApp = ref(null);
+const selectedStatus = ref('');
+const notes = ref('');
+const submitting = ref(false);
+
 const columns = [
   { key: 'student', label: 'Student' },
   { key: 'datetime', label: 'Date & Time' },
-  // { key: 'type', label: 'Type' },
   { key: 'status', label: 'Status' },
-  // { key: 'actions', label: 'Actions', align: 'right' }
+  { key: 'actions', label: 'Actions', align: 'right' }
 ];
 
 const handlePerPageChange = (newPerPage) => {
@@ -159,6 +225,44 @@ const fetchAppointments = async (page = 1) => {
     paginationRef: pagination,
     toast
   });
+};
+
+const openStatusModal = (app) => {
+  selectedApp.value = app;
+  selectedStatus.value = app.status;
+  notes.value = app.consultant_notes || '';
+  showModal.value = true;
+};
+
+const closeModal = () => {
+  showModal.value = false;
+  selectedApp.value = null;
+  selectedStatus.value = '';
+  notes.value = '';
+};
+
+const submitStatusUpdate = async () => {
+  if (!selectedApp.value) return;
+  submitting.value = true;
+  try {
+    const res = await axios.patch(`/auth/booking/consultant/appointments/${selectedApp.value.id}/status`, {
+      status: selectedStatus.value,
+      consultant_notes: notes.value
+    });
+    
+    if (res.data.success) {
+      toast.success(res.data.message || 'Status updated successfully.');
+      closeModal();
+      fetchAppointments(pagination.value?.current_page || 1);
+    } else {
+      toast.error(res.data.message || 'Failed to update status.');
+    }
+  } catch (err) {
+    console.error(err);
+    toast.error(err.response?.data?.message || 'Something went wrong.');
+  } finally {
+    submitting.value = false;
+  }
 };
 
 const formatTime = (time) => time.substring(0, 5);

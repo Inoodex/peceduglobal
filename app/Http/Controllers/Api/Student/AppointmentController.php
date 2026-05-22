@@ -287,4 +287,63 @@ class AppointmentController extends Controller
             ], 500);
         }
     }
+
+    /**
+     * Update appointment status by logged-in consultant.
+     * Secure: only allows updating own appointments.
+     */
+    public function updateStatus(Request $request, $id)
+    {
+        $validator = Validator::make($request->all(), [
+            'status'           => 'required|in:pending,confirmed,completed,cancelled',
+            'consultant_notes' => 'nullable|string|max:1000',
+        ]);
+
+        if ($validator->fails()) {
+            return response()->json(['success' => false, 'errors' => $validator->errors()], 422);
+        }
+
+        try {
+            $consultantId = auth()->id();
+
+            // Find appointment that belongs to the logged-in consultant
+            $appointment = Appointment::where('id', $id)
+                ->whereHas('schedule', function ($query) use ($consultantId) {
+                    $query->where('consultant_id', $consultantId);
+                })
+                ->with('schedule')
+                ->first();
+
+            if (!$appointment) {
+                return response()->json(['success' => false, 'message' => 'Appointment not found or unauthorized.'], 403);
+            }
+
+            \DB::transaction(function () use ($appointment, $request) {
+                $appointment->update([
+                    'status'           => $request->status,
+                    'consultant_notes' => $request->consultant_notes,
+                ]);
+
+                // If cancelled, make the schedule slot available again
+                if ($request->status === 'cancelled') {
+                    $appointment->schedule->update(['status' => 'available']);
+                } else {
+                    // Otherwise keep it booked
+                    $appointment->schedule->update(['status' => 'booked']);
+                }
+            });
+
+            return response()->json([
+                'success' => true,
+                'message' => 'Appointment status updated successfully.',
+                'data'    => $appointment->load('schedule')
+            ], 200);
+
+        } catch (\Exception $e) {
+            return response()->json([
+                'success' => false,
+                'message' => 'Failed to update appointment status. Please try again.'
+            ], 500);
+        }
+    }
 }
