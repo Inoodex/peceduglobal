@@ -342,6 +342,12 @@ const routes = [
         component: () => import('../views/Dashboard/BookingManager/index.vue'),
         meta: { auth: true, role: 'admin' }
     },
+    {
+        path: '/dashboard/contact-list',
+        name: 'contact-list',
+        component: () => import('../views/Dashboard/InquiryManager/contact.vue'),
+        meta: { auth: true, permission: 'manage_inquiries' }
+    },
     // {
     //     path: '/dashboard/consultation-requests',
     //     name: 'consultation-requests',

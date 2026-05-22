@@ -53,9 +53,23 @@ class AppointmentController extends Controller
     public function getAllSchedules()
     {
         try {
-            $schedules = ConsultantSchedule::with(['consultant:id,full_name,email', 'appointment.student:id,full_name,email'])
+            $schedules = ConsultantSchedule::with([
+                    'consultant:id,full_name,email',
+                    'appointment.student:id,full_name,email'
+                ])
                 ->orderBy('slot_date', 'desc')
                 ->paginate(50);
+
+            // Attach guest display info to each schedule's appointment
+            $schedules->getCollection()->transform(function ($schedule) {
+                if ($schedule->appointment) {
+                    $apt = $schedule->appointment;
+                    $schedule->appointment->booker_name  = $apt->student?->full_name ?? $apt->guest_name ?? 'Guest';
+                    $schedule->appointment->booker_email = $apt->student?->email ?? $apt->guest_email ?? '-';
+                    $schedule->appointment->is_guest     = is_null($apt->student_id);
+                }
+                return $schedule;
+            });
 
             return response()->json([
                 'success' => true,
@@ -78,6 +92,15 @@ class AppointmentController extends Controller
                 ])
                 ->orderBy('created_at', 'desc')
                 ->paginate(50);
+
+            // Attach guest display info
+            $appointments->getCollection()->transform(function ($apt) {
+                $apt->booker_name  = $apt->student?->full_name ?? $apt->guest_name ?? 'Guest';
+                $apt->booker_email = $apt->student?->email ?? $apt->guest_email ?? '-';
+                $apt->booker_phone = $apt->student?->phone ?? $apt->guest_phone ?? '-';
+                $apt->is_guest     = is_null($apt->student_id);
+                return $apt;
+            });
 
             return response()->json([
                 'success' => true,

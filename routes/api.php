@@ -116,6 +116,9 @@ Route::group(['prefix' => 'auth'], function () {
             Route::apiResource('applications', AdminApplicationController::class);
 
             // Inquiry/Lead Management
+            Route::get('contacts', [AdminInquiryController::class, 'getContacts']);
+            Route::delete('contacts/{id}', [AdminInquiryController::class, 'destroyContact']);
+
             Route::apiResource('inquiries', AdminInquiryController::class)->except(['store']);
 
             // Booking & Appointment Management

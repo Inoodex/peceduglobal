@@ -11,6 +11,7 @@ use App\Http\Controllers\Frontend\InquiryController as FrontendInquiryController
 use App\Http\Controllers\Frontend\ConsultantController as FrontendConsultantController;
 use App\Http\Controllers\Frontend\PageController as FrontendPageController;
 use App\Http\Controllers\Frontend\BlogController as FrontendBlogController;
+use App\Http\Controllers\Frontend\ContactController;
 use App\Http\Controllers\Frontend\StudentAuthController as FrontendStudentAuthController;
 use App\Http\Controllers\Frontend\StudentProfileController as FrontendStudentProfileController;
 
@@ -78,6 +79,8 @@ Route::prefix('public')->group(function () {
         Route::post('profile',          [FrontendStudentProfileController::class, 'update']);
         Route::put('profile/password',  [FrontendStudentProfileController::class, 'updatePassword']);
     });
+    //contact
+    Route::post('/contact', [ContactController::class, 'index']);
     //footer
     Route::get('/site_info', [FooterController::class, 'index']);
 });

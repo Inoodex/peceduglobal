@@ -116,11 +116,16 @@
                    </span>
                 </td>
                 <td class="px-6 py-4">
-                   <div v-if="slot.appointment?.student" class="flex items-center gap-2">
-                      <div class="w-6 h-6 rounded-full bg-primary/10 flex items-center justify-center text-[10px] font-black text-primary border border-primary/20">
-                        {{ slot.appointment.student.full_name.charAt(0) }}
-                      </div>
-                      <span class="text-sm font-bold text-gray-900 dark:text-white">{{ slot.appointment.student.full_name }}</span>
+                   <div v-if="slot.appointment" class="flex items-center gap-2">
+                     <div class="w-6 h-6 rounded-full flex items-center justify-center text-[10px] font-black border"
+                       :class="slot.appointment.is_guest ? 'bg-orange-50 border-orange-200 text-orange-600' : 'bg-primary/10 border-primary/20 text-primary'">
+                       {{ (slot.appointment.booker_name || 'G').charAt(0).toUpperCase() }}
+                     </div>
+                     <div>
+                       <span class="text-sm font-bold text-gray-900 dark:text-white">{{ slot.appointment.booker_name }}</span>
+                       <span v-if="slot.appointment.is_guest" class="ml-1 px-1.5 py-0.5 text-[9px] font-black uppercase bg-orange-100 text-orange-600 rounded">Guest</span>
+                       <div class="text-[10px] text-gray-400">{{ slot.appointment.booker_email }}</div>
+                     </div>
                    </div>
                    <span v-else class="text-xs text-gray-400 italic font-medium">No booking yet</span>
                 </td>
@@ -134,7 +139,7 @@
           <table class="w-full text-left">
             <thead>
               <tr class="bg-gray-50 dark:bg-[#141A21] border-b border-gray-100 dark:border-gray-800">
-                <th class="px-6 py-4 text-xs font-bold text-gray-500 uppercase">Student</th>
+                <th class="px-6 py-4 text-xs font-bold text-gray-500 uppercase">Booker</th>
                 <th class="px-6 py-4 text-xs font-bold text-gray-500 uppercase">Consultant</th>
                 <th class="px-6 py-4 text-xs font-bold text-gray-500 uppercase">Date & Time</th>
                 <th class="px-6 py-4 text-xs font-bold text-gray-500 uppercase">Type</th>
@@ -144,8 +149,20 @@
             <tbody class="divide-y divide-gray-100 dark:divide-gray-800/50">
               <tr v-for="app in appointments" :key="app.id" class="hover:bg-gray-50 dark:hover:bg-gray-800/30">
                 <td class="px-6 py-4">
-                  <div class="font-bold text-gray-900 dark:text-white">{{ app.student?.full_name }}</div>
-                  <div class="text-[10px] text-gray-500 uppercase font-bold">{{ app.student?.email }}</div>
+                  <div class="flex items-center gap-2">
+                    <div class="w-8 h-8 rounded-full flex items-center justify-center text-xs font-black border shrink-0"
+                      :class="app.is_guest ? 'bg-orange-50 border-orange-200 text-orange-600' : 'bg-primary/10 border-primary/20 text-primary'">
+                      {{ (app.booker_name || 'G').charAt(0).toUpperCase() }}
+                    </div>
+                    <div>
+                      <div class="flex items-center gap-1">
+                        <span class="font-bold text-gray-900 dark:text-white text-sm">{{ app.booker_name }}</span>
+                        <span v-if="app.is_guest" class="px-1.5 py-0.5 text-[9px] font-black uppercase bg-orange-100 text-orange-600 rounded">Guest</span>
+                      </div>
+                      <div class="text-[10px] text-gray-500 uppercase font-bold">{{ app.booker_email }}</div>
+                      <div v-if="app.is_guest && app.booker_phone && app.booker_phone !== '-'" class="text-[10px] text-gray-400">📞 {{ app.booker_phone }}</div>
+                    </div>
+                  </div>
                 </td>
                 <td class="px-6 py-4">
                   <div class="font-bold text-primary">{{ app.schedule?.consultant?.full_name }}</div>

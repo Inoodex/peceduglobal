@@ -17,4 +17,19 @@ export default defineConfig({
             ignored: ['**/storage/framework/views/**'],
         },
     },
+    build: {
+        chunkSizeWarningLimit: 1600,
+        rollupOptions: {
+            output: {
+                manualChunks(id) {
+                    if (id.includes('node_modules')) {
+                        if (id.includes('@tiptap') || id.includes('tiptap-extension-resize-image')) {
+                            return 'tiptap';
+                        }
+                        return 'vendor';
+                    }
+                }
+            }
+        }
+    }
 });

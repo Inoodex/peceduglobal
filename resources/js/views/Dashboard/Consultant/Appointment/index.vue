@@ -57,17 +57,20 @@
         @page-change="fetchAppointments"
         @per-page-change="handlePerPageChange"
       >
-        <!-- Student -->
+        <!-- Student / Guest -->
         <template #cell(student)="{ item: app }">
           <div class="flex items-center gap-3">
-            <img 
-              :src="app.student?.profile_photo_url || `https://api.dicebear.com/7.x/avataaars/svg?seed=${app.student?.full_name}`" 
-              class="w-10 h-10 rounded-full bg-gray-100 object-cover"
-              alt="Student"
-            />
+            <div class="w-10 h-10 rounded-full flex items-center justify-center font-black text-sm border shrink-0"
+              :class="app.is_guest ? 'bg-orange-50 border-orange-200 text-orange-600' : 'bg-primary/10 border-primary/20 text-primary'">
+              {{ (app.booker_name || 'G').charAt(0).toUpperCase() }}
+            </div>
             <div>
-              <div class="text-sm font-semibold text-gray-900 dark:text-white">{{ app.student?.full_name }}</div>
-              <div class="text-xs text-gray-500">{{ app.student?.email }}</div>
+              <div class="flex items-center gap-1.5">
+                <div class="text-sm font-semibold text-gray-900 dark:text-white">{{ app.booker_name }}</div>
+                <span v-if="app.is_guest" class="px-1.5 py-0.5 text-[9px] font-black uppercase bg-orange-100 text-orange-600 rounded">Guest</span>
+              </div>
+              <div class="text-xs text-gray-500">{{ app.booker_email }}</div>
+              <div v-if="app.is_guest && app.booker_phone && app.booker_phone !== '-'" class="text-[10px] text-gray-400">📞 {{ app.booker_phone }}</div>
             </div>
           </div>
         </template>
@@ -85,14 +88,14 @@
           </div>
         </template>
         <!-- Type -->
-        <template #cell(type)="{ item: app }">
+        <!-- <template #cell(type)="{ item: app }">
           <div :class="[
             'px-3 py-1 rounded-full text-[10px] font-bold uppercase tracking-wider border inline-block',
             app.meeting_type === 'online' ? 'bg-blue-50 text-blue-600 border-blue-100' : 'bg-purple-50 text-purple-600 border-purple-100'
           ]">
             {{ app.meeting_type }}
           </div>
-        </template>
+        </template> -->
         <!-- Status -->
         <template #cell(status)="{ item: app }">
           <div class="px-3 py-1 rounded-full bg-green-50 text-green-600 border border-green-100 text-[10px] font-bold uppercase tracking-wider inline-block">
@@ -100,7 +103,7 @@
           </div>
         </template>
         <!-- Actions -->
-        <template #cell(actions)="{ item: app }">
+        <!-- <template #cell(actions)="{ item: app }">
           <div class="flex items-center justify-end gap-2">
             <button 
               v-if="app.meeting_type === 'online'"
@@ -112,8 +115,9 @@
               <MoreVertical :size="14" />
             </button>
           </div>
-        </template>
+        </template> -->
       </DataTable>
+
     </div>
   </MainLayout>
 </template>
@@ -136,9 +140,9 @@ const perPage = ref(15);
 const columns = [
   { key: 'student', label: 'Student' },
   { key: 'datetime', label: 'Date & Time' },
-  { key: 'type', label: 'Type' },
+  // { key: 'type', label: 'Type' },
   { key: 'status', label: 'Status' },
-  { key: 'actions', label: 'Actions', align: 'right' }
+  // { key: 'actions', label: 'Actions', align: 'right' }
 ];
 
 const handlePerPageChange = (newPerPage) => {

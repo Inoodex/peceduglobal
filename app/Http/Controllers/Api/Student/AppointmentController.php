@@ -251,21 +251,27 @@ class AppointmentController extends Controller
             $appointments = Appointment::whereHas('schedule', function($query) use ($consultantId) {
                     $query->where('consultant_id', $consultantId);
                 })
-                ->with(['schedule', 'student:id,full_name,email,profile_photo_url'])
+                ->with(['schedule', 'student:id,full_name,email,phone,profile_photo_url'])
                 ->orderBy('created_at', 'desc')
                 ->get()
                 ->map(function($appointment) {
+                    $isGuest = is_null($appointment->student_id);
                     return [
-                        'id' => $appointment->id,
-                        'status' => $appointment->status,
-                        'meeting_type' => $appointment->meeting_type,
-                        'date' => $appointment->schedule->slot_date,
-                        'start_time' => $appointment->schedule->start_time,
-                        'end_time' => $appointment->schedule->end_time,
-                        'student' => $appointment->student->only(['id', 'full_name', 'email', 'profile_photo_url']),
-                        'meeting_link' => $appointment->meeting_link,
+                        'id'             => $appointment->id,
+                        'status'         => $appointment->status,
+                        'meeting_type'   => $appointment->meeting_type,
+                        'date'           => $appointment->schedule->slot_date,
+                        'start_time'     => $appointment->schedule->start_time,
+                        'end_time'       => $appointment->schedule->end_time,
+                        'meeting_link'   => $appointment->meeting_link,
                         'consultant_notes' => $appointment->consultant_notes,
-                        'created_at' => $appointment->created_at->format('Y-m-d H:i:s')
+                        'is_guest'       => $isGuest,
+                        'booker_name'    => $appointment->student?->full_name ?? $appointment->guest_name ?? 'Guest',
+                        'booker_email'   => $appointment->student?->email ?? $appointment->guest_email ?? '-',
+                        'booker_phone'   => $appointment->student?->phone ?? $appointment->guest_phone ?? '-',
+                        // Keep student data for backward compatibility
+                        'student'        => $appointment->student,
+                        'created_at'     => $appointment->created_at->format('Y-m-d H:i:s')
                     ];
                 });
 

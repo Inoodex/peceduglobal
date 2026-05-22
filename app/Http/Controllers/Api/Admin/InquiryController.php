@@ -3,6 +3,7 @@
 namespace App\Http\Controllers\Api\Admin;
 
 use App\Http\Controllers\Controller;
+use App\Models\Contact;
 use App\Models\Inquiry;
 use Illuminate\Http\Request;
 use Illuminate\Http\Response;
@@ -77,5 +78,47 @@ class InquiryController extends Controller
             'success' => true,
             'message' => 'Inquiry deleted successfully.',
         ], Response::HTTP_OK);
+    }
+    public function getContacts(Request $request)
+    {
+        $perPage = $request->query('per_page', 15);
+        $contacts = Contact::latest()->paginate($perPage);
+        return response()->json([
+            'success' => true,
+            'data' => $contacts->items(),
+            'meta' => [
+                'current_page' => $contacts->currentPage(),
+                'last_page' => $contacts->lastPage(),
+                'total' => $contacts->total(),
+                'per_page' => $contacts->perPage(),
+                'from' => $contacts->firstItem(),
+                'to' => $contacts->lastItem(),
+            ]
+        ], 200);
+    }
+
+    public function destroyContact($id)
+    {
+        try {
+
+            $contact = Contact::find($id);
+
+            if (!$contact) {
+                return response()->json([
+                    'status' => 'error',
+                    'message' => 'Contact message not found!'
+                ], 404);
+            }
+            $contact->delete();
+            return response()->json([
+                'status' => 'success',
+                'message' => 'Message deleted successfully.'
+            ], 200);
+        } catch (\Exception $e) {
+            return response()->json([
+                'status' => 'error',
+                'message' => 'Something went wrong: ' . $e->getMessage()
+            ], 500);
+        }
     }
 }
