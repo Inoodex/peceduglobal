@@ -340,7 +340,7 @@ const routes = [
         path: '/dashboard/career-opportunities',
         name: 'career-opportunities',
         component: () => import('../views/Dashboard/InquiryManager/index.vue'),
-        props: { type: 'carrer_oppurtunity' },
+        props: { type: 'career_oppurtunity' },
         meta: { auth: true, permission: 'manage_inquiries' }
     },
     {
