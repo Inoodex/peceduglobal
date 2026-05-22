@@ -210,25 +210,36 @@ export default {
     async fetchCountries() {
       try {
         const response = await axios.get('/auth/admin/countries');
-        this.countries = response.data.data?.data || response.data.data || [];
+        // Handle both array and paginated response
+        const data = response.data.data;
+        this.countries = Array.isArray(data) ? data : (data?.data || []);
+        console.log('Countries loaded:', this.countries.length);
       } catch (error) {
         console.error('Error fetching countries:', error);
+        this.countries = [];
       }
     },
     async fetchUniversities() {
       try {
         const response = await axios.get('/auth/dropdowns/universities');
-        this.universities = response.data.data?.data || response.data.data || [];
+        // Handle both array and paginated response
+        const data = response.data.data;
+        this.universities = Array.isArray(data) ? data : (data?.data || []);
+        console.log('Universities loaded:', this.universities.length);
       } catch (error) {
         console.error('Error fetching universities:', error);
+        this.universities = [];
       }
     },
     async fetchPages() {
       try {
         const response = await axios.get('/auth/admin/pages', { params: { all: true } });
-        this.pages = response.data.data || [];
+        const data = response.data.data;
+        this.pages = Array.isArray(data) ? data : (data?.data || []);
+        console.log('Pages loaded:', this.pages.length);
       } catch (error) {
         console.error('Error fetching pages:', error);
+        this.pages = [];
       }
     },
     async fetchPage() {

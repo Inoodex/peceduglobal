@@ -157,9 +157,12 @@ export default {
     async fetchPages() {
       try {
         const response = await axios.get('/auth/admin/pages', { params: { all: true } });
-        this.pages = response.data.data || [];
+        const data = response.data.data;
+        this.pages = Array.isArray(data) ? data : (data?.data || []);
+        console.log('Pages loaded:', this.pages.length);
       } catch (error) {
         console.error('Error fetching pages:', error);
+        this.pages = [];
       }
     },
     async fetchBlock() {

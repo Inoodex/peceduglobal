@@ -132,9 +132,12 @@ export default {
     async fetchBlocks() {
       try {
         const response = await axios.get('/auth/admin/blocks', { params: { all: true } });
-        this.blocks = response.data.data || [];
+        const data = response.data.data;
+        this.blocks = Array.isArray(data) ? data : (data?.data || []);
+        console.log('Blocks loaded:', this.blocks.length);
       } catch (error) {
         console.error('Error fetching blocks:', error);
+        this.blocks = [];
       }
     },
     async fetchElement() {

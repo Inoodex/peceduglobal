@@ -136,7 +136,7 @@ const searchInput= ref(null);
 
 const selectedOption = computed(() => {
   if (props.modelValue === null || props.modelValue === '') return null;
-  return props.options.find(opt => opt[props.valueKey] === props.modelValue) || null;
+  return props.options.find(opt => String(opt[props.valueKey]) === String(props.modelValue)) || null;
 });
 
 const filteredOptions = computed(() => {
@@ -148,7 +148,7 @@ const filteredOptions = computed(() => {
   });
 });
 
-const isSelected = (option) => option[props.valueKey] === props.modelValue;
+const isSelected = (option) => String(option[props.valueKey]) === String(props.modelValue);
 
 const toggleDropdown = async () => {
   isOpen.value = !isOpen.value;
