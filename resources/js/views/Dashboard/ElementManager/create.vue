@@ -23,14 +23,17 @@
             <ChevronDown class="w-5 h-5 text-gray-400 transition-transform" :class="{ 'rotate-180': sections.details }" />
           </button>
           <div v-show="sections.details" class="p-4 pt-0 border-t border-gray-200 dark:border-gray-700/50 space-y-4">
-            <div>
-              <label class="block text-sm font-medium text-gray-700 dark:text-gray-300 mb-1.5">Target Block <span class="text-red-500">*</span></label>
-              <select v-model="form.page_block_id" class="w-full bg-gray-50 dark:bg-[#141A21] border border-gray-200 dark:border-gray-700 rounded-xl px-4 py-2.5 text-gray-900 dark:text-white focus:outline-none focus:ring-2 focus:ring-primary/20 focus:border-primary transition-all" required>
-                <option value="">Select Block</option>
-                <option v-for="block in blocks" :key="block.id" :value="block.id">
-                  {{ block.page?.title }} - {{ block.block_type }} ({{ block.section_title || 'No Title' }})
-                </option>
-              </select>
+            <div class="mt-4">
+              <CustomSelect
+                v-model="form.page_block_id"
+                :options="blocks"
+                label="Target Block"
+                placeholder="Select a block"
+                :label-key="blockLabel"
+                valueKey="id"
+                :clearable="false"
+                :searchable="true"
+              />
             </div>
             <div>
               <label class="block text-sm font-medium text-gray-700 dark:text-gray-300 mb-1.5">{{ selectedBlockType === 'faq' ? 'Question' : 'Element Title' }}</label>
@@ -82,13 +85,14 @@ import axios from '@/plugins/axios';
 import MainLayout from '@/layouts/MainLayout.vue';
 import AppEditor from '@/components/AppEditor.vue';
 import FileUpload from '@/components/MultipleFileUpload.vue';
+import CustomSelect from '@/components/Form/CustomSelect.vue';
 import { ChevronRight, ChevronDown, Loader2, Upload } from 'lucide-vue-next';
 import { clearCache } from '@/utils/cacheHelper';
 import { useToastStore } from '@/stores/toast';
 
 export default {
   name: 'ElementCreate',
-  components: { MainLayout, AppEditor, FileUpload, ChevronRight, ChevronDown, Loader2, Upload },
+  components: { MainLayout, AppEditor, FileUpload, CustomSelect, ChevronRight, ChevronDown, Loader2, Upload },
   setup() {
     const toast = useToastStore();
     return { toast };
@@ -110,6 +114,9 @@ export default {
     };
   },
   computed: {
+    blockLabel() {
+      return (block) => `${block.page?.title} - ${block.block_type} (${block.section_title || 'No Title'})`;
+    },
     selectedBlockType() {
       const block = this.blocks.find(b => b.id === this.form.page_block_id);
       return block ? block.block_type : '';
@@ -124,8 +131,8 @@ export default {
     },
     async fetchBlocks() {
       try {
-        const response = await axios.get('/auth/admin/blocks');
-        this.blocks = response.data.data?.data || response.data.data || [];
+        const response = await axios.get('/auth/admin/blocks', { params: { all: true } });
+        this.blocks = response.data.data || [];
       } catch (error) {
         console.error('Error fetching blocks:', error);
       }

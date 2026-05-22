@@ -34,6 +34,14 @@ class BlockController extends Controller
             });
         }
 
+        if ($request->boolean('all')) {
+            $blocks = $query->orderBy('sort_order', 'asc')->latest()->get();
+            return response()->json([
+                'success' => true,
+                'data' => BlockResource::collection($blocks),
+            ], Response::HTTP_OK);
+        }
+
         $perPage = $request->input('per_page', 15);
         $blocks = $query->orderBy('sort_order', 'asc')->latest()->paginate($perPage);
         return response()->json([

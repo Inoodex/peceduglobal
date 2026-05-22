@@ -61,7 +61,7 @@
       <!-- Blocks Table -->
       <DataTable 
         :columns="columns" 
-        :data="filteredBlocks" 
+        :data="blocks" 
         :loading="loading"
         :pagination="pagination"
         @page-change="fetchBlocks"
@@ -145,14 +145,6 @@ export default {
     pageOptions() {
       return this.pages.map(p => ({ ...p, label: `${p.country?.iso_code ? p.country.iso_code + ' - ' : ''}${p.title}` }));
     },
-    filteredBlocks() {
-      if (!this.searchQuery.trim()) return this.blocks;
-      const query = this.searchQuery.toLowerCase();
-      return this.blocks.filter(b =>
-        b.block_type.toLowerCase().includes(query) ||
-        (b.section_title && b.section_title.toLowerCase().includes(query))
-      );
-    },
   },
   mounted() {
     this.fetchCountries();
@@ -166,6 +158,10 @@ export default {
       this.fetchBlocks(1);
     },
     selectedPage() { this.fetchBlocks(1); },
+    searchQuery() {
+      clearTimeout(this._searchTimer);
+      this._searchTimer = setTimeout(() => this.fetchBlocks(1), 400);
+    },
   },
   methods: {
     async fetchCountries() {
@@ -198,7 +194,8 @@ export default {
           page,
           per_page: this.perPage,
           country_id: this.selectedCountry,
-          page_id: this.selectedPage
+          page_id: this.selectedPage,
+          search: this.searchQuery || undefined
         },
         component: this,
         dataKey: 'blocks',

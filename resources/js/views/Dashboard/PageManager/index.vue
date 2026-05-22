@@ -50,7 +50,7 @@
       <!-- Pages Table -->
       <DataTable 
         :columns="columns" 
-        :data="filteredPages" 
+        :data="pages" 
         :loading="loading"
         :pagination="pagination"
         @page-change="fetchPages"
@@ -133,22 +133,18 @@ export default {
     };
   },
 
-  computed: {
-    filteredPages() {
-      if (!this.searchQuery.trim()) return this.pages;
-      const query = this.searchQuery.toLowerCase();
-      return this.pages.filter(p =>
-        p.title.toLowerCase().includes(query) ||
-        p.slug.toLowerCase().includes(query)
-      );
-    },
-  },
+  computed: {},
+
   mounted() { 
     this.fetchCountries();
     this.fetchPages();
   },
   watch: {
     selectedCountry() { this.fetchPages(1); },
+    searchQuery() {
+      clearTimeout(this._searchTimer);
+      this._searchTimer = setTimeout(() => this.fetchPages(1), 400);
+    },
   },
   methods: {
     async fetchCountries() {
@@ -165,7 +161,8 @@ export default {
         params: {
           page,
           per_page: this.perPage,
-          country_id: this.selectedCountry
+          country_id: this.selectedCountry,
+          search: this.searchQuery || undefined
         },
         component: this,
         dataKey: 'pages',

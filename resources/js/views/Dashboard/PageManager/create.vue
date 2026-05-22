@@ -24,58 +24,56 @@
           </button>
           <div v-show="sections.details" class="p-4 pt-0 border-t border-gray-200 dark:border-gray-700/50 space-y-4">
             <div class="flex flex-col gap-1.5">
-              <label class="block text-sm font-medium text-gray-700 dark:text-gray-300 mb-1.5">Page Type</label>
-              <select v-model="form.page_type" class="w-full bg-gray-50 dark:bg-[#141A21] border border-gray-200 dark:border-gray-700 rounded-xl px-4 py-2.5 text-gray-900 dark:text-white focus:outline-none focus:ring-2 focus:ring-primary/20 focus:border-primary transition-all">
-                <option value="">Regular Page</option>
-                <option value="about_the_company">About the Company</option>
-                <option value="about">About Us</option>
-                <option value="comparison">Comparison</option>
-                <option value="country_guide">Country Guide</option>
-                <option value="university_guide">University Guide</option>
-                <option value="faq">FAQ Page</option>
-                <option value="home">Home Page</option>
-                <option value="popular_destinations">Popular Destinations</option>
-                <option value="privacy">Privacy Policy</option>
-                <option value="services">Services</option>
-                <option value="statistics">Statistics</option>
-                <option value="study_abroad">Study Abroad</option>
-                <option value="terms">Terms & Conditions</option>
-                <option value="travel_destinations">Travel Destinations</option>
-                <option value="air_ticket">Air Ticket</option>
-                <option value="medical_travel_insurance">Medical Travel Insurance</option>
-                <option value="why_choose_us">Why Choose Us</option>
-              </select>
+              <CustomSelect
+                v-model="form.page_type"
+                :options="pageTypeOptions"
+                label="Page Type"
+                placeholder="Select page type"
+                labelKey="label"
+                valueKey="value"
+                :clearable="false"
+                :searchable="true"
+              />
             </div>
             <div>
               <label class="block text-sm font-medium text-gray-700 dark:text-gray-300 mb-1.5">Title <span class="text-red-500">*</span></label>
               <input v-model="form.title" type="text" placeholder="Page title" class="w-full bg-gray-50 dark:bg-[#141A21] border border-gray-200 dark:border-gray-700 rounded-xl px-4 py-2.5 text-gray-900 dark:text-white placeholder-gray-400 focus:outline-none focus:ring-2 focus:ring-primary/20 focus:border-primary transition-all" required />
             </div>
             <div>
-              <label class="block text-sm font-medium text-gray-700 dark:text-gray-300 mb-1.5">Country</label>
-              <select v-model="form.country_id" class="w-full bg-gray-50 dark:bg-[#141A21] border border-gray-200 dark:border-gray-700 rounded-xl px-4 py-2.5 text-gray-900 dark:text-white focus:outline-none focus:ring-2 focus:ring-primary/20 focus:border-primary transition-all">
-                <option value="">Select a country (optional)</option>
-                <option v-for="country in countries" :key="country.id" :value="country.id">
-                  {{ country.name }}
-                </option>
-              </select>
+              <CustomSelect
+                v-model="form.country_id"
+                :options="countries"
+                label="Country"
+                placeholder="Select a country (optional)"
+                labelKey="name"
+                valueKey="id"
+                :clearable="true"
+                :searchable="true"
+              />
             </div>
             <div>
-              <label class="block text-sm font-medium text-gray-700 dark:text-gray-300 mb-1.5">University</label>
-              <select v-model="form.university_id" class="w-full bg-gray-50 dark:bg-[#141A21] border border-gray-200 dark:border-gray-700 rounded-xl px-4 py-2.5 text-gray-900 dark:text-white focus:outline-none focus:ring-2 focus:ring-primary/20 focus:border-primary transition-all">
-                <option value="">Select a university (optional)</option>
-                <option v-for="uni in universities" :key="uni.id" :value="uni.id">
-                  {{ uni.name }}
-                </option>
-              </select>
+              <CustomSelect
+                v-model="form.university_id"
+                :options="universities"
+                label="University"
+                placeholder="Select a university (optional)"
+                labelKey="name"
+                valueKey="id"
+                :clearable="true"
+                :searchable="true"
+              />
             </div>
             <div>
-              <label class="block text-sm font-medium text-gray-700 dark:text-gray-300 mb-1.5">Parent Page (for nested pages)</label>
-              <select v-model="form.parent_id" class="w-full bg-gray-50 dark:bg-[#141A21] border border-gray-200 dark:border-gray-700 rounded-xl px-4 py-2.5 text-gray-900 dark:text-white focus:outline-none focus:ring-2 focus:ring-primary/20 focus:border-primary transition-all">
-                <option value="">No parent (Main page)</option>
-                <option v-for="page in availablePages" :key="page.id" :value="page.id">
-                  → {{ page.title }}
-                </option>
-              </select>
+              <CustomSelect
+                v-model="form.parent_id"
+                :options="availablePages"
+                label="Parent Page (for nested pages)"
+                placeholder="No parent (Main page)"
+                :label-key="pageLabel"
+                valueKey="id"
+                :clearable="true"
+                :searchable="true"
+              />
             </div>
             <div>
               <label class="block text-sm font-medium text-gray-700 dark:text-gray-300 mb-1.5">Thumbnail</label>
@@ -136,13 +134,14 @@
 import axios from '@/plugins/axios';
 import MainLayout from '@/layouts/MainLayout.vue';
 import FileUpload from '@/components/FileUpload.vue';
+import CustomSelect from '@/components/Form/CustomSelect.vue';
 import { ChevronRight, ChevronDown, Loader2 } from 'lucide-vue-next';
 import { clearCache } from '@/utils/cacheHelper';
 import { useToastStore } from '@/stores/toast';
 
 export default {
   name: 'PageCreate',
-  components: { MainLayout, FileUpload, ChevronRight, ChevronDown, Loader2 },
+  components: { MainLayout, FileUpload, CustomSelect, ChevronRight, ChevronDown, Loader2 },
   setup() {
     const toast = useToastStore();
     return { toast };
@@ -169,6 +168,9 @@ export default {
     };
   },
   computed: {
+    pageLabel() {
+      return (page) => `→ ${page.title}`;
+    },
     availablePages() {
       return this.pages.filter(p => !p.parent_id);
     },
@@ -200,7 +202,7 @@ export default {
     },
     async fetchPages() {
       try {
-        const response = await axios.get('/auth/admin/pages');
+        const response = await axios.get('/auth/admin/pages', { params: { all: true } });
         this.pages = response.data.data || [];
       } catch (error) {
         console.error('Error fetching pages:', error);
@@ -237,5 +239,27 @@ export default {
       }
     },
   },
+  created() {
+    this.pageTypeOptions = [
+      { label: 'Regular Page', value: '' },
+      { label: 'About the Company', value: 'about_the_company' },
+      { label: 'About Us', value: 'about' },
+      { label: 'Comparison', value: 'comparison' },
+      { label: 'Country Guide', value: 'country_guide' },
+      { label: 'University Guide', value: 'university_guide' },
+      { label: 'FAQ Page', value: 'faq' },
+      { label: 'Home Page', value: 'home' },
+      { label: 'Popular Destinations', value: 'popular_destinations' },
+      { label: 'Privacy Policy', value: 'privacy' },
+      { label: 'Services', value: 'services' },
+      { label: 'Statistics', value: 'statistics' },
+      { label: 'Study Abroad', value: 'study_abroad' },
+      { label: 'Terms & Conditions', value: 'terms' },
+      { label: 'Travel Destinations', value: 'travel_destinations' },
+      { label: 'Air Ticket', value: 'air_ticket' },
+      { label: 'Medical Travel Insurance', value: 'medical_travel_insurance' },
+      { label: 'Why Choose Us', value: 'why_choose_us' },
+    ];
+  }
 };
 </script>

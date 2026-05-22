@@ -35,6 +35,14 @@ class ElementController extends Controller
             });
         }
 
+        if ($request->boolean('all')) {
+            $elements = $query->latest()->get();
+            return response()->json([
+                'success' => true,
+                'data' => BlockElementResource::collection($elements),
+            ], Response::HTTP_OK);
+        }
+
         $perPage = $request->input('per_page', 15);
         $elements = $query->latest()->paginate($perPage);
         return response()->json([

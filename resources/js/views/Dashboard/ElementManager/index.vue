@@ -63,7 +63,7 @@
       <!-- Elements Table -->
       <DataTable 
         :columns="columns" 
-        :data="filteredElements" 
+        :data="elements" 
         :loading="loading"
         :pagination="pagination"
         @page-change="fetchElements"
@@ -150,14 +150,6 @@ export default {
         label: `${b.page?.country?.iso_code ? b.page.country.iso_code + ' | ' : ''}${b.block_type}${b.section_title ? ' - ' + b.section_title : ''}`
       }));
     },
-    filteredElements() {
-      if (!this.searchQuery.trim()) return this.elements;
-      const query = this.searchQuery.toLowerCase();
-      return this.elements.filter(e =>
-        (e.element_title && e.element_title.toLowerCase().includes(query)) ||
-        (e.element_body && e.element_body.toLowerCase().includes(query))
-      );
-    },
   },
   mounted() {
     this.fetchCountries();
@@ -171,6 +163,10 @@ export default {
       this.fetchElements(1);
     },
     selectedBlock() { this.fetchElements(1); },
+    searchQuery() {
+      clearTimeout(this._searchTimer);
+      this._searchTimer = setTimeout(() => this.fetchElements(1), 400);
+    },
   },
   methods: {
     async fetchCountries() {
@@ -203,7 +199,8 @@ export default {
           page,
           per_page: this.perPage,
           country_id: this.selectedCountry,
-          block_id: this.selectedBlock
+          block_id: this.selectedBlock,
+          search: this.searchQuery || undefined
         },
         component: this,
         dataKey: 'elements',

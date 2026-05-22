@@ -29,6 +29,15 @@ class PageController extends Controller
             });
         }
 
+
+        if ($request->boolean('all')) {
+            $pages = $query->get();
+            return response()->json([
+                'success' => true,
+                'data' => PageResource::collection($pages),
+            ], Response::HTTP_OK);
+        }
+
         $perPage = $request->input('per_page', 15);
         $pages = $query->paginate($perPage);
         

@@ -34,7 +34,7 @@
         />
         <!-- Selected value display -->
         <span v-else-if="selectedOption" class="text-sm font-medium text-gray-900 dark:text-white truncate">
-          {{ selectedOption[labelKey] }}
+          {{ typeof labelKey === 'function' ? labelKey(selectedOption) : selectedOption[labelKey] }}
         </span>
         <!-- Placeholder -->
         <span v-else class="text-sm text-gray-400 dark:text-gray-500 truncate">{{ placeholder }}</span>
@@ -97,7 +97,7 @@
 
             <!-- Slot for custom option display -->
             <slot name="option" :option="option">
-              <span class="truncate">{{ option[labelKey] }}</span>
+              <span class="truncate">{{ typeof labelKey === 'function' ? labelKey(option) : option[labelKey] }}</span>
             </slot>
 
             <!-- Checkmark for selected -->
@@ -122,7 +122,7 @@ const props = defineProps({
   placeholder:{ type: String, default: 'Select an option' },
   searchable: { type: Boolean, default: true },
   clearable:  { type: Boolean, default: true },
-  labelKey:   { type: String, default: 'label' },
+  labelKey:   { type: [String, Function], default: 'label' },
   valueKey:   { type: String, default: 'value' },
   imageKey:   { type: String, default: null },
 });
@@ -142,9 +142,10 @@ const selectedOption = computed(() => {
 const filteredOptions = computed(() => {
   if (!props.searchable || !searchQuery.value) return props.options;
   const q = searchQuery.value.toLowerCase();
-  return props.options.filter(opt =>
-    String(opt[props.labelKey] || '').toLowerCase().includes(q)
-  );
+  return props.options.filter(opt => {
+    const label = typeof props.labelKey === 'function' ? props.labelKey(opt) : opt[props.labelKey];
+    return String(label || '').toLowerCase().includes(q);
+  });
 });
 
 const isSelected = (option) => option[props.valueKey] === props.modelValue;
