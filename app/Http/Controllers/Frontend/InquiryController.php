@@ -16,15 +16,21 @@ class InquiryController extends Controller
      */
     public function store(Request $request)
     {
-        $validator = Validator::make($request->all(), [
+        $rules = [
             'first_name' => 'required|string|max:255',
             'last_name' => 'nullable|string|max:255',
             'email' => 'required|email|max:255',
             'phone' => 'required|string|max:20',
             'type' => 'nullable|string|max:50',
             'additional_info' => 'nullable', // allow array or JSON string when multipart/form-data
-            'additional_info_file' => 'nullable|file|mimes:pdf,doc,docx,jpg,jpeg,png,webp|max:5120', // max 5MB
-        ]);
+            'additional_info_file' => 'nullable',
+        ];
+
+        if ($request->hasFile('additional_info_file')) {
+            $rules['additional_info_file'] = 'file|mimes:pdf,doc,docx,jpg,jpeg,png,webp|max:5120'; // max 5MB
+        }
+
+        $validator = Validator::make($request->all(), $rules);
 
         if ($validator->fails()) {
             return response()->json([
