@@ -40,6 +40,9 @@
         :columns="columns" 
         :data="filteredCountries" 
         :loading="loading"
+        :pagination="pagination"
+        @page-change="fetchCountries"
+        @per-page-change="handlePerPageChange"
       >
         <template #cell(name)="{ item }">
           <div class="flex items-center gap-3">
@@ -106,6 +109,8 @@ export default {
       countries: [],
       loading: false,
       searchQuery: '',
+      pagination: null,
+      perPage: 15,
       columns: [
         { key: 'name', label: 'Country' },
         { key: 'slug', label: 'Slug' },
@@ -128,17 +133,22 @@ export default {
     },
   },
   mounted() { 
-    this.fetchCountries(); 
+    this.fetchCountries(1); 
   },
   methods: {
-    async fetchCountries() {
+    async fetchCountries(page = 1) {
       await fetchWithCache({
         url: '/auth/admin/countries',
-        params: { per_page: 500 },
+        params: { page, per_page: this.perPage },
         component: this,
         loadingKey: 'loading',
-        dataKey: 'countries'
+        dataKey: 'countries',
+        paginationKey: 'pagination'
       });
+    },
+    handlePerPageChange(newPerPage) {
+      this.perPage = newPerPage;
+      this.fetchCountries(1);
     },
     async confirmDelete(country) {
       const confirmed = await this.confirm.ask({

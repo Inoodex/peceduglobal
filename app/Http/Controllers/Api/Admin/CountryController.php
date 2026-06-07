@@ -17,9 +17,18 @@ class CountryController extends Controller
     {
         $perPage = min(max((int) $request->query('per_page', 100), 1), 500);
         $countries = Country::paginate($perPage);
+
         return response()->json([
             'success' => true,
             'data' => CountryResource::collection($countries),
+            'pagination' => [
+                'total' => $countries->total(),
+                'current_page' => $countries->currentPage(),
+                'last_page' => $countries->lastPage(),
+                'per_page' => $countries->perPage(),
+                'from' => $countries->firstItem(),
+                'to' => $countries->lastItem(),
+            ],
         ], Response::HTTP_OK);
     }
 

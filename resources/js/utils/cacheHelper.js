@@ -68,11 +68,11 @@ export async function fetchWithCache({
         if (res && (res.success !== false)) {
             // Support both standard success wrapper and direct resource collections
             let data = res.data || res || [];
-            let meta = res.meta || null;
+            let meta = res.meta || res.pagination || null;
             
             // Handle Laravel's nested Resource Collection format (where data contains data, links, meta)
             if (!Array.isArray(data) && data !== null && typeof data === 'object' && Array.isArray(data.data)) {
-                meta = data.meta || meta;
+                meta = data.meta || data.pagination || meta;
                 data = data.data;
             }
             

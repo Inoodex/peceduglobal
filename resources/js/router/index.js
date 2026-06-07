@@ -1,5 +1,6 @@
 import { createRouter, createWebHistory } from 'vue-router';
 import { useAuthStore } from '../stores/auth';
+import { handleScroll } from './scrollBehavior';
 
 const routes = [
     {
@@ -433,6 +434,7 @@ router.beforeEach(async (to, from, next) => {
 });
 
 router.afterEach((to) => {
+    handleScroll();
     let pageTitle = to.meta.title;
     if (!pageTitle && to.name) {
         pageTitle = to.name

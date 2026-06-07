@@ -24,6 +24,14 @@ class UniversityController extends Controller
         return response()->json([
             'success' => true,
             'data' => UniversityResource::collection($universities),
+            'pagination' => [
+                'total' => $universities->total(),
+                'current_page' => $universities->currentPage(),
+                'last_page' => $universities->lastPage(),
+                'per_page' => $universities->perPage(),
+                'from' => $universities->firstItem(),
+                'to' => $universities->lastItem(),
+            ],
         ], Response::HTTP_OK);
     }
 

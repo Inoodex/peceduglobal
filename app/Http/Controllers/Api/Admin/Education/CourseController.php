@@ -22,6 +22,14 @@ class CourseController extends Controller
         return response()->json([
             'success' => true,
             'data' => $courses,
+            'pagination' => [
+                'total' => $courses->total(),
+                'current_page' => $courses->currentPage(),
+                'last_page' => $courses->lastPage(),
+                'per_page' => $courses->perPage(),
+                'from' => $courses->firstItem(),
+                'to' => $courses->lastItem(),
+            ],
         ], Response::HTTP_OK);
     }
 

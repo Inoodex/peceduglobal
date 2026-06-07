@@ -101,6 +101,14 @@ class ApplicationController extends Controller
             return response()->json([
                 'success' => true,
                 'data' => $applications,
+                'pagination' => [
+                    'total' => $applications->total(),
+                    'current_page' => $applications->currentPage(),
+                    'last_page' => $applications->lastPage(),
+                    'per_page' => $applications->perPage(),
+                    'from' => $applications->firstItem(),
+                    'to' => $applications->lastItem(),
+                ],
             ], 200);
         } catch (Exception $e) {
             return response()->json([

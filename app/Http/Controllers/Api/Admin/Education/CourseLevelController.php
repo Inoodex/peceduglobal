@@ -11,12 +11,21 @@ use Illuminate\Support\Str;
 
 class CourseLevelController extends Controller
 {
-    public function index(): JsonResponse
+    public function index(Request $request): JsonResponse
     {
-        $levels = CourseLevel::all();
+        $perPage = min(max((int) $request->query('per_page', 100), 1), 500);
+        $levels = CourseLevel::paginate($perPage);
         return response()->json([
             'success' => true,
             'data' => $levels,
+            'pagination' => [
+                'total' => $levels->total(),
+                'current_page' => $levels->currentPage(),
+                'last_page' => $levels->lastPage(),
+                'per_page' => $levels->perPage(),
+                'from' => $levels->firstItem(),
+                'to' => $levels->lastItem(),
+            ],
         ], 200);
     }
 
