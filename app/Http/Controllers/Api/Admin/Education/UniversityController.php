@@ -16,7 +16,7 @@ class UniversityController extends Controller
     public function index(Request $request): JsonResponse
     {
         $perPage = min(max((int) $request->query('per_page', 100), 1), 500);
-        $query = University::with('country');
+        $query = University::with('country')->latest();
         if ($request->filled('country_id')) {
             $query->where('country_id', (int) $request->query('country_id'));
         }
