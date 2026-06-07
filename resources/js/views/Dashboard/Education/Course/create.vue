@@ -155,7 +155,8 @@ const fetchUniversities = async () => {
 const fetchLevels = async () => {
   try {
     const response = await axios.get('/auth/admin/course-levels');
-    levels.value = response.data.data || [];
+    const payload = response.data.data?.data || response.data.data || [];
+    levels.value = Array.isArray(payload) ? payload.filter(Boolean) : [];
   } catch (e) {
     toast.error('Failed to load levels.');
   }
@@ -172,10 +173,11 @@ const fetchCourse = async () => {
   if (!isEdit.value) return;
   try {
     const response = await axios.get(`/auth/admin/courses/${route.params.id}`);
-    const data = response.data.data;
+    const data = response.data.data || {};
     form.value = {
       ...data,
-      is_popular: !!data.is_popular
+      requirements: data.requirements ?? '',
+      is_popular: !!data.is_popular,
     };
   } catch (e) {
     toast.error('Failed to load course details.');
