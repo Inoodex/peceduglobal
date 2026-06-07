@@ -26,6 +26,7 @@ class UniversityResource extends JsonResource
             'location' => $this->location,
             'ranking' => $this->ranking,
             'tuition_range' => $this->tuition_range,
+            'total_students' => $this->total_students,
             'intake_months' => $this->intake_months,
             'website' => $this->website,
             'description' => $this->description,

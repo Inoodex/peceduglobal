@@ -24,6 +24,7 @@ class StoreUniversityRequest extends FormRequest
             'location' => 'nullable|string',
             'ranking' => 'nullable|string',
             'tuition_range' => 'nullable|string',
+            'total_students' => 'nullable|string',
             'intake_months' => 'nullable|string',
             'website' => 'nullable|string',
             'description' => 'nullable|string',
