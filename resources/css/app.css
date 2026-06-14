@@ -10,11 +10,11 @@
 @theme {
   --font-sans: 'Public Sans', ui-sans-serif, system-ui, sans-serif;
   --color-primary: #00A76F;
-  --color-primary-hover: #007867;
-  --color-primary-light: #5BE49B;
-  --color-primary-lighter: #C8FAD6;
-  --color-primary-dark: #007867;
-  --color-primary-darker: #004B50;
+  --color-primary-hover: color-mix(in srgb, var(--color-primary) 85%, black);
+  --color-primary-light: color-mix(in srgb, var(--color-primary) 60%, white);
+  --color-primary-lighter: color-mix(in srgb, var(--color-primary) 20%, white);
+  --color-primary-dark: color-mix(in srgb, var(--color-primary) 70%, black);
+  --color-primary-darker: color-mix(in srgb, var(--color-primary) 40%, black);
 
   /* Light Mode Colors */
   --color-bg-light: #FFFFFF;
@@ -45,17 +45,17 @@
     --palette-primary-lighter: #C8FAD6;
     --palette-primary-darker: #004B50;
 
-    --nav-item-root-active-bg: rgba(0, 167, 111, 0.08);
-    --nav-item-root-active-hover-bg: rgba(0, 167, 111, 0.16);
-    --nav-item-root-active-color: #00A76F;
+    --nav-item-root-active-bg: color-mix(in srgb, var(--color-primary) 8%, transparent);
+    --nav-item-root-active-hover-bg: color-mix(in srgb, var(--color-primary) 16%, transparent);
+    --nav-item-root-active-color: var(--color-primary);
 
     --shadows-16: 0 16px 32px -4px rgba(145, 158, 171, 0.16);
     --overlays-16: rgba(145, 158, 171, 0.16);
   }
 
   .dark {
-    --nav-item-root-active-bg: rgba(0, 167, 111, 0.16);
-    --nav-item-root-active-hover-bg: rgba(0, 167, 111, 0.32);
+    --nav-item-root-active-bg: color-mix(in srgb, var(--color-primary) 16%, transparent);
+    --nav-item-root-active-hover-bg: color-mix(in srgb, var(--color-primary) 32%, transparent);
     --shadows-16: 0 16px 32px -4px rgba(0, 0, 0, 0.32);
   }
 

@@ -50,6 +50,6 @@ import GlobalConfirm from '@/components/ui/GlobalConfirm.vue';
 const layout = useLayoutStore();
 
 onMounted(() => {
-  layout.updateBodyClass();
+  layout.applyAllSettings();
 });
 </script>

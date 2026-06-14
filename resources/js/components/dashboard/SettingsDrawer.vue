@@ -94,21 +94,28 @@
                  <h4 class="text-[11px] font-bold text-gray-500 mb-4 uppercase tracking-wider">Layout</h4>
                  <div class="grid grid-cols-3 gap-3">
                     <!-- Standard (Vertical) -->
-                    <div  class="aspect-[4/3] rounded-lg border-2 border-primary bg-primary/5 p-1 flex gap-1 cursor-pointer">
-                       <div class="w-1/3 h-full bg-primary rounded-sm opacity-60"></div>
+                    <div @click="layout.setSidebarCollapsed(false)"
+                         class="aspect-[4/3] rounded-lg p-1 flex gap-1 cursor-pointer transition-all"
+                         :class="!layout.isSidebarCollapsed ? 'border-2 border-primary bg-primary/5' : 'border border-gray-500/10 bg-gray-500/5 opacity-40 hover:opacity-100'">
+                       <div class="w-1/3 h-full rounded-sm opacity-60" :class="!layout.isSidebarCollapsed ? 'bg-primary' : 'bg-gray-500/20'"></div>
                        <div class="flex-1 flex flex-col gap-1">
-                          <div class="h-1.5 w-full bg-primary/40 rounded-sm"></div>
-                          <div class="flex-1 bg-primary/20 rounded-sm"></div>
+                          <div class="h-1.5 w-full rounded-sm" :class="!layout.isSidebarCollapsed ? 'bg-primary/40' : 'bg-gray-500/20'"></div>
+                          <div class="flex-1 rounded-sm" :class="!layout.isSidebarCollapsed ? 'bg-primary/20' : 'bg-gray-500/10'"></div>
                        </div>
                     </div>
                     <!-- Mini -->
-                    <div  class="aspect-[4/3] rounded-lg border border-gray-500/10 bg-gray-500/5 p-1 flex flex-col gap-1 cursor-pointer opacity-40">
-                       <div class="h-1.5 w-full bg-gray-500/20 rounded-sm"></div>
-                       <div class="flex-1 bg-gray-500/10 rounded-sm"></div>
+                    <div @click="layout.setSidebarCollapsed(true)"
+                         class="aspect-[4/3] rounded-lg p-1 flex gap-1 cursor-pointer transition-all"
+                         :class="layout.isSidebarCollapsed ? 'border-2 border-primary bg-primary/5' : 'border border-gray-500/10 bg-gray-500/5 opacity-40 hover:opacity-100'">
+                       <div class="w-1.5 h-full rounded-sm" :class="layout.isSidebarCollapsed ? 'bg-primary' : 'bg-gray-500/20'"></div>
+                       <div class="flex-1 flex flex-col gap-1">
+                          <div class="h-1.5 w-full rounded-sm" :class="layout.isSidebarCollapsed ? 'bg-primary/40' : 'bg-gray-500/20'"></div>
+                          <div class="flex-1 rounded-sm" :class="layout.isSidebarCollapsed ? 'bg-primary/20' : 'bg-gray-500/10'"></div>
+                       </div>
                     </div>
-                    <!-- Top -->
-                    <div  class="aspect-[4/3] rounded-lg border border-gray-500/10 bg-gray-500/5 p-1 flex gap-1 cursor-pointer opacity-40">
-                       <div class="w-1.5 h-full bg-gray-500/20 rounded-sm"></div>
+                    <!-- Top (Not Implemented Yet) -->
+                    <div class="aspect-[4/3] rounded-lg border border-gray-500/10 bg-gray-500/5 p-1 flex flex-col gap-1 cursor-not-allowed opacity-20" title="Coming soon">
+                       <div class="h-1.5 w-full bg-gray-500/20 rounded-sm"></div>
                        <div class="flex-1 bg-gray-500/10 rounded-sm"></div>
                     </div>
                  </div>
@@ -137,6 +144,7 @@
            </div>
            <div class="border border-gray-500/10 rounded-2xl p-6 grid grid-cols-3 gap-5">
               <div v-for="color in presets" :key="color.hex" 
+                @click="layout.setThemeColor(color.hex)"
                 class="aspect-square rounded-xl flex items-center justify-center cursor-pointer transition-all hover:scale-105"
                 :class="layout.themeColor === color.hex ? 'bg-primary/10 border-2 border-primary shadow-lg shadow-primary/20' : 'bg-gray-500/5 border border-transparent'"
               >
@@ -162,10 +170,11 @@
                  <h4 class="text-[11px] font-bold text-gray-500 mb-4 uppercase tracking-wider">Family</h4>
                  <div class="grid grid-cols-2 gap-4">
                     <div v-for="font in fonts" :key="font" 
+                      @click="layout.setFontFamily(font)"
                       class="p-4 rounded-2xl border flex flex-col items-center gap-2 cursor-pointer transition-all"
-                      :class="font === 'Public Sans' ? 'border-primary bg-primary/5' : 'border-gray-500/10 bg-gray-500/5 opacity-50'"
+                      :class="layout.fontFamily === font ? 'border-primary bg-primary/5' : 'border-gray-500/10 bg-gray-500/5 opacity-50 hover:opacity-100'"
                     >
-                       <span class="text-2xl font-bold" :class="font === 'Public Sans' ? 'text-primary' : 'text-gray-400'">Aa</span>
+                       <span class="text-2xl font-bold" :class="layout.fontFamily === font ? 'text-primary' : 'text-gray-400'">Aa</span>
                        <span class="text-[11px] font-bold">{{ font }}</span>
                     </div>
                  </div>
@@ -173,18 +182,19 @@
 
               <div>
                  <h4 class="text-[11px] font-bold text-gray-500 mb-6 uppercase tracking-wider">Size</h4>
-                 <div class="relative px-2">
-                    <div class="absolute -top-10 left-1/2 -translate-x-1/2 px-2 py-1 bg-gray-800 text-white text-[10px] font-bold rounded shadow-lg">
-                       16px
+                 <div class="relative px-2 mt-4">
+                    <div class="absolute -top-8 left-1/2 -translate-x-1/2 px-2 py-1 bg-gray-800 text-white text-[10px] font-bold rounded shadow-lg whitespace-nowrap z-20">
+                       {{ layout.fontSize }}px
                     </div>
-                    <!-- MUI Style Slider Ticks -->
-                    <div class="flex justify-between absolute w-full left-0 px-2 top-0.5 pointer-events-none">
-                       <div v-for="n in 9" :key="n" class="w-1 h-1 rounded-full bg-gray-500/30"></div>
-                    </div>
-                    <div class="h-1.5 w-full bg-gray-800/20 rounded-full flex items-center relative mt-1">
-                       <div class="h-full bg-primary rounded-full" style="width: 50%"></div>
-                       <div class="w-5 h-5 bg-white rounded-full absolute left-1/2 -translate-x-1/2 shadow-xl border-4 border-primary cursor-pointer transition-transform hover:scale-110"></div>
-                    </div>
+                    <input 
+                      type="range" 
+                      min="12" 
+                      max="20" 
+                      step="1" 
+                      :value="layout.fontSize"
+                      @input="e => layout.setFontSize(e.target.value)"
+                      class="w-full h-1.5 bg-gray-800/20 rounded-full appearance-none cursor-pointer outline-none accent-primary relative z-10"
+                    />
                  </div>
               </div>
            </div>
