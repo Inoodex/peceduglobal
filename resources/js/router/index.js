@@ -410,8 +410,23 @@ const router = createRouter({
 router.beforeEach(async (to, from, next) => {
     const authStore = useAuthStore();
 
+    // ── SSO: Pick up token from URL param (?token=xxx or ?auth_token=xxx)
+    const urlToken = to.query.token || to.query.auth_token;
+    if (urlToken) {
+        authStore.setTokenFromSSO(urlToken);
+        const cleanQuery = { ...to.query };
+        delete cleanQuery.token;
+        delete cleanQuery.auth_token;
+        return next({ ...to, query: cleanQuery, replace: true });
+    }
+
     if (authStore.token && !authStore.user) {
-        await authStore.fetchUser();
+        try {
+            await authStore.fetchUser();
+        } catch (e) {
+            // fetchUser failed (network error etc.) — don't clear token here,
+            // the axios interceptor handles 401 globally
+        }
     }
 
     if (to.meta.auth && !authStore.isAuthenticated) {

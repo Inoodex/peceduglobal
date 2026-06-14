@@ -69,6 +69,13 @@ export const useAuthStore = defineStore('auth', {
             }
         },
 
+        // Called when SSO token arrives via URL param from peceduglobal.com
+        setTokenFromSSO(token) {
+            this.token = token;
+            localStorage.setItem('token', token);
+            Cookies.set('auth_token', token, { domain: cookieDomain, expires: 14, sameSite: 'Lax' });
+        },
+
         async logout() {
             try {
                 await axios.post('/auth/logout');
