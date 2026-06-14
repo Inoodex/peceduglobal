@@ -83,6 +83,47 @@ class AuthController extends Controller
     }
 
     /**
+     * Special login for students to access backend dashboard.
+     */
+    public function studentLogin(Request $request)
+    {
+        $credentials = $request->only('email', 'password');
+
+        /** @var \PHPOpenSourceSaver\JWTAuth\JWTGuard $guard */
+        $guard = auth('api');
+        
+        if (!$token = $guard->attempt($credentials)) {
+            return response()->json([
+                'success' => false,
+                'message' => 'Invalid credentials',
+                'data' => null
+            ], 401);
+        }
+
+        $user = $guard->user();
+
+        // Check if the user is actually a student
+        if ($user->role !== 'student') {
+            return response()->json([
+                'success' => false,
+                'message' => 'Only students can login through this portal',
+                'data' => null
+            ], 403);
+        }
+
+        // Create a web session for the backend dashboard
+        auth('web')->login($user);
+
+        return response()->json([
+            'success' => true,
+            'message' => 'Student login successful',
+            'data' => $user,
+            'token' => $token,
+            'redirect_url' => 'https://apps.peceduglobal.com/dashboard'
+        ]);
+    }
+
+    /**
      * Get the authenticated User.
      *
      * @return \Illuminate\Http\JsonResponse
