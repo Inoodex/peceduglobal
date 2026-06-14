@@ -1,19 +1,22 @@
-export const setupIdleTimeout = (timeoutMinutes = 15) => {
+import Cookies from 'js-cookie';
+
+export const setupIdleTimeout = (timeoutMinutes = 30) => {
     let idleTimer;
     const timeoutMs = timeoutMinutes * 60 * 1000;
 
     const logout = () => {
-        const token = localStorage.getItem('token');
+        const token = Cookies.get('auth_token') || Cookies.get('token') || localStorage.getItem('token');
         if (token) {
             localStorage.removeItem('token');
-            // Force reload to login page
+            Cookies.remove('auth_token');
+            Cookies.remove('token');
             window.location.href = '/login';
         }
     };
 
     const resetTimer = () => {
         clearTimeout(idleTimer);
-        const token = localStorage.getItem('token');
+        const token = Cookies.get('auth_token') || Cookies.get('token') || localStorage.getItem('token');
         if (token) {
             idleTimer = setTimeout(logout, timeoutMs);
         }

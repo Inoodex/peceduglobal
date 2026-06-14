@@ -1,4 +1,5 @@
 import axios from 'axios';
+import Cookies from 'js-cookie';
 
 const axiosInstance = axios.create({
     baseURL: '/api',
@@ -8,10 +9,12 @@ const axiosInstance = axios.create({
     },
 });
 
+const getToken = () => Cookies.get('auth_token') || Cookies.get('token') || localStorage.getItem('token');
+
 // Request Interceptor
 axiosInstance.interceptors.request.use(
     (config) => {
-        const token = localStorage.getItem('token');
+        const token = getToken();
         if (token) {
             config.headers.Authorization = `Bearer ${token}`;
         }
@@ -68,7 +71,7 @@ axiosInstance.interceptors.response.use(
                 return new Promise(function (resolve, reject) {
                     axios.post('/api/auth/refresh', {}, {
                         headers: {
-                            'Authorization': 'Bearer ' + localStorage.getItem('token')
+                            'Authorization': 'Bearer ' + getToken()
                         }
                     })
                     .then(({data}) => {
