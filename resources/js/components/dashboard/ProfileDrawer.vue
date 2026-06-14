@@ -114,9 +114,17 @@ const menuItems = [
 
 const handleLogout = async () => {
   try {
+    // Save role before logout clears the user
+    const userRole = auth.user?.role;
+    
     await auth.logout();
     layout.isProfileOpen = false;
-    router.push('/login');
+    
+    if (userRole === 'student') {
+      window.location.href = 'https://peceduglobal.com';
+    } else {
+      router.push('/login');
+    }
   } catch (error) {
     console.error('Logout failed', error);
   }

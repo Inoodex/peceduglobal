@@ -14,7 +14,15 @@ class ApplicationController extends Controller
 {
     public function index(): JsonResponse
     {
-        $profile = StudentProfile::where('user_id', auth()->id())->firstOrFail();
+        $profile = StudentProfile::where('user_id', auth()->id())->first();
+        
+        if (!$profile) {
+            return response()->json([
+                'success' => true,
+                'data' => [],
+            ], Response::HTTP_OK);
+        }
+
         $applications = Application::where('student_id', $profile->id)->with('university')->paginate(10);
 
         return response()->json([
@@ -25,7 +33,15 @@ class ApplicationController extends Controller
 
     public function store(StoreApplicationRequest $request): JsonResponse
     {
-        $profile = StudentProfile::where('user_id', auth()->id())->firstOrFail();
+        $profile = StudentProfile::where('user_id', auth()->id())->first();
+        
+        if (!$profile) {
+            return response()->json([
+                'success' => false,
+                'message' => 'Please complete your student profile before submitting an application.'
+            ], Response::HTTP_BAD_REQUEST);
+        }
+
         $validated = $request->validated();
         $validated['student_id'] = $profile->id;
 
@@ -41,8 +57,9 @@ class ApplicationController extends Controller
     public function show(Application $application): JsonResponse
     {
         // Ensure student owns the application
-        $profile = StudentProfile::where('user_id', auth()->id())->firstOrFail();
-        if ($application->student_id !== $profile->id) {
+        $profile = StudentProfile::where('user_id', auth()->id())->first();
+        
+        if (!$profile || $application->student_id !== $profile->id) {
             return response()->json(['success' => false, 'message' => 'Unauthorized'], Response::HTTP_FORBIDDEN);
         }
 
