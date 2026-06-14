@@ -65,6 +65,7 @@ Route::group(['prefix' => 'auth'], function () {
         Route::middleware(['role:admin,consultant', 'auto-permission'])->prefix('admin')->group(function () {
             // User Management
             Route::get('users', [UserController::class, 'index']);
+            Route::post('users', [UserController::class, 'store']);
             Route::put('users/{user}/role', [UserController::class, 'updateRole']);
             Route::put('users/{user}/permissions', [UserController::class, 'updatePermissions']);
 

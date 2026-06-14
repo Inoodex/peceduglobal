@@ -38,6 +38,13 @@
               class="pl-10 pr-4 py-2 bg-white dark:bg-gray-800 border border-gray-200 dark:border-gray-700 rounded-lg focus:ring-2 focus:ring-primary outline-none transition-all w-64 text-sm"
             />
           </div>
+          <button
+            @click="isCreateUserModalOpen = true"
+            class="bg-primary text-white px-4 py-2 rounded-xl text-sm font-bold flex items-center gap-2 hover:bg-primary-dark transition-all"
+          >
+            <Plus :size="18" />
+            Create User
+          </button>
         </div>
 
         <div v-if="loading" class="flex justify-center py-20">
@@ -48,24 +55,27 @@
           <div
             v-for="user in filteredUsers"
             :key="user.id"
-            class="bg-white dark:bg-[#1C252E] rounded-2xl border border-gray-100 dark:border-gray-800 p-5 shadow-sm hover:shadow-md transition-all group"
+            class="bg-white dark:bg-[#1C252E] rounded-2xl border border-gray-100 dark:border-gray-800 p-5 shadow-sm hover:shadow-md transition-all group relative flex flex-col"
           >
-            <div class="flex items-start justify-between mb-4">
-              <div class="flex items-center gap-4">
-                <div class="w-12 h-12 rounded-full bg-primary/10 flex items-center justify-center text-primary font-bold text-xl">
-                  {{ user.full_name.charAt(0) }}
-                </div>
-                <div>
-                  <h3 class="font-bold text-gray-900 dark:text-white">{{ user.full_name }}</h3>
-                  <p class="text-xs text-gray-500">{{ user.email }}</p>
-                </div>
-              </div>
+            <!-- Floating Role Badge -->
+            <div class="absolute top-4 right-4">
               <span
-                class="px-2.5 py-0.5 rounded-full text-[10px] font-bold uppercase tracking-wider"
+                class="px-2.5 py-1 rounded-md text-[10px] font-bold uppercase tracking-wider shadow-sm"
                 :class="getRoleClass(user.role)"
               >
                 {{ user.role }}
               </span>
+            </div>
+
+            <!-- Avatar & Info -->
+            <div class="flex items-start gap-4 mb-4 pr-20">
+              <div class="w-12 h-12 rounded-full bg-primary/10 flex items-center justify-center text-primary font-bold text-xl flex-shrink-0 mt-1">
+                {{ user.full_name.charAt(0) }}
+              </div>
+              <div class="flex-1 min-w-0">
+                <h3 class="font-bold text-gray-900 dark:text-white text-base leading-tight break-words mb-1">{{ user.full_name }}</h3>
+                <p class="text-xs text-gray-500 break-words">{{ user.email }}</p>
+              </div>
             </div>
 
             <div class="space-y-3 min-h-[40px]">
@@ -143,6 +153,64 @@
             </tbody>
           </table>
         </div>
+      </div>
+    </div>
+
+    <!-- Create User Modal -->
+    <div v-if="isCreateUserModalOpen" class="fixed inset-0 z-[100] flex items-center justify-center p-4 bg-black/50 backdrop-blur-sm">
+      <div class="bg-white dark:bg-[#1C252E] rounded-2xl w-full max-w-md shadow-2xl overflow-hidden animate-in fade-in zoom-in duration-200">
+        <div class="p-6 border-b border-gray-100 dark:border-gray-800 flex justify-between items-center">
+          <h2 class="text-xl font-bold text-gray-900 dark:text-white">Create New User</h2>
+          <button @click="isCreateUserModalOpen = false" class="text-gray-400 hover:text-gray-600 dark:hover:text-gray-200">
+            <X :size="24" />
+          </button>
+        </div>
+
+        <form @submit.prevent="createUser" class="p-6 space-y-4">
+          <div class="grid grid-cols-2 gap-4">
+            <div>
+              <label class="block text-xs font-bold text-gray-500 uppercase mb-2">First Name</label>
+              <input v-model="newUser.first_name" type="text" required class="w-full px-4 py-2.5 bg-gray-50 dark:bg-gray-800 border border-gray-200 dark:border-gray-700 rounded-xl outline-none focus:ring-2 focus:ring-primary text-sm" />
+            </div>
+            <div>
+              <label class="block text-xs font-bold text-gray-500 uppercase mb-2">Last Name</label>
+              <input v-model="newUser.last_name" type="text" required class="w-full px-4 py-2.5 bg-gray-50 dark:bg-gray-800 border border-gray-200 dark:border-gray-700 rounded-xl outline-none focus:ring-2 focus:ring-primary text-sm" />
+            </div>
+          </div>
+
+          <div>
+            <label class="block text-xs font-bold text-gray-500 uppercase mb-2">Email Address</label>
+            <input v-model="newUser.email" type="email" required class="w-full px-4 py-2.5 bg-gray-50 dark:bg-gray-800 border border-gray-200 dark:border-gray-700 rounded-xl outline-none focus:ring-2 focus:ring-primary text-sm" />
+          </div>
+
+          <div>
+            <label class="block text-xs font-bold text-gray-500 uppercase mb-2">Password</label>
+            <div class="relative">
+              <input v-model="newUser.password" :type="showPassword ? 'text' : 'password'" required class="w-full px-4 py-2.5 bg-gray-50 dark:bg-gray-800 border border-gray-200 dark:border-gray-700 rounded-xl outline-none focus:ring-2 focus:ring-primary text-sm pr-12" />
+              <button type="button" @click="showPassword = !showPassword" class="absolute right-3 top-1/2 -translate-y-1/2 text-gray-400 hover:text-gray-600">
+                <Eye v-if="!showPassword" :size="18" />
+                <EyeOff v-else :size="18" />
+              </button>
+            </div>
+          </div>
+
+          <div>
+            <label class="block text-xs font-bold text-gray-500 uppercase mb-2">Role</label>
+            <select v-model="newUser.role" required class="w-full px-4 py-2.5 bg-gray-50 dark:bg-gray-800 border border-gray-200 dark:border-gray-700 rounded-xl outline-none focus:ring-2 focus:ring-primary text-sm">
+              <option value="consultant">Consultant</option>
+              <!-- <option value="student">Student</option>
+              <option value="admin">Admin</option> -->
+            </select>
+          </div>
+
+          <div class="flex gap-3 pt-4">
+            <button type="button" @click="isCreateUserModalOpen = false" class="flex-1 px-4 py-2.5 border border-gray-200 rounded-xl text-sm font-bold">Cancel</button>
+            <button type="submit" :disabled="saving" class="flex-1 px-4 py-2.5 bg-primary text-white rounded-xl text-sm font-bold flex justify-center items-center gap-2">
+              <Loader2 v-if="saving" class="animate-spin" :size="18" />
+              <span v-else>Create User</span>
+            </button>
+          </div>
+        </form>
       </div>
     </div>
 
@@ -255,10 +323,11 @@
 
 <script setup>
 import { ref, computed, onMounted } from 'vue';
+import { useToastStore } from '@/stores/toast';
 import axios from '@/plugins/axios';
 import MainLayout from '@/layouts/MainLayout.vue';
 import {
-  Search, Users, ShieldCheck, X, Loader2, Plus, Lock, Trash2
+  Search, Users, ShieldCheck, X, Loader2, Plus, Lock, Trash2, Eye, EyeOff
 } from 'lucide-vue-next';
 
 const activeTab = ref('users');
@@ -270,8 +339,12 @@ const savingPerm = ref(false);
 const searchQuery = ref('');
 const isModalOpen = ref(false);
 const isPermModalOpen = ref(false);
+const isCreateUserModalOpen = ref(false);
 const editingUser = ref(null);
+const newUser = ref({ first_name: '', last_name: '', email: '', password: '', role: 'consultant' });
 const newPerm = ref({ name: '', description: '' });
+const showPassword = ref(false);
+const toast = useToastStore();
 
 const fetchData = async () => {
   loading.value = true;
@@ -297,6 +370,22 @@ const filteredUsers = computed(() => {
     u.email.toLowerCase().includes(query)
   );
 });
+
+const createUser = async () => {
+  saving.value = true;
+  try {
+    await axios.post('/auth/admin/users', newUser.value);
+    toast.success('User created successfully');
+    isCreateUserModalOpen.value = false;
+    newUser.value = { first_name: '', last_name: '', email: '', password: '', role: 'consultant' };
+    await fetchData();
+  } catch (error) {
+    console.error('Error creating user:', error);
+    toast.error(error.response?.data?.message || 'Failed to create user');
+  } finally {
+    saving.value = false;
+  }
+};
 
 const getRoleClass = (role) => {
   switch (role) {
