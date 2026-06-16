@@ -98,7 +98,13 @@ Route::group(['prefix' => 'auth'], function () {
             // Content Management (Pages, Blocks, etc.)
             Route::apiResource('pages', PageController::class);
             Route::apiResource('blocks', BlockController::class);
+
+            // Chat Settings Management
+            Route::get('chat-settings', [\App\Http\Controllers\Admin\ChatSettingController::class, 'index']);
+            Route::post('chat-settings', [\App\Http\Controllers\Admin\ChatSettingController::class, 'update']);
+
             Route::post('blocks/reorder', [BlockController::class, 'updateOrder']);
+
             Route::apiResource('elements', ElementController::class);
             Route::post('editor/upload', [EditorUploadController::class, 'upload']);
 

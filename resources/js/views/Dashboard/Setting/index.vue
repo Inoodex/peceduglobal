@@ -79,8 +79,63 @@
         <div class="lg:col-span-8 bg-white dark:bg-[#1C252E] rounded-3xl border border-gray-200/50 dark:border-gray-800/80 p-6 md:p-8 shadow-md">
           <form @submit.prevent="saveSettings">
             
+            <!-- CHAT SETTINGS PANEL -->
+            <div v-show="activeTab === 'chat'" class="space-y-6 animate-slide-up">
+              <div class="border-b border-gray-100 dark:border-gray-800/60 pb-5">
+                <h3 class="text-lg font-bold text-gray-900 dark:text-white">Chat System Configuration</h3>
+                <p class="text-xs text-gray-500 dark:text-gray-400 mt-1">Configure Pusher credentials for real-time messaging. These settings are used by both Admin and Student interfaces.</p>
+              </div>
+
+              <div class="grid grid-cols-1 md:grid-cols-2 gap-6">
+                <!-- Pusher App ID -->
+                <div class="space-y-2">
+                  <label class="block text-xs font-bold text-gray-400 dark:text-gray-500 uppercase tracking-wider">Pusher App ID</label>
+                  <input
+                    v-model="form.pusher_app_id"
+                    type="text"
+                    placeholder="e.g. 1234567"
+                    class="w-full bg-gray-50 dark:bg-[#141A21] border border-gray-200 dark:border-gray-800 rounded-xl px-4 py-3.5 text-sm text-gray-900 dark:text-white placeholder-gray-400 focus:outline-none focus:ring-2 focus:ring-primary/20 focus:border-primary transition-all"
+                  />
+                </div>
+
+                <!-- Pusher Key -->
+                <div class="space-y-2">
+                  <label class="block text-xs font-bold text-gray-400 dark:text-gray-500 uppercase tracking-wider">Pusher Key</label>
+                  <input
+                    v-model="form.pusher_key"
+                    type="text"
+                    placeholder="e.g. abc123xyz..."
+                    class="w-full bg-gray-50 dark:bg-[#141A21] border border-gray-200 dark:border-gray-800 rounded-xl px-4 py-3.5 text-sm text-gray-900 dark:text-white placeholder-gray-400 focus:outline-none focus:ring-2 focus:ring-primary/20 focus:border-primary transition-all"
+                  />
+                </div>
+
+                <!-- Pusher Secret -->
+                <div class="space-y-2">
+                  <label class="block text-xs font-bold text-gray-400 dark:text-gray-500 uppercase tracking-wider">Pusher Secret</label>
+                  <input
+                    v-model="form.pusher_secret"
+                    type="password"
+                    placeholder="••••••••••••"
+                    class="w-full bg-gray-50 dark:bg-[#141A21] border border-gray-200 dark:border-gray-800 rounded-xl px-4 py-3.5 text-sm text-gray-900 dark:text-white placeholder-gray-400 focus:outline-none focus:ring-2 focus:ring-primary/20 focus:border-primary transition-all"
+                  />
+                </div>
+
+                <!-- Pusher Cluster -->
+                <div class="space-y-2">
+                  <label class="block text-xs font-bold text-gray-400 dark:text-gray-500 uppercase tracking-wider">Pusher Cluster</label>
+                  <input
+                    v-model="form.pusher_cluster"
+                    type="text"
+                    placeholder="e.g. mt1"
+                    class="w-full bg-gray-50 dark:bg-[#141A21] border border-gray-200 dark:border-gray-800 rounded-xl px-4 py-3.5 text-sm text-gray-900 dark:text-white placeholder-gray-400 focus:outline-none focus:ring-2 focus:ring-primary/20 focus:border-primary transition-all"
+                  />
+                </div>
+              </div>
+            </div>
+
             <!-- GENERAL SETTINGS PANEL -->
             <div v-show="activeTab === 'general'" class="space-y-6 animate-slide-up">
+
               <div class="border-b border-gray-100 dark:border-gray-800/60 pb-5">
                 <h3 class="text-lg font-bold text-gray-900 dark:text-white">General Information</h3>
                 <p class="text-xs text-gray-500 dark:text-gray-400 mt-1">Basic public branding details, primary contact points, and geolocation mappings.</p>

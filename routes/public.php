@@ -84,4 +84,11 @@ Route::prefix('public')->group(function () {
     Route::post('/contact', [ContactController::class, 'index']);
     //footer
     Route::get('/site_info', [FooterController::class, 'index']);
+
+    // Public Chat Routes (For Next.js Frontend)
+    Route::prefix('chat')->group(function () {
+        Route::post('init', [\App\Http\Controllers\Api\ChatController::class, 'init']);
+        Route::post('send', [\App\Http\Controllers\Api\ChatController::class, 'sendMessage']);
+        Route::get('history', [\App\Http\Controllers\Api\ChatController::class, 'getHistory']);
+    });
 });
