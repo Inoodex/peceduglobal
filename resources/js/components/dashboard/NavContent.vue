@@ -64,7 +64,8 @@ import {
   Clock,
   Mail,
   Settings,
-  User
+  User,
+  MessageSquare
 } from 'lucide-vue-next';
 
 defineProps({
@@ -136,7 +137,11 @@ const navigationData = [
     title: 'Consultancy',
     roles: ['admin', 'consultant'],
     items: [
-      
+      {
+        name: 'Chat Inbox',
+        icon: MessageSquare,
+        path: '/dashboard/chat'
+      },
       {
         name: 'Students',
         icon: Users,

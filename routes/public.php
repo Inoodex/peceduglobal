@@ -87,6 +87,7 @@ Route::prefix('public')->group(function () {
 
     // Public Chat Routes (For Next.js Frontend)
     Route::prefix('chat')->group(function () {
+        Route::get('settings', [\App\Http\Controllers\Api\ChatController::class, 'getPublicSettings']);
         Route::post('init', [\App\Http\Controllers\Api\ChatController::class, 'init']);
         Route::post('send', [\App\Http\Controllers\Api\ChatController::class, 'sendMessage']);
         Route::get('history', [\App\Http\Controllers\Api\ChatController::class, 'getHistory']);

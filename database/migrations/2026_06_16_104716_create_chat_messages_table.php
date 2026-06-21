@@ -13,6 +13,11 @@ return new class extends Migration
     {
         Schema::create('chat_messages', function (Blueprint $table) {
             $table->id();
+            $table->unsignedBigInteger('conversation_id');
+            $table->unsignedBigInteger('sender_id');
+            $table->string('sender_type');
+            $table->text('message');
+            $table->boolean('is_read')->default(false);
             $table->timestamps();
         });
     }

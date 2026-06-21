@@ -82,14 +82,25 @@
             <!-- CHAT SETTINGS PANEL -->
             <div v-show="activeTab === 'chat'" class="space-y-6 animate-slide-up">
               <div class="border-b border-gray-100 dark:border-gray-800/60 pb-5">
-                <h3 class="text-lg font-bold text-gray-900 dark:text-white">Chat System Configuration</h3>
-                <p class="text-xs text-gray-500 dark:text-gray-400 mt-1">Configure Pusher credentials for real-time messaging. These settings are used by both Admin and Student interfaces.</p>
+                <h3 class="text-lg font-bold text-gray-900 dark:text-white">Chat & WebSocket Configuration</h3>
+                <p class="text-xs text-gray-500 dark:text-gray-400 mt-1">Configure Official Pusher or Custom WebSocket (VPS) credentials. If using a custom WebSocket server, fill in the Host and Port below.</p>
+              </div>
+
+              <div class="mb-8">
+                <CustomSelect
+                  v-model="form.pusher_driver"
+                  :options="connectionTypeOptions"
+                  label="Connection Type"
+                  placeholder="Select connection type"
+                  :searchable="false"
+                  :clearable="false"
+                />
               </div>
 
               <div class="grid grid-cols-1 md:grid-cols-2 gap-6">
-                <!-- Pusher App ID -->
+                <!-- App ID -->
                 <div class="space-y-2">
-                  <label class="block text-xs font-bold text-gray-400 dark:text-gray-500 uppercase tracking-wider">Pusher App ID</label>
+                  <label class="block text-xs font-bold text-gray-400 dark:text-gray-500 uppercase tracking-wider">App ID</label>
                   <input
                     v-model="form.pusher_app_id"
                     type="text"
@@ -98,9 +109,9 @@
                   />
                 </div>
 
-                <!-- Pusher Key -->
+                <!-- Key -->
                 <div class="space-y-2">
-                  <label class="block text-xs font-bold text-gray-400 dark:text-gray-500 uppercase tracking-wider">Pusher Key</label>
+                  <label class="block text-xs font-bold text-gray-400 dark:text-gray-500 uppercase tracking-wider">Key</label>
                   <input
                     v-model="form.pusher_key"
                     type="text"
@@ -109,26 +120,69 @@
                   />
                 </div>
 
-                <!-- Pusher Secret -->
+                <!-- Secret -->
                 <div class="space-y-2">
-                  <label class="block text-xs font-bold text-gray-400 dark:text-gray-500 uppercase tracking-wider">Pusher Secret</label>
+                  <label class="block text-xs font-bold text-gray-400 dark:text-gray-500 uppercase tracking-wider">Secret</label>
                   <input
                     v-model="form.pusher_secret"
                     type="password"
+                    autocomplete="new-password"
                     placeholder="••••••••••••"
                     class="w-full bg-gray-50 dark:bg-[#141A21] border border-gray-200 dark:border-gray-800 rounded-xl px-4 py-3.5 text-sm text-gray-900 dark:text-white placeholder-gray-400 focus:outline-none focus:ring-2 focus:ring-primary/20 focus:border-primary transition-all"
                   />
                 </div>
 
-                <!-- Pusher Cluster -->
-                <div class="space-y-2">
-                  <label class="block text-xs font-bold text-gray-400 dark:text-gray-500 uppercase tracking-wider">Pusher Cluster</label>
+                <!-- Cluster (Only for Pusher) -->
+                <div v-if="form.pusher_driver === 'pusher'" class="space-y-2 animate-fade-in">
+                  <label class="block text-xs font-bold text-gray-400 dark:text-gray-500 uppercase tracking-wider">Cluster</label>
                   <input
                     v-model="form.pusher_cluster"
                     type="text"
                     placeholder="e.g. mt1"
                     class="w-full bg-gray-50 dark:bg-[#141A21] border border-gray-200 dark:border-gray-800 rounded-xl px-4 py-3.5 text-sm text-gray-900 dark:text-white placeholder-gray-400 focus:outline-none focus:ring-2 focus:ring-primary/20 focus:border-primary transition-all"
                   />
+                </div>
+              </div>
+
+              <!-- Custom VPS Settings (Only for Custom) -->
+              <div v-if="form.pusher_driver === 'custom'" class="mt-8 pt-6 border-t border-gray-100 dark:border-gray-800/60 animate-fade-in">
+                <h4 class="text-sm font-bold text-gray-900 dark:text-white">Custom Connection Settings</h4>
+                <p class="text-xs text-gray-500 dark:text-gray-400 mt-1 mb-6">Specify your VPS server routing details below.</p>
+                
+                <div class="grid grid-cols-1 md:grid-cols-2 gap-6">
+                  <!-- WebSocket Host -->
+                  <div class="space-y-2">
+                    <label class="block text-xs font-bold text-gray-400 dark:text-gray-500 uppercase tracking-wider">Host</label>
+                    <input
+                      v-model="form.pusher_host"
+                      type="text"
+                      placeholder="e.g. 127.0.0.1 or ws.pecedu.com"
+                      class="w-full bg-gray-50 dark:bg-[#141A21] border border-gray-200 dark:border-gray-800 rounded-xl px-4 py-3.5 text-sm text-gray-900 dark:text-white placeholder-gray-400 focus:outline-none focus:ring-2 focus:ring-primary/20 focus:border-primary transition-all"
+                    />
+                  </div>
+
+                  <!-- WebSocket Port -->
+                  <div class="space-y-2">
+                    <label class="block text-xs font-bold text-gray-400 dark:text-gray-500 uppercase tracking-wider">Port</label>
+                    <input
+                      v-model="form.pusher_port"
+                      type="number"
+                      placeholder="e.g. 6001"
+                      class="w-full bg-gray-50 dark:bg-[#141A21] border border-gray-200 dark:border-gray-800 rounded-xl px-4 py-3.5 text-sm text-gray-900 dark:text-white placeholder-gray-400 focus:outline-none focus:ring-2 focus:ring-primary/20 focus:border-primary transition-all"
+                    />
+                  </div>
+
+                  <!-- WebSocket Scheme -->
+                  <div class="md:col-span-2 pt-2">
+                    <CustomSelect
+                      v-model="form.pusher_scheme"
+                      :options="schemeOptions"
+                      label="Scheme"
+                      placeholder="Select HTTP or HTTPS"
+                      :searchable="false"
+                      :clearable="false"
+                    />
+                  </div>
                 </div>
               </div>
             </div>
@@ -376,6 +430,7 @@ import { ref, onMounted } from 'vue';
 import axios from '@/plugins/axios';
 import MainLayout from '@/layouts/MainLayout.vue';
 import FileUpload from '@/components/FileUpload.vue';
+import CustomSelect from '@/components/Form/CustomSelect.vue';
 import { useToastStore } from '@/stores/toast';
 import { 
   ChevronRight, 
@@ -385,7 +440,8 @@ import {
   Image as ImageIcon, 
   Save, 
   Eye, 
-  EyeOff 
+  EyeOff,
+  MessageSquare
 } from 'lucide-vue-next';
 
 // Stores
@@ -396,6 +452,7 @@ const tabs = [
   { id: 'general', label: 'General Setting', desc: 'Site branding, contacts, map', icon: Settings },
   { id: 'email', label: 'Email Config', desc: 'SMTP protocols and driver setup', icon: Mail },
   { id: 'branding', label: 'Logo & Favicon', desc: 'Public identity images', icon: ImageIcon },
+  { id: 'chat', label: 'Chat Setting', desc: 'Real-time chat configuration', icon: MessageSquare },
 ];
 const activeTab = ref('general');
 
@@ -419,12 +476,31 @@ const form = ref({
   mail_encryption: '',
   mail_from_address: '',
   mail_from_name: '',
+  pusher_driver: 'pusher',
+  pusher_app_id: '',
+  pusher_key: '',
+  pusher_secret: '',
+  pusher_cluster: '',
+  pusher_host: '',
+  pusher_port: '',
+  pusher_scheme: '',
 });
 
 const logoUrl = ref('');
 const faviconUrl = ref('');
 const logoFile = ref(null);
 const faviconFile = ref(null);
+
+// Options for CustomSelect dropdowns
+const connectionTypeOptions = [
+  { value: 'pusher', label: 'Official Pusher (pusher.com)' },
+  { value: 'custom', label: 'Custom WebSocket (Self-Hosted VPS)' }
+];
+
+const schemeOptions = [
+  { value: 'http', label: 'HTTP (ws://)' },
+  { value: 'https', label: 'HTTPS (wss://)' }
+];
 
 // Fetch settings configuration
 const fetchSettings = async () => {
@@ -444,6 +520,15 @@ const fetchSettings = async () => {
       // Set image previews
       logoUrl.value = data.logo || '';
       faviconUrl.value = data.favicon || '';
+    }
+
+    const chatResponse = await axios.get('/auth/admin/chat-settings');
+    if (chatResponse.data.success) {
+      chatResponse.data.data.forEach(setting => {
+        if (form.value.hasOwnProperty(setting.key)) {
+          form.value[setting.key] = setting.value || '';
+        }
+      });
     }
   } catch (error) {
     console.error('Failed to load settings', error);
@@ -496,11 +581,28 @@ const saveSettings = async () => {
       }
     }
 
-    const response = await axios.post('/auth/admin/settings', formData, {
-      headers: {
-        'Content-Type': 'multipart/form-data',
-      },
-    });
+    let url = '/auth/admin/settings';
+    let dataPayload = formData;
+    let headers = { 'Content-Type': 'multipart/form-data' };
+
+    if (activeTab.value === 'chat') {
+      url = '/auth/admin/chat-settings';
+      dataPayload = {
+        settings: {
+          pusher_driver: form.value.pusher_driver || 'pusher',
+          pusher_app_id: form.value.pusher_app_id || '',
+          pusher_key: form.value.pusher_key || '',
+          pusher_secret: form.value.pusher_secret || '',
+          pusher_cluster: form.value.pusher_cluster || '',
+          pusher_host: form.value.pusher_host || '',
+          pusher_port: form.value.pusher_port || '',
+          pusher_scheme: form.value.pusher_scheme || '',
+        }
+      };
+      headers = { 'Content-Type': 'application/json' };
+    }
+
+    const response = await axios.post(url, dataPayload, { headers });
 
     if (response.data.success) {
       const activeLabel = tabs.find(t => t.id === activeTab.value)?.label || 'Settings';

@@ -126,4 +126,125 @@ class ChatController extends Controller
             'data' => $messages
         ]);
     }
+
+    /**
+     * Get public connection settings.
+     */
+    public function getPublicSettings()
+    {
+        $keys = ['pusher_driver', 'pusher_key', 'pusher_cluster', 'pusher_host', 'pusher_port', 'pusher_scheme'];
+        $settings = \App\Models\ChatSetting::whereIn('key', $keys)->get()->pluck('value', 'key');
+
+        return response()->json([
+            'success' => true,
+            'data' => [
+                'pusher_driver' => $settings->get('pusher_driver') ?? 'pusher',
+                'pusher_key' => $settings->get('pusher_key') ?? '',
+                'pusher_cluster' => $settings->get('pusher_cluster') ?? '',
+                'pusher_host' => $settings->get('pusher_host') ?? '',
+                'pusher_port' => $settings->get('pusher_port') ?? '',
+                'pusher_scheme' => $settings->get('pusher_scheme') ?? 'https',
+            ]
+        ]);
+    }
+
+    /**
+     * List all conversations for admin dashboard.
+     */
+    public function getConversations(Request $request)
+    {
+        $conversations = ChatConversation::with(['guest', 'lastMessage'])
+            ->orderBy('updated_at', 'desc')
+            ->get();
+
+        return response()->json([
+            'success' => true,
+            'data' => $conversations
+        ]);
+    }
+
+    /**
+     * Get messages history of a specific conversation for admin.
+     */
+    public function getAdminHistory($id)
+    {
+        $messages = ChatMessage::where('conversation_id', $id)
+            ->orderBy('created_at', 'asc')
+            ->get();
+
+        // Mark all messages as read since admin is opening this conversation
+        ChatMessage::where('conversation_id', $id)
+            ->where('sender_type', '!=', \App\Models\User::class)
+            ->update(['is_read' => true]);
+
+        return response()->json([
+            'success' => true,
+            'data' => $messages
+        ]);
+    }
+
+    /**
+     * Send a reply from Admin/Consultant.
+     */
+    public function sendAdminReply(Request $request, $id)
+    {
+        $validator = Validator::make($request->all(), [
+            'message' => 'required|string',
+        ]);
+
+        if ($validator->fails()) {
+            return response()->json(['success' => false, 'errors' => $validator->errors()], 422);
+        }
+
+        // Get authenticated user ID (admin/consultant)
+        $user = auth()->user();
+
+        $message = ChatMessage::create([
+            'conversation_id' => $id,
+            'sender_id' => $user->id,
+            'sender_type' => \App\Models\User::class,
+            'message' => $request->message,
+            'is_read' => true,
+        ]);
+
+        // Trigger real-time event via Dynamic Pusher Service
+        $this->pusherService->trigger(
+            'chat.' . $id,
+            'message.sent',
+            [
+                'message' => $message,
+                'sender_id' => $user->id,
+                'sender_type' => \App\Models\User::class
+            ]
+        );
+
+        // Update the conversation's updated_at timestamp so it floats to top
+        ChatConversation::where('id', $id)->touch();
+
+        return response()->json([
+            'success' => true,
+            'data' => $message
+        ]);
+    }
+
+    /**
+     * Close/end a conversation.
+     */
+    public function closeConversation($id)
+    {
+        $conversation = ChatConversation::findOrFail($id);
+        $conversation->update(['status' => 'closed']);
+
+        // Trigger event about closure
+        $this->pusherService->trigger(
+            'chat.' . $id,
+            'conversation.closed',
+            ['conversation_id' => $id]
+        );
+
+        return response()->json([
+            'success' => true,
+            'message' => 'Conversation closed successfully'
+        ]);
+    }
 }

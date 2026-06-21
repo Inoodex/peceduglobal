@@ -6,5 +6,5 @@ use Illuminate\Database\Eloquent\Model;
 
 class ChatGuest extends Model
 {
-    //
+    protected $guarded = [];
 }

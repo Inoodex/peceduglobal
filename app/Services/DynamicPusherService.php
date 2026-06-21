@@ -24,21 +24,36 @@ class DynamicPusherService
             $appId = $this->getSetting('pusher_app_id');
             $key = $this->getSetting('pusher_key');
             $secret = $this->getSetting('pusher_secret');
+            $driver = $this->getSetting('pusher_driver') ?: 'pusher';
             $cluster = $this->getSetting('pusher_cluster');
+            $host = $this->getSetting('pusher_host');
+            $port = $this->getSetting('pusher_port');
+            $scheme = $this->getSetting('pusher_scheme') ?: 'https';
 
-            if (!$key || !$secret || !$cluster) {
+            if (!$key || !$secret) {
                 Log::warning('Pusher credentials are not fully configured in the database.');
                 return;
+            }
+
+            $options = [
+                'useTLS' => $scheme === 'https'
+            ];
+
+            if ($driver === 'pusher') {
+                $options['cluster'] = $cluster;
+            } else if ($driver === 'custom') {
+                if ($host) {
+                    $options['host'] = $host;
+                    $options['port'] = $port ?: 6001;
+                    $options['scheme'] = $scheme;
+                }
             }
 
             $this->pusher = new Pusher(
                 $key,
                 $secret,
                 $appId,
-                [
-                    'cluster' => $cluster,
-                    'useTLS' => true
-                ]
+                $options
             );
         } catch (\Exception $e) {
             Log::error('Failed to initialize Dynamic Pusher Service: ' . $e->getMessage());

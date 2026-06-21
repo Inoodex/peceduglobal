@@ -300,6 +300,12 @@ const routes = [
         meta: { auth: true, permission: 'manage_settings' }
     },
     {
+        path: '/dashboard/chat',
+        name: 'chat-inbox',
+        component: () => import('../views/Dashboard/Chat/index.vue'),
+        meta: { auth: true }
+    },
+    {
         path: '/dashboard/footer-info',
         name: 'footer-info',
         component: () => import('../views/Dashboard/Admin/CMS/FooterInfo/index.vue'),

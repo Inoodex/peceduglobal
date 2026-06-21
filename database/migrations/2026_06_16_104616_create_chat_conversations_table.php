@@ -13,6 +13,10 @@ return new class extends Migration
     {
         Schema::create('chat_conversations', function (Blueprint $table) {
             $table->id();
+            $table->unsignedBigInteger('created_by');
+            $table->string('created_by_type');
+            $table->string('status')->default('open');
+            $table->string('subject')->nullable();
             $table->timestamps();
         });
     }
