@@ -336,6 +336,13 @@ import { GraduationCap, FileText, Trash2, Download, UploadCloud, Settings, Loade
 
 const auth = useAuthStore();
 
+// ── Date Format Helper ──────────────────────────────────────────
+// Converts '2007-01-21T00:00:00.000000Z' → '2007-01-21' for <input type="date">
+const formatDate = (val) => {
+  if (!val) return '';
+  return val.toString().substring(0, 10);
+};
+
 // ── Shared: Loading State ───────────────────────────────────────
 const loadingProfile = ref(true);
 
@@ -492,10 +499,10 @@ const fetchProfile = async () => {
     profileForm.value.father_name       = profile.father_name       || '';
     profileForm.value.mother_name       = profile.mother_name       || '';
     profileForm.value.sponsor_phone     = profile.sponsor_phone     || '';
-    profileForm.value.passport_number   = profile.passport_number   || '';
-    profileForm.value.passport_validity = profile.passport_validity || '';
-    profileForm.value.date_of_birth     = profile.date_of_birth     || '';
-    profileForm.value.address           = profile.address           || '';
+    profileForm.value.passport_number   = profile.passport_number             || '';
+    profileForm.value.passport_validity = formatDate(profile.passport_validity);
+    profileForm.value.date_of_birth     = formatDate(profile.date_of_birth);
+    profileForm.value.address           = profile.address                      || '';
     profileForm.value.country_id        = profile.country_id        || '';
     profileForm.value.university_id     = profile.university_id     || '';
     profileForm.value.course_id         = profile.course_id         || '';

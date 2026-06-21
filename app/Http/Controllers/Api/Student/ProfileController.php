@@ -21,7 +21,50 @@ class ProfileController extends Controller
      */
     public function show(): JsonResponse
     {
-        $profile = StudentProfile::firstOrCreate(['user_id' => auth()->id()]);
+        /** @var \App\Models\User $user */
+        $user = auth()->user();
+
+        // Find existing profile WITHOUT auto-creating it (avoids NOT NULL DB error)
+        $profile = StudentProfile::where('user_id', $user->id)->first();
+
+        if (!$profile) {
+            // Return safe empty structure using user data only
+            $nameParts = explode(' ', $user->full_name ?? '', 2);
+            return response()->json([
+                'success' => true,
+                'data' => [
+                    'id'                    => null,
+                    'first_name'            => $nameParts[0] ?? '',
+                    'last_name'             => $nameParts[1] ?? '',
+                    'full_name'             => $user->full_name ?? '',
+                    'email'                 => $user->email ?? '',
+                    'phone'                 => $user->phone ?? '',
+                    'country'               => $user->country_of_origin ?? '',
+                    'nationality'           => $user->nationality ?? '',
+                    'profile_photo_url'     => $user->profile_photo_url
+                        ? (str_starts_with($user->profile_photo_url, 'http')
+                            ? $user->profile_photo_url
+                            : asset($user->profile_photo_url))
+                        : null,
+                    'address'               => null,
+                    'cgpa'                  => null,
+                    'ielts_score'           => null,
+                    'father_name'           => null,
+                    'mother_name'           => null,
+                    'sponsor_phone'         => null,
+                    'passport_number'       => null,
+                    'passport_validity'     => null,
+                    'date_of_birth'         => null,
+                    'country_id'            => null,
+                    'university_id'         => null,
+                    'course_id'             => null,
+                    'course_intake_id'      => null,
+                    'documents'             => [],
+                    'translation_documents' => [],
+                ],
+            ], Response::HTTP_OK);
+        }
+
         return response()->json([
             'success' => true,
             'data'    => new StudentProfileResource($profile),
@@ -68,7 +111,10 @@ class ProfileController extends Controller
         // Update student_profiles only for students
         $profile = null;
         if ($user->role === 'student') {
-            $profile = StudentProfile::firstOrCreate(['user_id' => $user->id]);
+            $profile = StudentProfile::firstOrCreate(
+                ['user_id' => $user->id],
+                ['phone' => $validated['phone'] ?? ''] // Satisfy NOT NULL constraint on first create
+            );
 
             // Unpack new documents
             $newDocs = $this->storeUploadedDocuments($request->file('documents'));
@@ -82,7 +128,7 @@ class ProfileController extends Controller
                 'address'           => $validated['address'] ?? $profile->address,
                 'cgpa'              => $validated['cgpa'] ?? $profile->cgpa,
                 'ielts_score'       => $validated['ielts_score'] ?? $profile->ielts_score,
-                
+
                 // Rich academic fields
                 'father_name'       => $validated['father_name'] ?? $profile->father_name,
                 'mother_name'       => $validated['mother_name'] ?? $profile->mother_name,
@@ -175,7 +221,7 @@ class ProfileController extends Controller
         $paths = [];
         foreach ($list as $file) {
             if (!$file) continue;
-            $name = (string) Str::uuid().'.'.$file->getClientOriginalExtension();
+            $name = (string) Str::uuid() . '.' . $file->getClientOriginalExtension();
             $paths[] = $file->storeAs('students/profiles', $name, 'public');
         }
         return $paths === [] ? null : $paths;

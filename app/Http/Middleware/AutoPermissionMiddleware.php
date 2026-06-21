@@ -53,6 +53,19 @@ class AutoPermissionMiddleware
 
         $permission = $controllerPermissions[$controllerClass] ?? null;
 
+        // Allow GET requests (read-only for lookups) for all authenticated admins and consultants
+        if ($request->isMethod('get')) {
+            $allowedGetControllers = [
+                'App\Http\Controllers\Api\Admin\Education\UniversityController',
+                'App\Http\Controllers\Api\Admin\Education\CourseController',
+                'App\Http\Controllers\Api\Admin\Education\CourseLevelController',
+                'App\Http\Controllers\Api\Admin\CountryController',
+            ];
+            if (in_array($controllerClass, $allowedGetControllers)) {
+                return $next($request);
+            }
+        }
+
         if ($permission && !$user->hasPermission($permission)) {
             return response()->json(['message' => 'Forbidden: Insufficient permissions'], 403);
         }
