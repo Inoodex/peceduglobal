@@ -24,6 +24,41 @@
         </div>
       </div>
 
+      <!-- Application Progress Tracker (hidden by default, shows on row click) -->
+      <transition name="progress-slide">
+        <div v-if="selectedApp" class="bg-white dark:bg-[#1C252E] rounded-2xl border border-gray-100 dark:border-gray-800 shadow-sm overflow-hidden">
+          <div class="p-5 border-b border-gray-100 dark:border-gray-800 flex items-center justify-between">
+            <div class="flex items-center gap-3">
+              <div class="w-10 h-10 rounded-full bg-primary/10 flex items-center justify-center text-primary font-bold text-sm">
+                {{ selectedApp.student?.user?.full_name?.charAt(0) || 'S' }}
+              </div>
+              <div>
+                <p class="text-sm font-bold text-gray-900 dark:text-white">{{ selectedApp.student?.user?.full_name }}</p>
+                <p class="text-xs text-gray-500 dark:text-gray-400">#{{ selectedApp.application_number }} · {{ selectedApp.university?.name }}</p>
+              </div>
+            </div>
+            <div class="flex items-center gap-4">
+              <div class="text-right">
+                <span :class="['px-2.5 py-1 rounded-lg text-[10px] font-bold uppercase tracking-wider border shadow-sm', statusClass(selectedApp.status)]">
+                  {{ statusLabel(selectedApp.status) }}
+                </span>
+                <p class="text-xs font-bold text-primary mt-1">{{ progressPercent(selectedApp.status) }}%</p>
+              </div>
+              <button
+                @click="selectedApp = null"
+                class="p-1.5 text-gray-400 hover:text-gray-600 dark:hover:text-gray-300 hover:bg-gray-100 dark:hover:bg-gray-800 rounded-lg transition-colors"
+                title="Close"
+              >
+                <X class="w-4 h-4" />
+              </button>
+            </div>
+          </div>
+          <div class="p-5">
+            <ApplicationStepper :status="selectedApp.status" />
+          </div>
+        </div>
+      </transition>
+
       <!-- Table Container -->
       <DataTable 
         :columns="columns" 
@@ -37,16 +72,28 @@
         <template #cell(app_number)="{ item: app }">
           <span class="text-sm font-bold text-primary bg-primary/5 px-2 py-1 rounded-lg">#{{ app.application_number }}</span>
         </template>
-        <!-- Student -->
+        <!-- Student (clickable) -->
         <template #cell(student)="{ item: app }">
-          <div class="flex items-center gap-3">
+          <div
+            class="flex items-center gap-3 cursor-pointer select-none rounded-lg px-1 py-1 -mx-1 -my-1 transition-colors"
+            :class="[
+              selectedApp?.id === app.id
+                ? 'bg-primary/5 ring-1 ring-primary/20'
+                : 'hover:bg-gray-100 dark:hover:bg-[#141A21]/80'
+            ]"
+            @click="toggleProgress(app)"
+          >
             <div class="w-9 h-9 rounded-full bg-gray-100 dark:bg-gray-800 border border-gray-200 dark:border-gray-700 flex items-center justify-center text-xs font-bold text-gray-600 dark:text-gray-400 shadow-sm">
               {{ app.student?.user?.full_name?.charAt(0) || 'S' }}
             </div>
             <div>
-              <p class="text-sm font-semibold text-gray-900 dark:text-white group-hover:text-primary transition-colors">{{ app.student?.user?.full_name }}</p>
+              <p class="text-sm font-semibold text-gray-900 dark:text-white">{{ app.student?.user?.full_name }}</p>
               <p class="text-xs text-gray-500 dark:text-gray-400">{{ app.student?.user?.email }}</p>
             </div>
+            <ChevronRight
+              class="w-4 h-4 text-gray-300 dark:text-gray-600 transition-transform duration-200 ml-1"
+              :class="{ 'rotate-90 text-primary': selectedApp?.id === app.id }"
+            />
           </div>
         </template>
         <!-- University & Course -->
@@ -63,8 +110,8 @@
         </template>
         <!-- Status -->
         <template #cell(status)="{ item: app }">
-          <span :class="statusClass(app.status)" class="px-2.5 py-1 rounded-lg text-[10px] font-bold uppercase tracking-wider border shadow-sm">
-            {{ app.status?.replace('_', ' ') }}
+          <span :class="statusClass(app.status)" class="px-2.5 py-1 rounded-lg text-[10px] font-bold uppercase tracking-wider border shadow-sm whitespace-nowrap">
+            {{ statusLabel(app.status) }}
           </span>
         </template>
         <!-- Actions -->
@@ -88,8 +135,13 @@ import { useConfirmStore } from '@/stores/confirm';
 import { useAuthStore } from '@/stores/auth';
 import MainLayout from '@/layouts/MainLayout.vue';
 import DataTable from '@/components/Table/DataTable.vue';
+import ApplicationStepper from '@/components/ApplicationStepper.vue';
 import { fetchWithCache, clearCache } from '@/utils/cacheHelper';
-import { Plus, Edit3, Trash2, ChevronRight, FileText, Loader2 } from 'lucide-vue-next';
+import { Plus, Edit3, Trash2, ChevronRight, X } from 'lucide-vue-next';
+import {
+  TOTAL_STEPS, getStepIndex, getProgressPercent, getStatusLabel,
+  getStatusBadgeClass,
+} from '@/utils/applicationStatuses';
 
 const router = useRouter();
 const toast = useToastStore();
@@ -100,10 +152,10 @@ const isStudent = computed(() => authStore.user?.role === 'student');
 
 const applications = ref([]);
 const loading = ref(false);
-const deleteLoading = ref(false);
 const pagination = ref(null);
 const perPage = ref(15);
 const searchQuery = ref('');
+const selectedApp = ref(null);
 
 const columns = computed(() => {
   const cols = [
@@ -131,9 +183,9 @@ const filteredApplications = computed(() => {
 
 const stats = ref([
   { label: 'Total Apps', value: 0 },
-  { label: 'Pending', value: 0 },
+  { label: 'In Progress', value: 0 },
   { label: 'Offer Letters', value: 0 },
-  { label: 'Visa Process', value: 0 },
+  { label: 'Enrolled', value: 0 },
 ]);
 
 const handlePerPageChange = (newPerPage) => {
@@ -155,24 +207,20 @@ const loadApplications = async (page = 1) => {
 };
 
 const updateStats = () => {
+  const inWorkflow = (a) => getStepIndex(a.status) >= 0;
   stats.value[0].value = applications.value.length;
-  stats.value[1].value = applications.value.filter(a => a.status === 'pending').length;
-  stats.value[2].value = applications.value.filter(a => a.status === 'offer_letter').length;
-  stats.value[3].value = applications.value.filter(a => a.status === 'visa_process').length;
+  stats.value[1].value = applications.value.filter(inWorkflow).length;
+  stats.value[2].value = applications.value.filter(a => getStepIndex(a.status) >= getStepIndex('offer_letter')).length;
+  stats.value[3].value = applications.value.filter(a => a.status === 'enrolled').length;
 };
 
-const statusClass = (status) => {
-  const map = {
-    pending: 'bg-yellow-50 text-yellow-700 border-yellow-100 dark:bg-yellow-900/10 dark:text-yellow-500 dark:border-yellow-900/20',
-    document_review: 'bg-blue-50 text-blue-700 border-blue-100 dark:bg-blue-900/10 dark:text-blue-500 dark:border-blue-900/20',
-    university_submitted: 'bg-indigo-50 text-indigo-700 border-indigo-100 dark:bg-indigo-900/10 dark:text-indigo-500 dark:border-indigo-900/20',
-    offer_letter: 'bg-green-50 text-green-700 border-green-100 dark:bg-green-900/10 dark:text-green-500 dark:border-green-900/20',
-    visa_process: 'bg-purple-50 text-purple-700 border-purple-100 dark:bg-purple-900/10 dark:text-purple-500 dark:border-purple-900/20',
-    completed: 'bg-emerald-50 text-emerald-700 border-emerald-100 dark:bg-emerald-900/10 dark:text-emerald-500 dark:border-emerald-900/20',
-    rejected: 'bg-red-50 text-red-700 border-red-100 dark:bg-red-900/10 dark:text-red-500 dark:border-red-900/20',
-  };
-  return map[status] || 'bg-gray-50 text-gray-700 border-gray-100';
+const toggleProgress = (app) => {
+  selectedApp.value = selectedApp.value?.id === app.id ? null : app;
 };
+
+const progressPercent = (status) => getProgressPercent(status);
+const statusLabel = (status) => getStatusLabel(status);
+const statusClass = (status) => getStatusBadgeClass(status);
 
 const confirmDelete = async (app) => {
   const ok = await confirm.ask({
@@ -186,6 +234,9 @@ const confirmDelete = async (app) => {
       clearCache('/auth/admin/applications');
       clearCache('/auth/student/applications');
       toast.success('Application deleted successfully');
+      if (selectedApp.value?.id === app.id) {
+        selectedApp.value = null;
+      }
       loadApplications(1);
     } catch (error) {
       toast.error('Failed to delete application');
@@ -199,3 +250,23 @@ const edit = (app) => {
 
 onMounted(loadApplications);
 </script>
+
+<style scoped>
+.progress-slide-enter-active,
+.progress-slide-leave-active {
+  transition: all 0.25s ease-out;
+}
+.progress-slide-enter-from,
+.progress-slide-leave-to {
+  opacity: 0;
+  transform: translateY(-8px);
+  max-height: 0;
+  margin-top: 0;
+}
+.progress-slide-enter-to,
+.progress-slide-leave-from {
+  opacity: 1;
+  transform: translateY(0);
+  max-height: 500px;
+}
+</style>

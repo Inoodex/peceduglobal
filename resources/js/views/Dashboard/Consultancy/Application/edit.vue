@@ -98,13 +98,7 @@
             <div class="space-y-2">
               <label class="text-sm font-medium dark:text-gray-300">Application Status <span class="text-red-500">*</span></label>
               <select v-model="form.status" required class="form-input">
-                <option value="pending">Pending</option>
-                <option value="document_review">Document Review</option>
-                <option value="university_submitted">University Submitted</option>
-                <option value="offer_letter">Offer Letter</option>
-                <option value="visa_process">Visa Process</option>
-                <option value="completed">Completed</option>
-                <option value="rejected">Rejected</option>
+                <option v-for="opt in statusOptions" :key="opt.value" :value="opt.value">{{ opt.label }}</option>
               </select>
             </div>
 
@@ -159,6 +153,7 @@ import { useToastStore } from '@/stores/toast';
 import MainLayout from '@/layouts/MainLayout.vue';
 import { clearCache } from '@/utils/cacheHelper';
 import { ChevronRight, Loader2, User, FileText, GraduationCap } from 'lucide-vue-next';
+import { STATUS_OPTIONS } from '@/utils/applicationStatuses';
 
 const router = useRouter();
 const route = useRoute();
@@ -186,11 +181,13 @@ const form = ref({
   course_id: '',
   course_level_id: '',
   intake_id: '',
-  status: 'pending',
+  status: 'document_submitted',
   notes: '',
   rejection_reason: '',
   application_number: ''
 });
+
+const statusOptions = STATUS_OPTIONS;
 
 // Helper to unwrap lists from API responses
 const unwrapList = (res) => {

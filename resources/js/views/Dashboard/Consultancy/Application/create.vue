@@ -140,13 +140,7 @@
             <div class="space-y-2">
               <label class="text-sm font-medium dark:text-gray-300">Application Status <span class="text-red-500">*</span></label>
               <select v-model="form.status" required class="form-input">
-                <option value="pending">Pending</option>
-                <option value="document_review">Document Review</option>
-                <option value="university_submitted">University Submitted</option>
-                <option value="offer_letter">Offer Letter</option>
-                <option value="visa_process">Visa Process</option>
-                <option value="completed">Completed</option>
-                <option value="rejected">Rejected</option>
+                <option v-for="opt in statusOptions" :key="opt.value" :value="opt.value">{{ opt.label }}</option>
               </select>
             </div>
 
@@ -156,6 +150,11 @@
                 <option value="">Select Level</option>
                 <option v-for="level in courseLevels" :key="level?.id" :value="level?.id">{{ level?.name }}</option>
               </select>
+            </div>
+
+            <div class="space-y-2 md:col-span-2" v-if="form.status === 'rejected'">
+              <label class="text-sm font-medium text-red-500">Rejection Reason</label>
+              <textarea v-model="form.rejection_reason" rows="2" class="form-input border-red-200" placeholder="Explain why the application was rejected..."></textarea>
             </div>
 
             <div class="space-y-2 md:col-span-2">
@@ -196,6 +195,7 @@ import { useToastStore } from '@/stores/toast';
 import MainLayout from '@/layouts/MainLayout.vue';
 import { clearCache } from '@/utils/cacheHelper';
 import { ChevronRight, Loader2, User, FileText, GraduationCap, Search, Check } from 'lucide-vue-next';
+import { STATUS_OPTIONS } from '@/utils/applicationStatuses';
 
 const router = useRouter();
 const toast = useToastStore();
@@ -227,9 +227,12 @@ const form = ref({
   course_id: '',
   course_level_id: '',
   intake_id: '',
-  status: 'pending',
-  notes: ''
+  status: 'document_submitted',
+  notes: '',
+  rejection_reason: ''
 });
+
+const statusOptions = STATUS_OPTIONS;
 
 // Helper to unwrap lists from API responses
 const unwrapList = (res) => {
