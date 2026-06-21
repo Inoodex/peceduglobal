@@ -23,7 +23,7 @@
             <Search class="absolute left-3 top-1/2 -translate-y-1/2 w-5 h-5 text-gray-400" />
             <input v-model="searchQuery" type="text" placeholder="Search university by name or location..." class="w-full bg-gray-50 dark:bg-[#141A21] border border-gray-200 dark:border-gray-700 rounded-xl pl-10 pr-4 py-2.5 text-gray-900 dark:text-white placeholder-gray-400 focus:outline-none focus:ring-2 focus:ring-primary/20 focus:border-primary transition-all" />
           </div>
-          <button v-if="searchQuery" @click="searchQuery = ''" class="px-4 py-2 text-gray-600 dark:text-gray-400 hover:text-gray-900 dark:hover:text-white transition-colors">Clear</button>
+          <button v-if="searchQuery" @click="searchQuery = ''; clearFiltersState('university_manager');" class="px-4 py-2 text-gray-600 dark:text-gray-400 hover:text-gray-900 dark:hover:text-white transition-colors cursor-pointer">Clear</button>
         </div>
       </div>
 
@@ -86,6 +86,11 @@ import DataTable from '@/components/Table/DataTable.vue';
 import { useToastStore } from '@/stores/toast';
 import { useConfirmStore } from '@/stores/confirm';
 import { fetchWithCache, clearCache } from '@/utils/cacheHelper';
+import { saveFiltersState, restoreFiltersState, clearFiltersState } from '@/utils/filterHelper';
+import { watch } from 'vue';
+
+const toast = useToastStore();
+const confirm = useConfirmStore();
 import {
   ChevronRight, Plus, Search, Loader2, Pencil, Trash2, AlertTriangle, School
 } from 'lucide-vue-next';
@@ -122,7 +127,20 @@ const handlePerPageChange = (newPerPage) => {
   fetchUniversities(1);
 };
 
+let searchTimer = null;
+watch(searchQuery, () => {
+  clearTimeout(searchTimer);
+  searchTimer = setTimeout(() => {
+    saveFiltersState('university_manager', { page: 1, searchQuery: searchQuery.value });
+    fetchUniversities(1);
+  }, 400);
+});
+
 const fetchUniversities = async (page = 1) => {
+  saveFiltersState('university_manager', {
+    page,
+    searchQuery: searchQuery.value
+  });
   await fetchWithCache({
     url: '/auth/admin/universities',
     params: { page, per_page: perPage.value },
@@ -153,6 +171,11 @@ const confirmDelete = async (university) => {
 };
 
 onMounted(() => {
-  fetchUniversities(1);
+  const state = restoreFiltersState('university_manager', { searchQuery: '', page: 1 });
+  searchQuery.value = state.searchQuery;
+  // Use nextTick or simple setTimeout to ensure search watch does not immediately trigger fetch on mount
+  setTimeout(() => {
+    fetchUniversities(state.page);
+  }, 50);
 });
 </script>

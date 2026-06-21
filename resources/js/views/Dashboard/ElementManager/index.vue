@@ -126,6 +126,7 @@ import MainLayout from '@/layouts/MainLayout.vue';
 import DataTable from '@/components/Table/DataTable.vue';
 import CustomSelect from '@/components/Form/CustomSelect.vue';
 import { fetchWithCache, clearCache } from '@/utils/cacheHelper';
+import { saveFiltersState, restoreFiltersState, clearFiltersState } from '@/utils/filterHelper';
 import { useToastStore } from '@/stores/toast';
 import { useConfirmStore } from '@/stores/confirm';
 import {
@@ -156,6 +157,7 @@ export default {
       selectedCountry: '',
       selectedPage: '',
       selectedBlock: '',
+      isInitializing: false,
       countries: [],
       pages: [],
       blocks: [],
@@ -177,13 +179,27 @@ export default {
     },
   },
   mounted() {
+    this.isInitializing = true;
+    const defaultState = { searchQuery: '', selectedCountry: '', selectedPage: '', selectedBlock: '', page: 1 };
+    const state = restoreFiltersState('element_manager', defaultState);
+
+    this.searchQuery = state.searchQuery;
+    this.selectedCountry = state.selectedCountry;
+    this.selectedPage = state.selectedPage;
+    this.selectedBlock = state.selectedBlock;
+
     this.fetchCountries();
-    this.fetchPagesList();
-    this.fetchBlocksList();
-    this.fetchElements();
+    this.fetchPagesList(this.selectedCountry);
+    this.fetchBlocksList(this.selectedCountry, this.selectedPage);
+    this.fetchElements(state.page);
+    
+    this.$nextTick(() => {
+      this.isInitializing = false;
+    });
   },
   watch: {
     selectedCountry() {
+      if (this.isInitializing) return;
       this.selectedPage = '';
       this.selectedBlock = '';
       this.fetchPagesList(this.selectedCountry);
@@ -191,12 +207,17 @@ export default {
       this.fetchElements(1);
     },
     selectedPage() {
+      if (this.isInitializing) return;
       this.selectedBlock = '';
       this.fetchBlocksList(this.selectedCountry, this.selectedPage);
       this.fetchElements(1);
     },
-    selectedBlock() { this.fetchElements(1); },
+    selectedBlock() {
+      if (this.isInitializing) return;
+      this.fetchElements(1);
+    },
     searchQuery() {
+      if (this.isInitializing) return;
       clearTimeout(this._searchTimer);
       this._searchTimer = setTimeout(() => this.fetchElements(1), 400);
     },
@@ -236,8 +257,18 @@ export default {
       this.selectedCountry = '';
       this.selectedPage = '';
       this.selectedBlock = '';
+      clearFiltersState('element_manager');
     },
     async fetchElements(page = 1) {
+      // Save state to sessionStorage using global helper
+      saveFiltersState('element_manager', {
+        page,
+        searchQuery: this.searchQuery,
+        selectedCountry: this.selectedCountry,
+        selectedPage: this.selectedPage,
+        selectedBlock: this.selectedBlock
+      });
+
       await fetchWithCache({
         url: '/auth/admin/elements',
         params: {

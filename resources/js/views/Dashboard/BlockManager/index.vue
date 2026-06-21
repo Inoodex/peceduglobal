@@ -107,6 +107,7 @@ import MainLayout from '@/layouts/MainLayout.vue';
 import DataTable from '@/components/Table/DataTable.vue';
 import CustomSelect from '@/components/Form/CustomSelect.vue';
 import { fetchWithCache, clearCache } from '@/utils/cacheHelper';
+import { saveFiltersState, restoreFiltersState, clearFiltersState } from '@/utils/filterHelper';
 import { useToastStore } from '@/stores/toast';
 import { useConfirmStore } from '@/stores/confirm';
 import {
@@ -136,6 +137,7 @@ export default {
       searchQuery: '',
       selectedCountry: '',
       selectedPage: '',
+      isInitializing: false,
       countries: [],
       pages: [],
     };
@@ -147,18 +149,35 @@ export default {
     },
   },
   mounted() {
+    this.isInitializing = true;
+    const defaultState = { searchQuery: '', selectedCountry: '', selectedPage: '', page: 1 };
+    const state = restoreFiltersState('block_manager', defaultState);
+
+    this.searchQuery = state.searchQuery;
+    this.selectedCountry = state.selectedCountry;
+    this.selectedPage = state.selectedPage;
+
     this.fetchCountries();
-    this.fetchPages();
-    this.fetchBlocks();
+    this.fetchPages(this.selectedCountry);
+    this.fetchBlocks(state.page);
+
+    this.$nextTick(() => {
+      this.isInitializing = false;
+    });
   },
   watch: {
     selectedCountry() {
+      if (this.isInitializing) return;
       this.selectedPage = '';
       this.fetchPages(this.selectedCountry);
       this.fetchBlocks(1);
     },
-    selectedPage() { this.fetchBlocks(1); },
+    selectedPage() {
+      if (this.isInitializing) return;
+      this.fetchBlocks(1);
+    },
     searchQuery() {
+      if (this.isInitializing) return;
       clearTimeout(this._searchTimer);
       this._searchTimer = setTimeout(() => this.fetchBlocks(1), 400);
     },
@@ -186,8 +205,17 @@ export default {
       this.searchQuery = '';
       this.selectedCountry = '';
       this.selectedPage = '';
+      clearFiltersState('block_manager');
     },
     async fetchBlocks(page = 1) {
+      // Save state to sessionStorage using global helper
+      saveFiltersState('block_manager', {
+        page,
+        searchQuery: this.searchQuery,
+        selectedCountry: this.selectedCountry,
+        selectedPage: this.selectedPage
+      });
+
       await fetchWithCache({
         url: '/auth/admin/blocks',
         params: {

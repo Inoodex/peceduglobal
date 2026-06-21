@@ -23,7 +23,7 @@
             <Search class="absolute left-3 top-1/2 -translate-y-1/2 w-5 h-5 text-gray-400" />
             <input v-model="searchQuery" type="text" placeholder="Search course by name, university or level..." class="w-full bg-gray-50 dark:bg-[#141A21] border border-gray-200 dark:border-gray-700 rounded-xl pl-10 pr-4 py-2.5 text-gray-900 dark:text-white placeholder-gray-400 focus:outline-none focus:ring-2 focus:ring-primary/20 focus:border-primary transition-all" />
           </div>
-          <button v-if="searchQuery" @click="searchQuery = ''" class="px-4 py-2 text-gray-600 dark:text-gray-400 hover:text-gray-900 dark:hover:text-white transition-colors">Clear</button>
+          <button v-if="searchQuery" @click="searchQuery = ''; clearFiltersState('course_manager');" class="px-4 py-2 text-gray-600 dark:text-gray-400 hover:text-gray-900 dark:hover:text-white transition-colors cursor-pointer">Clear</button>
         </div>
       </div>
 
@@ -82,6 +82,11 @@ import DataTable from '@/components/Table/DataTable.vue';
 import { useToastStore } from '@/stores/toast';
 import { useConfirmStore } from '@/stores/confirm';
 import { fetchWithCache, clearCache } from '@/utils/cacheHelper';
+import { saveFiltersState, restoreFiltersState, clearFiltersState } from '@/utils/filterHelper';
+import { watch } from 'vue';
+
+const toast = useToastStore();
+const confirm = useConfirmStore();
 import {
   ChevronRight, Plus, Search, Loader2, Pencil, Trash2, AlertTriangle, BookOpen
 } from 'lucide-vue-next';
@@ -118,7 +123,20 @@ const handlePerPageChange = (newPerPage) => {
   fetchCourses(1);
 };
 
+let searchTimer = null;
+watch(searchQuery, () => {
+  clearTimeout(searchTimer);
+  searchTimer = setTimeout(() => {
+    saveFiltersState('course_manager', { page: 1, searchQuery: searchQuery.value });
+    fetchCourses(1);
+  }, 400);
+});
+
 const fetchCourses = async (page = 1) => {
+  saveFiltersState('course_manager', {
+    page,
+    searchQuery: searchQuery.value
+  });
   await fetchWithCache({
     url: '/auth/admin/courses',
     params: { page, per_page: perPage.value },
@@ -149,6 +167,10 @@ const confirmDelete = async (course) => {
 };
 
 onMounted(() => {
-  fetchCourses(1);
+  const state = restoreFiltersState('course_manager', { searchQuery: '', page: 1 });
+  searchQuery.value = state.searchQuery;
+  setTimeout(() => {
+    fetchCourses(state.page);
+  }, 50);
 });
 </script>

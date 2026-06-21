@@ -193,11 +193,14 @@
 </template>
 
 <script setup>
-import { ref, onMounted } from 'vue';
+import { ref, onMounted, watch } from 'vue';
 import axios from '@/plugins/axios';
 import MainLayout from '@/layouts/MainLayout.vue';
+import { saveFiltersState, restoreFiltersState } from '@/utils/filterHelper';
 
-const activeTab = ref('consultants');
+const savedTab = restoreFiltersState('booking_manager', { activeTab: 'consultants' });
+const activeTab = ref(savedTab.activeTab);
+watch(activeTab, (val) => saveFiltersState('booking_manager', { activeTab: val }));
 const stats = ref(null);
 const appointments = ref([]);
 const allSchedules = ref([]);

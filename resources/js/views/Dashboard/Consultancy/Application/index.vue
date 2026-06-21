@@ -137,6 +137,7 @@ import MainLayout from '@/layouts/MainLayout.vue';
 import DataTable from '@/components/Table/DataTable.vue';
 import ApplicationStepper from '@/components/ApplicationStepper.vue';
 import { fetchWithCache, clearCache } from '@/utils/cacheHelper';
+import { saveFiltersState, restoreFiltersState } from '@/utils/filterHelper';
 import { Plus, Edit3, Trash2, ChevronRight, X } from 'lucide-vue-next';
 import {
   TOTAL_STEPS, getStepIndex, getProgressPercent, getStatusLabel,
@@ -194,6 +195,7 @@ const handlePerPageChange = (newPerPage) => {
 };
 
 const loadApplications = async (page = 1) => {
+  saveFiltersState('application_manager', { page, searchQuery: searchQuery.value });
   const url = isStudent.value ? '/auth/student/applications' : '/auth/admin/applications';
   await fetchWithCache({
     url,
@@ -248,7 +250,11 @@ const edit = (app) => {
   router.push(`/dashboard/applications/${app.id}/edit`);
 };
 
-onMounted(loadApplications);
+onMounted(() => {
+  const state = restoreFiltersState('application_manager', { page: 1, searchQuery: '' });
+  searchQuery.value = state.searchQuery;
+  loadApplications(state.page);
+});
 </script>
 
 <style scoped>

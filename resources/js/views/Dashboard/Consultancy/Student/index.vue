@@ -82,13 +82,14 @@
 </template>
 
 <script setup>
-import { ref, computed, onMounted } from 'vue';
+import { ref, computed, onMounted, watch } from 'vue';
 import axios from '@/plugins/axios';
 import { useToastStore } from '@/stores/toast';
 import { useConfirmStore } from '@/stores/confirm';
 import MainLayout from '@/layouts/MainLayout.vue';
 import DataTable from '@/components/Table/DataTable.vue';
 import { fetchWithCache, clearCache } from '@/utils/cacheHelper';
+import { saveFiltersState, restoreFiltersState, clearFiltersState } from '@/utils/filterHelper';
 import { Plus, Search, Edit3, Trash2, Loader2 } from 'lucide-vue-next';
 
 const toast = useToastStore();
@@ -122,7 +123,20 @@ const handlePerPageChange = (newPerPage) => {
   fetchStudents(1);
 };
 
+let searchTimer = null;
+watch(searchQuery, () => {
+  clearTimeout(searchTimer);
+  searchTimer = setTimeout(() => {
+    saveFiltersState('student_manager', { page: 1, searchQuery: searchQuery.value });
+    fetchStudents(1);
+  }, 400);
+});
+
 const fetchStudents = async (page = 1) => {
+  saveFiltersState('student_manager', {
+    page,
+    searchQuery: searchQuery.value
+  });
   await fetchWithCache({
     url: '/auth/admin/students',
     params: { page, per_page: perPage.value },
@@ -151,5 +165,9 @@ const confirmDelete = async (student) => {
   }
 };
 
-onMounted(fetchStudents);
+onMounted(() => {
+  const state = restoreFiltersState('student_manager', { searchQuery: '', page: 1 });
+  searchQuery.value = state.searchQuery;
+  setTimeout(() => fetchStudents(state.page), 50);
+});
 </script>
