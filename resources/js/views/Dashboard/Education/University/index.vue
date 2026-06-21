@@ -88,9 +88,6 @@ import { useConfirmStore } from '@/stores/confirm';
 import { fetchWithCache, clearCache } from '@/utils/cacheHelper';
 import { saveFiltersState, restoreFiltersState, clearFiltersState } from '@/utils/filterHelper';
 import { watch } from 'vue';
-
-const toast = useToastStore();
-const confirm = useConfirmStore();
 import {
   ChevronRight, Plus, Search, Loader2, Pencil, Trash2, AlertTriangle, School
 } from 'lucide-vue-next';
