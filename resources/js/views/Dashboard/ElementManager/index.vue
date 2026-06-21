@@ -27,35 +27,52 @@
 
       <!-- Filters Card -->
       <div class="bg-white dark:bg-[#1C252E] rounded-2xl border border-gray-200 dark:border-gray-700/50 p-4 mb-4">
-        <div class="grid grid-cols-1 md:grid-cols-4 gap-4">
-          <div class="relative">
-            <Search class="absolute left-3 top-1/2 -translate-y-1/2 w-5 h-5 text-gray-400" />
-            <input v-model="searchQuery" type="text" placeholder="Search elements..." class="w-full bg-gray-50 dark:bg-[#141A21] border border-gray-200 dark:border-gray-700 rounded-xl pl-10 pr-4 py-2.5 text-gray-900 dark:text-white placeholder-gray-400 focus:outline-none focus:ring-2 focus:ring-primary/20 focus:border-primary transition-all" />
+        <div class="flex flex-col gap-3">
+          <div class="grid grid-cols-1 sm:grid-cols-2 md:grid-cols-4 gap-4 items-end">
+            <div class="relative">
+              <Search class="absolute left-3 top-1/2 -translate-y-1/2 w-5 h-5 text-gray-400" />
+              <input v-model="searchQuery" type="text" placeholder="Search elements..." class="w-full bg-gray-50 dark:bg-[#141A21] border border-gray-200 dark:border-gray-700 rounded-xl pl-10 pr-4 py-2.5 text-gray-900 dark:text-white placeholder-gray-400 focus:outline-none focus:ring-2 focus:ring-primary/20 focus:border-primary transition-all" />
+            </div>
+            <div class="relative pt-1">
+              <CustomSelect 
+                v-model="selectedCountry" 
+                :options="countries" 
+                label="Country"
+                placeholder="All Countries"
+                labelKey="name"
+                valueKey="id"
+                :clearable="true"
+              />
+            </div>
+            <div class="relative pt-1">
+              <CustomSelect 
+                v-model="selectedPage" 
+                :options="pageOptions" 
+                label="Page"
+                placeholder="All Pages"
+                labelKey="label"
+                valueKey="id"
+                :clearable="true"
+                :disabled="!selectedCountry"
+              />
+            </div>
+            <div class="relative pt-1">
+              <CustomSelect 
+                v-model="selectedBlock" 
+                :options="blockOptions" 
+                label="Block"
+                placeholder="All Blocks"
+                labelKey="label"
+                valueKey="id"
+                :clearable="true"
+                :disabled="!selectedPage"
+              />
+            </div>
           </div>
-          <div class="relative pt-1">
-            <CustomSelect 
-              v-model="selectedCountry" 
-              :options="countries" 
-              label="Country"
-              placeholder="All Countries"
-              labelKey="name"
-              valueKey="id"
-              :clearable="true"
-            />
-          </div>
-          <div class="relative pt-1">
-            <CustomSelect 
-              v-model="selectedBlock" 
-              :options="blockOptions" 
-              label="Block"
-              placeholder="All Blocks"
-              labelKey="label"
-              valueKey="id"
-              :clearable="true"
-            />
-          </div>
-          <div class="flex gap-2">
-            <button v-if="searchQuery || selectedCountry || selectedBlock" @click="clearFilters" class="px-4 py-2 text-gray-600 dark:text-gray-400 hover:text-gray-900 dark:hover:text-white transition-colors">Clear All</button>
+          <div v-if="searchQuery || selectedCountry || selectedPage || selectedBlock" class="flex justify-end">
+            <button @click="clearFilters" class="text-sm font-semibold text-red-500 hover:text-red-600 dark:hover:text-red-400 transition-colors cursor-pointer">
+              Clear All Filters
+            </button>
           </div>
         </div>
       </div>
@@ -70,16 +87,16 @@
         @per-page-change="handlePerPageChange"
       >
         <template #cell(title)="{ item }">
-          <div class="font-medium text-gray-900 dark:text-white text-sm">{{ item.element_title || 'No Title' }}</div>
+          <div :title="item.element_title || 'No Title'" class="font-medium text-gray-900 dark:text-white text-sm truncate max-w-[240px]">{{ item.element_title || 'No Title' }}</div>
         </template>
 
         <template #cell(block_page)="{ item }">
-          <div class="flex flex-col gap-1">
-            <div v-if="item.page_block?.page" class="flex items-center gap-1">
-              <span class="text-[10px] font-bold uppercase bg-primary/10 text-primary px-1.5 py-0.5 rounded">{{ item.page_block.page.country?.iso_code }}</span>
-              <span class="text-xs font-medium text-gray-700 dark:text-gray-300">{{ item.page_block.page.title }}</span>
+          <div class="flex flex-col gap-1 max-w-[260px]">
+            <div v-if="item.page_block?.page" :title="item.page_block.page.title" class="flex items-center gap-1">
+              <span class="text-[10px] font-bold uppercase bg-primary/10 text-primary px-1.5 py-0.5 rounded shrink-0">{{ item.page_block.page.country?.iso_code }}</span>
+              <span class="text-xs font-medium text-gray-700 dark:text-gray-300 truncate">{{ item.page_block.page.title }}</span>
             </div>
-            <span v-if="item.page_block" class="text-xs text-gray-500 dark:text-gray-400 font-mono">
+            <span v-if="item.page_block" :title="item.page_block?.block_type + (item.page_block?.section_title ? ' - ' + item.page_block.section_title : '')" class="text-xs text-gray-500 dark:text-gray-400 font-mono truncate">
               {{ item.page_block?.block_type }}
             </span>
           </div>
@@ -137,13 +154,21 @@ export default {
       loading: false,
       searchQuery: '',
       selectedCountry: '',
+      selectedPage: '',
       selectedBlock: '',
       countries: [],
+      pages: [],
       blocks: [],
     };
   },
 
   computed: {
+    pageOptions() {
+      return this.pages.map(p => ({
+        ...p,
+        label: `${p.country?.iso_code ? p.country.iso_code + ' - ' : ''}${p.title}`
+      }));
+    },
     blockOptions() {
       return this.blocks.map(b => ({
         ...b,
@@ -153,13 +178,21 @@ export default {
   },
   mounted() {
     this.fetchCountries();
+    this.fetchPagesList();
     this.fetchBlocksList();
     this.fetchElements();
   },
   watch: {
     selectedCountry() {
+      this.selectedPage = '';
       this.selectedBlock = '';
+      this.fetchPagesList(this.selectedCountry);
       this.fetchBlocksList(this.selectedCountry);
+      this.fetchElements(1);
+    },
+    selectedPage() {
+      this.selectedBlock = '';
+      this.fetchBlocksList(this.selectedCountry, this.selectedPage);
       this.fetchElements(1);
     },
     selectedBlock() { this.fetchElements(1); },
@@ -177,10 +210,21 @@ export default {
         console.error('Failed to load countries', e);
       }
     },
-    async fetchBlocksList(countryId = '') {
+    async fetchPagesList(countryId = '') {
       try {
-        const params = {};
+        const params = { all: true };
         if (countryId) params.country_id = countryId;
+        const response = await axios.get('/auth/admin/pages', { params });
+        this.pages = response.data.data?.data || response.data.data || [];
+      } catch (e) {
+        console.error('Failed to load pages', e);
+      }
+    },
+    async fetchBlocksList(countryId = '', pageId = '') {
+      try {
+        const params = { all: true };
+        if (countryId) params.country_id = countryId;
+        if (pageId) params.page_id = pageId;
         const response = await axios.get('/auth/admin/blocks', { params });
         this.blocks = response.data.data?.data || response.data.data || [];
       } catch (e) {
@@ -190,6 +234,7 @@ export default {
     clearFilters() {
       this.searchQuery = '';
       this.selectedCountry = '';
+      this.selectedPage = '';
       this.selectedBlock = '';
     },
     async fetchElements(page = 1) {
@@ -199,6 +244,7 @@ export default {
           page,
           per_page: this.perPage,
           country_id: this.selectedCountry,
+          page_id: this.selectedPage || undefined,
           block_id: this.selectedBlock,
           search: this.searchQuery || undefined
         },

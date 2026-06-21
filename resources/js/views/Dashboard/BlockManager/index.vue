@@ -74,16 +74,16 @@
         </template>
 
         <template #cell(section_title)="{ item }">
-          <span class="text-sm text-gray-900 dark:text-white font-medium truncate max-w-[180px] block">
+          <span :title="item.section_title || ''" class="text-sm text-gray-900 dark:text-white font-medium truncate max-w-[180px] block">
             {{ item.section_title || '—' }}
           </span>
         </template>
 
         <template #cell(page)="{ item }">
-          <span v-if="item.page" class="inline-flex items-center gap-1 px-2 py-1 rounded-lg bg-blue-100 dark:bg-blue-900/30 text-blue-700 dark:text-blue-300 text-xs font-medium">
-            <span class="font-bold">{{ item.page.country?.iso_code }}</span>
-            <span class="opacity-50">|</span>
-            <span>{{ item.page.title }}</span>
+          <span v-if="item.page" :title="item.page.title" class="inline-flex items-center gap-1 px-2 py-1 rounded-lg bg-blue-100 dark:bg-blue-900/30 text-blue-700 dark:text-blue-300 text-xs font-medium max-w-[220px]">
+            <span class="font-bold shrink-0">{{ item.page.country?.iso_code }}</span>
+            <span class="opacity-50 shrink-0">|</span>
+            <span class="truncate">{{ item.page.title }}</span>
           </span>
           <span v-else class="text-sm text-gray-400">—</span>
         </template>
@@ -174,7 +174,7 @@ export default {
     },
     async fetchPages(countryId = '') {
       try {
-        const params = {};
+        const params = { all: true };
         if (countryId) params.country_id = countryId;
         const response = await axios.get('/auth/admin/pages', { params });
         this.pages = response.data.data?.data || response.data.data || [];

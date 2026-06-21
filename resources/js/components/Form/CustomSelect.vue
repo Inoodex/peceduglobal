@@ -1,6 +1,6 @@
 <template>
-  <div class="relative w-full" ref="dropdownRef">
-
+  <div class="relative w-full outline-none" ref="dropdownRef" @keydown="handleKeyDown" tabindex="0">
+ 
     <!-- Trigger Box -->
     <div
       @click="toggleDropdown"
@@ -19,7 +19,7 @@
       >
         {{ label }}
       </span>
-
+ 
       <!-- Display Value -->
       <div class="flex-1 flex items-center gap-2 overflow-hidden pr-6">
         <!-- Search input when open -->
@@ -33,13 +33,13 @@
           @click.stop
         />
         <!-- Selected value display -->
-        <span v-else-if="selectedOption" class="text-sm font-medium text-gray-900 dark:text-white truncate">
+        <span v-else-if="selectedOption" class="text-sm font-medium text-gray-900 dark:text-white truncate" :title="typeof labelKey === 'function' ? labelKey(selectedOption) : selectedOption[labelKey]">
           {{ typeof labelKey === 'function' ? labelKey(selectedOption) : selectedOption[labelKey] }}
         </span>
         <!-- Placeholder -->
         <span v-else class="text-sm text-gray-400 dark:text-gray-500 truncate">{{ placeholder }}</span>
       </div>
-
+ 
       <!-- Right side icons -->
       <div class="absolute right-3 flex items-center gap-1">
         <button
@@ -53,7 +53,7 @@
         <ChevronDown v-else class="w-4 h-4 text-gray-400 dark:text-gray-500" />
       </div>
     </div>
-
+ 
     <!-- Dropdown -->
     <Transition
       enter-active-class="transition duration-150 ease-out"
@@ -68,7 +68,7 @@
         class="absolute z-60 w-full mt-1.5 bg-white dark:bg-[#1C252E] border border-gray-100 dark:border-gray-700/80 rounded-xl shadow-xl shadow-gray-200/30 dark:shadow-black/50 overflow-hidden"
       >
         <!-- Options List -->
-        <ul class="py-1.5 max-h-64 overflow-y-auto custom-scrollbar">
+        <ul ref="optionsListRef" class="py-1.5 max-h-64 overflow-y-auto custom-scrollbar">
           <!-- Empty -->
           <li
             v-if="filteredOptions.length === 0"
@@ -77,16 +77,22 @@
             <SearchX class="w-5 h-5 text-gray-300 dark:text-gray-600" />
             No results found
           </li>
-
+ 
           <!-- Items -->
           <li
-            v-for="option in filteredOptions"
+            v-for="(option, index) in filteredOptions"
             :key="option[valueKey]"
             @click="selectOption(option)"
+            @mouseenter="highlightedIndex = index"
             class="flex items-center gap-3 mx-1.5 px-3 py-2.5 rounded-lg cursor-pointer transition-colors text-sm"
-            :class="isSelected(option)
-              ? 'bg-primary/8 dark:bg-primary/10 text-primary font-medium'
-              : 'text-gray-800 dark:text-gray-200 hover:bg-gray-50 dark:hover:bg-[#141A21]'"
+            :class="[
+              isSelected(option)
+                ? 'bg-primary/8 dark:bg-primary/10 text-primary font-medium'
+                : 'text-gray-800 dark:text-gray-200',
+              highlightedIndex === index
+                ? 'bg-gray-100 dark:bg-gray-800/60'
+                : 'hover:bg-gray-50 dark:hover:bg-[#141A21]'
+            ]"
           >
             <!-- Optional image/icon -->
             <img
@@ -94,12 +100,12 @@
               :src="option[imageKey]"
               class="w-5 h-5 rounded-full object-cover border border-gray-100 dark:border-gray-700/50 shrink-0"
             />
-
+ 
             <!-- Slot for custom option display -->
             <slot name="option" :option="option">
-              <span class="truncate">{{ typeof labelKey === 'function' ? labelKey(option) : option[labelKey] }}</span>
+              <span class="truncate" :title="typeof labelKey === 'function' ? labelKey(option) : option[labelKey]">{{ typeof labelKey === 'function' ? labelKey(option) : option[labelKey] }}</span>
             </slot>
-
+ 
             <!-- Checkmark for selected -->
             <span v-if="isSelected(option)" class="ml-auto shrink-0">
               <Check class="w-3.5 h-3.5 text-primary" />
@@ -133,6 +139,8 @@ const isOpen     = ref(false);
 const searchQuery= ref('');
 const dropdownRef= ref(null);
 const searchInput= ref(null);
+const optionsListRef = ref(null);
+const highlightedIndex = ref(-1);
 
 const selectedOption = computed(() => {
   if (props.modelValue === null || props.modelValue === '') return null;
@@ -154,6 +162,7 @@ const toggleDropdown = async () => {
   isOpen.value = !isOpen.value;
   if (isOpen.value) {
     searchQuery.value = '';
+    highlightedIndex.value = -1;
     if (props.searchable) {
       await nextTick();
       searchInput.value?.focus();
@@ -170,6 +179,58 @@ const selectOption = (option) => {
 const clearSelection = () => {
   emit('update:modelValue', '');
   emit('change', null);
+};
+
+const scrollToHighlighted = () => {
+  nextTick(() => {
+    if (!optionsListRef.value) return;
+    const list = optionsListRef.value;
+    const activeEl = list.children[highlightedIndex.value];
+    if (activeEl) {
+      const activeHeight = activeEl.offsetHeight;
+      const activeTop = activeEl.offsetTop;
+      const listHeight = list.clientHeight;
+      const listScrollTop = list.scrollTop;
+
+      if (activeTop < listScrollTop) {
+        list.scrollTop = activeTop;
+      } else if (activeTop + activeHeight > listScrollTop + listHeight) {
+        list.scrollTop = activeTop + activeHeight - listHeight;
+      }
+    }
+  });
+};
+
+const handleKeyDown = (e) => {
+  if (!isOpen.value) {
+    if (e.key === 'ArrowDown' || e.key === 'ArrowUp' || e.key === 'Enter') {
+      e.preventDefault();
+      isOpen.value = true;
+      highlightedIndex.value = 0;
+    }
+    return;
+  }
+
+  const len = filteredOptions.value.length;
+  if (len === 0) return;
+
+  if (e.key === 'ArrowDown') {
+    e.preventDefault();
+    highlightedIndex.value = (highlightedIndex.value + 1) % len;
+    scrollToHighlighted();
+  } else if (e.key === 'ArrowUp') {
+    e.preventDefault();
+    highlightedIndex.value = (highlightedIndex.value - 1 + len) % len;
+    scrollToHighlighted();
+  } else if (e.key === 'Enter') {
+    e.preventDefault();
+    if (highlightedIndex.value >= 0 && highlightedIndex.value < len) {
+      selectOption(filteredOptions.value[highlightedIndex.value]);
+    }
+  } else if (e.key === 'Escape') {
+    e.preventDefault();
+    isOpen.value = false;
+  }
 };
 
 const handleClickOutside = (e) => {
