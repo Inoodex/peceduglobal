@@ -59,6 +59,7 @@ class StudentProfileResource extends JsonResource
             
             // Rich academic details
             'cgpa' => $this->cgpa,
+            'last_education_level' => $this->last_education_level,
             'ielts_score' => $this->ielts_score,
             'father_name' => $this->father_name,
             'mother_name' => $this->mother_name,
@@ -67,6 +68,7 @@ class StudentProfileResource extends JsonResource
             'passport_validity' => $this->passport_validity,
             'date_of_birth' => $this->date_of_birth,
             'country_id' => $this->country_id,
+            'course_level_id' => $this->course_level_id,
             'university_id' => $this->university_id,
             'course_id' => $this->course_id,
             'course_intake_id' => $this->course_intake_id,

@@ -48,6 +48,7 @@ class ProfileController extends Controller
                         : null,
                     'address'               => null,
                     'cgpa'                  => null,
+                    'last_education_level'  => null,
                     'ielts_score'           => null,
                     'father_name'           => null,
                     'mother_name'           => null,
@@ -56,6 +57,7 @@ class ProfileController extends Controller
                     'passport_validity'     => null,
                     'date_of_birth'         => null,
                     'country_id'            => null,
+                    'course_level_id'       => null,
                     'university_id'         => null,
                     'course_id'             => null,
                     'course_intake_id'      => null,
@@ -127,6 +129,7 @@ class ProfileController extends Controller
                 'phone'             => $validated['phone'] ?? $profile->phone,
                 'address'           => $validated['address'] ?? $profile->address,
                 'cgpa'              => $validated['cgpa'] ?? $profile->cgpa,
+                'last_education_level' => $validated['last_education_level'] ?? $profile->last_education_level,
                 'ielts_score'       => $validated['ielts_score'] ?? $profile->ielts_score,
 
                 // Rich academic fields
@@ -137,6 +140,7 @@ class ProfileController extends Controller
                 'passport_validity' => $validated['passport_validity'] ?? $profile->passport_validity,
                 'date_of_birth'     => $validated['date_of_birth'] ?? $profile->date_of_birth,
                 'country_id'        => $validated['country_id'] ?? $profile->country_id,
+                'course_level_id'   => $validated['course_level_id'] ?? $profile->course_level_id,
                 'university_id'     => $validated['university_id'] ?? $profile->university_id,
                 'course_id'         => $validated['course_id'] ?? $profile->course_id,
                 'course_intake_id'  => $validated['course_intake_id'] ?? $profile->course_intake_id,

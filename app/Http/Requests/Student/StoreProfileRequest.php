@@ -24,8 +24,9 @@ class StoreProfileRequest extends FormRequest
             'address'           => 'nullable|string',
             
             // Rich academic fields
-            'cgpa'              => 'nullable|numeric|between:0,5',
-            'ielts_score'       => 'nullable|numeric|between:0,9',
+            'cgpa'                  => 'nullable|numeric|between:0,5',
+            'last_education_level'  => 'nullable|string|in:bachelor,masters,postgraduate,diploma,hsc,ssc',
+            'ielts_score'           => 'nullable|numeric|between:0,9',
             'father_name'       => 'nullable|string|max:255',
             'mother_name'       => 'nullable|string|max:255',
             'sponsor_phone'     => 'nullable|string|max:255',
@@ -33,6 +34,7 @@ class StoreProfileRequest extends FormRequest
             'passport_validity' => 'nullable|date',
             'date_of_birth'     => 'nullable|date',
             'country_id'        => 'nullable|integer',
+            'course_level_id'   => 'nullable|integer|exists:course_levels,id',
             'university_id'     => 'nullable|integer',
             'course_id'         => 'nullable|integer',
             'course_intake_id'  => 'nullable|integer',

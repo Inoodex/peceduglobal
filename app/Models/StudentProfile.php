@@ -25,11 +25,13 @@ class StudentProfile extends Model
         'address',
         'sponsor_phone',
         'country_id',
+        'course_level_id',
         'university_id',
         'course_id',
         'course_intake_id',
         'preferred_intake',
         'cgpa',
+        'last_education_level',
         'ielts_score',
         'documents',
         'translation_documents',
@@ -54,6 +56,11 @@ class StudentProfile extends Model
     public function country(): BelongsTo
     {
         return $this->belongsTo(Country::class);
+    }
+
+    public function courseLevel(): BelongsTo
+    {
+        return $this->belongsTo(CourseLevel::class);
     }
 
     public function university(): BelongsTo

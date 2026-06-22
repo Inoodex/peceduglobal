@@ -155,11 +155,23 @@
               <p class="text-xs text-gray-400 mb-6">Enter your academic grades and passport credentials.</p>
 
               <div class="grid grid-cols-1 sm:grid-cols-2 gap-5">
+                <!-- Last Education Level (Dropdown) -->
+                <div class="space-y-1.5">
+                  <label class="text-xs font-bold text-gray-500 uppercase">Last Education Level</label>
+                  <select v-model="profileForm.last_education_level"
+                    class="w-full bg-gray-50 dark:bg-[#141A21] border border-gray-200 dark:border-gray-700 rounded-xl px-4 py-2.5 text-sm text-gray-900 dark:text-white focus:outline-none focus:ring-2 focus:ring-primary/20 focus:border-primary transition-all cursor-pointer">
+                    <option value="" disabled>Select education level</option>
+                    <option v-for="opt in educationLevelOptions" :key="opt.value" :value="opt.value">{{ opt.label }}</option>
+                  </select>
+                  <p v-if="profileErrors.last_education_level" class="text-xs text-red-500">{{ profileErrors.last_education_level[0] }}</p>
+                </div>
+
                 <!-- CGPA -->
                 <div class="space-y-1.5">
                   <label class="text-xs font-bold text-gray-500 uppercase">CGPA Score</label>
-                  <input type="number" step="0.01" v-model="profileForm.cgpa" placeholder="e.g. 3.85"
+                  <input type="number" step="0.01" v-model="profileForm.cgpa" :placeholder="cgpaPlaceholder"
                     class="w-full bg-gray-50 dark:bg-[#141A21] border border-gray-200 dark:border-gray-700 rounded-xl px-4 py-2.5 text-sm text-gray-900 dark:text-white placeholder-gray-400 focus:outline-none focus:ring-2 focus:ring-primary/20 focus:border-primary transition-all" />
+                  <p v-if="profileForm.last_education_level && cgpaScaleText" class="text-[11px] text-primary font-medium mt-0.5">Scale: {{ cgpaScaleText }}</p>
                   <p v-if="profileErrors.cgpa" class="text-xs text-red-500">{{ profileErrors.cgpa[0] }}</p>
                 </div>
 
@@ -198,6 +210,18 @@
               <p class="text-xs text-gray-400 mb-6">Select your preferred destination, universities, courses, and intakes.</p>
 
               <div class="grid grid-cols-1 sm:grid-cols-2 gap-5">
+                <!-- Course Level -->
+                <div class="space-y-1.5">
+                  <CustomSelect
+                    v-model="profileForm.course_level_id"
+                    :options="courseLevels"
+                    label="Course Level"
+                    placeholder="Select course level"
+                    label-key="name"
+                    value-key="id"
+                  />
+                </div>
+
                 <!-- Target Country -->
                 <div class="space-y-1.5">
                   <CustomSelect
@@ -347,7 +371,8 @@ const formatDate = (val) => {
 const loadingProfile = ref(true);
 
 // ── Dropdown options lists ──────────────────────────────────────
-const countries    = ref([]);
+const countries     = ref([]);
+const courseLevels  = ref([]);
 const universities = ref([]);
 const courses      = ref([]);
 const intakes      = ref([]);
@@ -360,6 +385,37 @@ const existingTranslationDocs = ref([]);
 
 // ── Classes matching edit.vue ───────────────────────────────────
 const fileInputClass = "w-full text-sm text-gray-500 dark:text-gray-400 file:mr-4 file:py-2 file:px-4 file:rounded-full file:border-0 file:text-sm file:font-semibold file:bg-primary/10 file:text-primary hover:file:bg-primary/20 cursor-pointer";
+
+// ── Education Level Options ──────────────────────────────────
+const educationLevelOptions = [
+  { value: 'ssc',           label: 'SSC' },
+  { value: 'hsc',           label: 'HSC' },
+  { value: 'diploma',       label: 'Diploma' },
+  { value: 'bachelor',      label: 'Bachelor' },
+  { value: 'masters',       label: 'Masters' },
+  { value: 'postgraduate', label: 'Postgraduate' },
+];
+
+// ── CGPA Scale hint based on selected education level ─────────
+const cgpaScaleText = computed(() => {
+  const level = profileForm.value.last_education_level;
+  if (!level) return '';
+  const map = {
+    ssc:     'out of 5.00',
+    hsc:     'out of 5.00',
+    diploma: 'out of 4.00',
+    bachelor:'out of 4.00',
+    masters: 'out of 4.00',
+    postgraduate:'out of 4.00',
+  };
+  return map[level] || '';
+});
+
+const cgpaPlaceholder = computed(() => {
+  const level = profileForm.value.last_education_level;
+  if (!level) return 'Select education level first';
+  return (level === 'ssc' || level === 'hsc') ? 'e.g. 4.50' : 'e.g. 3.85';
+});
 
 // ── Profile Form ────────────────────────────────────────────────
 const savingProfile  = ref(false);
@@ -379,8 +435,10 @@ const profileForm = ref({
   address:           '',
   date_of_birth:     '',
   cgpa:              '',
+  last_education_level: '',
   ielts_score:       '',
   country_id:        '',
+  course_level_id:   '',
   university_id:     '',
   course_id:         '',
   course_intake_id:  '',
@@ -397,9 +455,11 @@ const completionStats = computed(() => {
     { label: "Mother's Name", filled: !!profileForm.value.mother_name },
     { label: "Passport Number", filled: !!profileForm.value.passport_number },
     { label: "Passport Expiry Date", filled: !!profileForm.value.passport_validity },
+    { label: "Last Education Level", filled: !!profileForm.value.last_education_level },
     { label: "CGPA Score", filled: !!profileForm.value.cgpa },
     { label: "IELTS Score", filled: !!profileForm.value.ielts_score },
     { label: "Preferred Destination Country", filled: !!profileForm.value.country_id },
+    { label: "Course Level", filled: !!profileForm.value.course_level_id },
     { label: "Preferred University", filled: !!profileForm.value.university_id },
     { label: "Preferred Course", filled: !!profileForm.value.course_id },
     { label: "Preferred Intake", filled: !!profileForm.value.course_intake_id },
@@ -466,16 +526,18 @@ const unwrapList = (res) => {
 // ── Load Dropdowns List ──────────────────────────────────────────
 const loadDropdownData = async () => {
   try {
-    const [c, u, co, ink] = await Promise.all([
+    const [c, cl, u, co, ink] = await Promise.all([
       axios.get('/auth/dropdowns/countries', { params: { per_page: 500 } }),
+      axios.get('/auth/dropdowns/course-levels', { params: { per_page: 500 } }),
       axios.get('/auth/dropdowns/universities', { params: { per_page: 500 } }),
       axios.get('/auth/dropdowns/courses', { params: { per_page: 500 } }),
       axios.get('/auth/dropdowns/course-intakes'),
     ]);
-    countries.value    = unwrapList(c);
-    universities.value = unwrapList(u);
-    courses.value      = unwrapList(co);
-    intakes.value      = unwrapList(ink);
+    countries.value     = unwrapList(c);
+    courseLevels.value  = unwrapList(cl);
+    universities.value  = unwrapList(u);
+    courses.value       = unwrapList(co);
+    intakes.value       = unwrapList(ink);
   } catch (e) {
     console.error('Failed to load study preference dropdown options', e);
   }
@@ -495,6 +557,7 @@ const fetchProfile = async () => {
     profileForm.value.phone             = profile.phone             || '';
 
     profileForm.value.cgpa              = profile.cgpa              || '';
+    profileForm.value.last_education_level = profile.last_education_level || '';
     profileForm.value.ielts_score       = profile.ielts_score       || '';
     profileForm.value.father_name       = profile.father_name       || '';
     profileForm.value.mother_name       = profile.mother_name       || '';
@@ -504,6 +567,7 @@ const fetchProfile = async () => {
     profileForm.value.date_of_birth     = formatDate(profile.date_of_birth);
     profileForm.value.address           = profile.address                      || '';
     profileForm.value.country_id        = profile.country_id        || '';
+    profileForm.value.course_level_id   = profile.course_level_id   || '';
     profileForm.value.university_id     = profile.university_id     || '';
     profileForm.value.course_id         = profile.course_id         || '';
     profileForm.value.course_intake_id  = profile.course_intake_id  || '';
@@ -552,8 +616,10 @@ const saveAcademicProfile = async () => {
     fd.append('date_of_birth',     profileForm.value.date_of_birth     || '');
     fd.append('address',           profileForm.value.address           || '');
     fd.append('cgpa',              profileForm.value.cgpa              || '');
+    fd.append('last_education_level', profileForm.value.last_education_level || '');
     fd.append('ielts_score',       profileForm.value.ielts_score       || '');
     fd.append('country_id',        profileForm.value.country_id        || '');
+    fd.append('course_level_id',   profileForm.value.course_level_id   || '');
     fd.append('university_id',     profileForm.value.university_id     || '');
     fd.append('course_id',         profileForm.value.course_id         || '');
     fd.append('course_intake_id',  profileForm.value.course_intake_id  || '');

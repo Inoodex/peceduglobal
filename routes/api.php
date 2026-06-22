@@ -53,6 +53,7 @@ Route::group(['prefix' => 'auth'], function () {
         Route::get('dropdowns/universities', [UniversityController::class, 'index']);
         Route::get('dropdowns/courses', [CourseController::class, 'index']);
         Route::get('dropdowns/course-intakes', [CourseIntakeController::class, 'index']);
+        Route::get('dropdowns/course-levels', [CourseLevelController::class, 'index']);
 
         // Blog routes (permission-protected)
         Route::middleware('auto-permission')->group(function () {
