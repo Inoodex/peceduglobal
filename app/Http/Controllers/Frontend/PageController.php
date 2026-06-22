@@ -85,7 +85,7 @@ class PageController extends Controller
      */
     public function getCountriesForNavbar(): JsonResponse
     {
-        $countries = Country::orderBy('name', 'asc')->get(['id', 'name', 'iso_code']);
+        $countries = Country::orderBy('name', 'asc')->get(['id', 'name', 'iso_code', 'thumbnail']);
 
         return response()->json([
             'success' => true,
