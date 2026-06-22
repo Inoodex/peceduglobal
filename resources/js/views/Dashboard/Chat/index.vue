@@ -235,7 +235,7 @@ const messageHistory = ref(null);
 
 // Echo & socket references
 let echoInstance = null;
-let currentChannel = null;
+let currentChannelName = null;
 
 // Computed Property to Filter Conversations
 const filteredConversations = computed(() => {
@@ -292,16 +292,33 @@ const fetchConversations = async () => {
 // Initialize Laravel Echo using dynamic configuration
 const setupEchoConnection = async () => {
   try {
-    const response = await axios.get('/api/public/chat/settings');
+    console.log('🔔 [1/5] setupEchoConnection() STARTED — fetching settings...');
+    const response = await axios.get('/public/chat/settings');
+    console.log('🔔 [2/5] Settings API response:', response.data);
+
     if (response.data.success) {
       const settings = response.data.data;
-      
+      console.log('🔔 Settings received:', {
+        driver: settings.pusher_driver,
+        key: settings.pusher_key ? settings.pusher_key + ' (len=' + settings.pusher_key.length + ')' : 'MISSING!',
+        cluster: settings.pusher_cluster,
+        scheme: settings.pusher_scheme || '(empty)',
+        host: settings.pusher_host || '(empty)',
+        port: settings.pusher_port || '(empty)',
+      });
+
+      // Validate critical fields
+      if (!settings.pusher_key) {
+        console.error('🚨 FATAL: pusher_key is MISSING in DB settings!');
+        return;
+      }
+
       // Make sure Pusher runs on custom or official endpoint
       window.Pusher = Pusher;
       const echoOptions = {
         broadcaster: 'pusher',
         key: settings.pusher_key,
-        forceTLS: settings.pusher_scheme === 'https',
+        forceTLS: (settings.pusher_scheme || 'https') === 'https',
         disableStats: true,
         enabledTransports: ['ws', 'wss'],
       };
@@ -314,11 +331,29 @@ const setupEchoConnection = async () => {
         echoOptions.cluster = settings.pusher_cluster;
       }
 
+      console.log('🔔 [3/5] Echo options being passed:', echoOptions);
+
       echoInstance = new Echo(echoOptions);
-      console.log('Echo connection set up successfully', echoInstance);
+      console.log('🔔 [4/5] Echo instance created. Waiting for Pusher connection...');
+
+      // Listen to Pusher connection state changes
+      const pusherInstance = echoInstance.connector.pusher;
+      pusherInstance.connection.bind('state_change', (states) => {
+        console.log('🔔 [PUSHER STATE]', states.previous, '➜', states.current);
+      });
+      pusherInstance.connection.bind('connected', () => {
+        console.log('🔔 ✅ [5/5] PUSHER CONNECTED! socket_id:', pusherInstance.connection.socket_id);
+      });
+      pusherInstance.connection.bind('error', (err) => {
+        console.error('🚨 PUSHER CONNECTION ERROR:', err);
+      });
+
+      console.log('🔔 Echo connection set up successfully', echoInstance);
+    } else {
+      console.error('🚨 Settings API returned success=false!', response.data);
     }
   } catch (error) {
-    console.error('Failed to setup Echo connection', error);
+    console.error('🚨 Failed to setup Echo connection', error);
   }
 };
 
@@ -352,38 +387,82 @@ const selectConversation = async (chat) => {
 
 // Listen to conversation channels
 const listenToConversationChannel = (id) => {
-  if (!echoInstance) return;
+  console.log('👂 listenToConversationChannel() called for conversation id:', id);
 
-  // Leave previous channel if any
-  if (currentChannel) {
-    currentChannel.leave(`chat.${id}`);
+  if (!echoInstance) {
+    console.error('🚨 Cannot listen — echoInstance is null! Pusher never connected.');
+    return;
   }
 
-  currentChannel = echoInstance.channel(`chat.${id}`);
-  
+  // Leave previous channel if any
+  if (currentChannelName) {
+    console.log('👂 Leaving previous channel:', currentChannelName);
+    echoInstance.leave(currentChannelName);
+  }
+
+  currentChannelName = `chat.${id}`;
+  console.log('👂 Subscribing to channel:', currentChannelName);
+
+  const channel = echoInstance.channel(currentChannelName);
+  console.log('👂 Channel object:', channel);
+
   // Listen to message sent events
-  currentChannel.listen('.message.sent', (data) => {
-    // Only add if not already in list
-    if (!messages.value.some(m => m.id === data.message.id)) {
-      messages.value.push(data.message);
-      
+  channel.listen('.message.sent', (data) => {
+    console.log('🎉 ✅ REAL-TIME EVENT RECEIVED!', currentChannelName, 'typeof data:', typeof data, data);
+
+    // Helper to safely parse nested JSON strings
+    const safeParse = (val) => {
+      if (typeof val === 'string') {
+        try { return JSON.parse(val); } catch (e) { return null; }
+      }
+      return val;
+    };
+
+    // The payload itself might be a JSON string
+    let payload = safeParse(data);
+    // The message field might ALSO be a JSON string
+    let incomingMessage = safeParse(payload?.message);
+
+    console.log('🔍 Parsed payload:', payload);
+    console.log('🔍 Parsed incomingMessage:', incomingMessage);
+
+    const messageId = incomingMessage?.id;
+
+    if (!messageId) {
+      console.warn('⚠️ Could not extract valid message id. Skipping.', { payload, incomingMessage });
+      return;
+    }
+
+    // Only add if not already in list (guard against undefined entries)
+    const exists = messages.value.some(m => m && m.id === messageId);
+    if (!exists) {
+      messages.value.push(incomingMessage);
+      console.log('🎉 Message pushed to UI:', incomingMessage);
+
       // Update last message in sidebar list
-      const chatIndex = conversations.value.findIndex(c => c.id === id);
+      const chatIndex = conversations.value.findIndex(c => c && c.id === id);
       if (chatIndex !== -1) {
-        conversations.value[chatIndex].last_message = data.message;
+        conversations.value[chatIndex].last_message = incomingMessage;
         conversations.value[chatIndex].updated_at = new Date().toISOString();
-        
+
         // Move chat to top of list
         const [movedChat] = conversations.value.splice(chatIndex, 1);
         conversations.value.unshift(movedChat);
       }
 
       scrollToBottom();
+    } else {
+      console.log('ℹ️ Message already in list, skipping (duplicate).');
     }
   });
 
+  // Log subscription success
+  channel.here?.(() => console.log('👂 Channel subscribed successfully'));
+  console.log('👂 Listener attached for .message.sent on', currentChannelName);
+
   // Listen to session close events
-  currentChannel.listen('.conversation.closed', (data) => {
+  channel.listen('.conversation.closed', (data) => {
+    console.log('🎉 Conversation closed event received!', data);
     if (activeConversation.value && activeConversation.value.id === id) {
       activeConversation.value.status = 'closed';
     }
@@ -408,7 +487,7 @@ const sendResponse = async () => {
 
     if (response.data.success) {
       const newMsg = response.data.data;
-      if (!messages.value.some(m => m.id === newMsg.id)) {
+      if (newMsg && newMsg.id && !messages.value.some(m => m && m.id === newMsg.id)) {
         messages.value.push(newMsg);
       }
 
@@ -467,8 +546,8 @@ onMounted(async () => {
 
 onBeforeUnmount(() => {
   if (echoInstance) {
-    if (activeConversation.value && currentChannel) {
-      currentChannel.leave(`chat.${activeConversation.value.id}`);
+    if (currentChannelName) {
+      echoInstance.leave(currentChannelName);
     }
     echoInstance.disconnect();
   }

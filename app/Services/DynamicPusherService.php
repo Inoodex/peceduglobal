@@ -71,9 +71,20 @@ class DynamicPusherService
         }
 
         try {
-            return $this->pusher->trigger($channel, $event, json_encode($data));
+            Log::info('PUSHER TRIGGER', [
+                'channel' => $channel,
+                'event' => $event,
+            ]);
+            // Pass the data array directly — Pusher SDK encodes it itself.
+            // Using json_encode() here causes double encoding on the client side.
+            $result = $this->pusher->trigger($channel, $event, $data);
+            Log::info('PUSHER TRIGGER SUCCESS', ['result' => $result, 'channel' => $channel]);
+            return $result;
         } catch (\Exception $e) {
-            Log::error('Pusher trigger failed: ' . $e->getMessage());
+            Log::error('Pusher trigger failed: ' . $e->getMessage(), [
+                'channel' => $channel,
+                'event' => $event,
+            ]);
             return false;
         }
     }
