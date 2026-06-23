@@ -87,7 +87,11 @@ class ChatController extends Controller
             'is_read' => false,
         ]);
 
+        // Reload to pick up the appended unread_count + relationships
+        $conversation = ChatConversation::with(['guest', 'lastMessage'])->find($request->conversation_id);
+
         // Trigger real-time event via Dynamic Pusher Service
+        // 1) Per-conversation channel (for anyone viewing this conversation)
         $this->pusherService->trigger(
             'chat.' . $request->conversation_id,
             'message.sent',
@@ -97,7 +101,18 @@ class ChatController extends Controller
                 'sender_type' => $request->sender_type
             ]
         );
-        
+
+        // 2) Global admin channel (for admin sidebar/badge updates anywhere in dashboard)
+        $this->pusherService->trigger(
+            'admin-chat',
+            'message.sent',
+            [
+                'conversation_id' => $request->conversation_id,
+                'message' => $message,
+                'unread_count' => $conversation->unread_count,
+            ]
+        );
+
         return response()->json([
             'success' => true,
             'data' => $message
@@ -208,6 +223,7 @@ class ChatController extends Controller
         ]);
 
         // Trigger real-time event via Dynamic Pusher Service
+        // 1) Per-conversation channel (student Next.js + admin open conversation)
         $this->pusherService->trigger(
             'chat.' . $id,
             'message.sent',
@@ -220,6 +236,20 @@ class ChatController extends Controller
 
         // Update the conversation's updated_at timestamp so it floats to top
         ChatConversation::where('id', $id)->touch();
+
+        // Reload to capture last_message after touch
+        $conversation = ChatConversation::with(['guest', 'lastMessage'])->find($id);
+
+        // 2) Global admin channel (sidebar refresh, last message update)
+        $this->pusherService->trigger(
+            'admin-chat',
+            'message.sent',
+            [
+                'conversation_id' => $id,
+                'message' => $message,
+                'unread_count' => $conversation->unread_count,
+            ]
+        );
 
         return response()->json([
             'success' => true,
@@ -236,8 +266,16 @@ class ChatController extends Controller
         $conversation->update(['status' => 'closed']);
 
         // Trigger event about closure
+        // 1) Per-conversation channel
         $this->pusherService->trigger(
             'chat.' . $id,
+            'conversation.closed',
+            ['conversation_id' => $id]
+        );
+
+        // 2) Global admin channel (so sidebar updates everywhere)
+        $this->pusherService->trigger(
+            'admin-chat',
             'conversation.closed',
             ['conversation_id' => $id]
         );
@@ -245,6 +283,26 @@ class ChatController extends Controller
         return response()->json([
             'success' => true,
             'message' => 'Conversation closed successfully'
+        ]);
+    }
+
+    /**
+     * Mark all guest messages in a conversation as read (for badge reset).
+     */
+    public function markConversationRead($id)
+    {
+        ChatMessage::where('conversation_id', $id)
+            ->where('sender_type', '!=', \App\Models\User::class)
+            ->update(['is_read' => true]);
+
+        $conversation = ChatConversation::with(['guest', 'lastMessage'])->find($id);
+
+        return response()->json([
+            'success' => true,
+            'data' => [
+                'conversation_id' => (int) $id,
+                'unread_count' => $conversation ? $conversation->unread_count : 0,
+            ]
         ]);
     }
 }

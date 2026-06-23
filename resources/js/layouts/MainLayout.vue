@@ -37,8 +37,9 @@
 </template>
 
 <script setup>
-import { onMounted } from 'vue';
+import { onMounted, onBeforeUnmount } from 'vue';
 import { useLayoutStore } from '@/stores/layout';
+import { useChatStore } from '@/stores/chat';
 import DashboardSidebar from '@/components/dashboard/DashboardSidebar.vue';
 import MobileSidebar from '@/components/dashboard/MobileSidebar.vue';
 import DashboardHeader from '@/components/dashboard/DashboardHeader.vue';
@@ -48,8 +49,23 @@ import ToastContainer from '@/components/ui/ToastContainer.vue';
 import GlobalConfirm from '@/components/ui/GlobalConfirm.vue';
 
 const layout = useLayoutStore();
+const chat = useChatStore();
 
-onMounted(() => {
+onMounted(async () => {
   layout.applyAllSettings();
+
+  // Start the global chat listener so the sidebar + bell badge stay live
+  // on every dashboard page, not just the Chat page.
+  try {
+    await chat.fetchConversations();
+    await chat.subscribeGlobal();
+  } catch (e) {
+    console.error('Chat global listener init failed', e);
+  }
+});
+
+onBeforeUnmount(() => {
+  // Only disconnect when the whole dashboard unmounts (logout / route guard).
+  // Do NOT disconnect on every page navigation — layout persists.
 });
 </script>

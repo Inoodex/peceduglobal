@@ -109,6 +109,7 @@ Route::group(['prefix' => 'auth'], function () {
             Route::get('chat/conversations/{id}/messages', [\App\Http\Controllers\Api\ChatController::class, 'getAdminHistory']);
             Route::post('chat/conversations/{id}/reply', [\App\Http\Controllers\Api\ChatController::class, 'sendAdminReply']);
             Route::post('chat/conversations/{id}/close', [\App\Http\Controllers\Api\ChatController::class, 'closeConversation']);
+            Route::post('chat/conversations/{id}/mark-read', [\App\Http\Controllers\Api\ChatController::class, 'markConversationRead']);
 
             Route::post('blocks/reorder', [BlockController::class, 'updateOrder']);
 

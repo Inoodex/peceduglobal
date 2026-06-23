@@ -1,0 +1,284 @@
+import { defineStore } from 'pinia';
+import axios from '@/plugins/axios';
+import Echo from 'laravel-echo';
+import Pusher from 'pusher-js';
+
+/**
+ * Central chat store — owns the Echo connection and the global conversation list,
+ * so the sidebar/badge stay live on EVERY dashboard page (not just the Chat page).
+ */
+export const useChatStore = defineStore('chat', {
+    state: () => ({
+        conversations: [],
+        activeConversationId: null,
+        activeMessages: [],
+        echo: null,
+        isReady: false,
+        // On-page-only UI flags kept here so the Chat view can reuse them
+        loadingConversations: false,
+        loadingHistory: false,
+        sendingReply: false,
+        closingChat: false,
+    }),
+
+    getters: {
+        // Total unread guest messages across all conversations (for the header bell)
+        unreadTotal(state) {
+            return state.conversations.reduce(
+                (sum, c) => sum + (Number(c.unread_count) || 0),
+                0
+            );
+        },
+
+        activeConversation(state) {
+            return (
+                state.conversations.find(c => c.id === state.activeConversationId) || null
+            );
+        },
+    },
+
+    actions: {
+        /* ----------------------------- Echo lifecycle ----------------------------- */
+
+        async initEcho() {
+            if (this.echo || this.isReady) return;
+
+            try {
+                const response = await axios.get('/public/chat/settings');
+                if (!response.data || !response.data.success) {
+                    console.error('🚨 [chatStore] Settings API failed', response.data);
+                    return;
+                }
+
+                const settings = response.data.data;
+                console.log('🔔 [chatStore] settings', settings);
+
+                if (!settings.pusher_key) {
+                    console.error('🚨 [chatStore] pusher_key missing in DB settings!');
+                    return;
+                }
+
+                window.Pusher = Pusher;
+                const echoOptions = {
+                    broadcaster: 'pusher',
+                    key: settings.pusher_key,
+                    forceTLS: (settings.pusher_scheme || 'https') === 'https',
+                    disableStats: true,
+                    enabledTransports: ['ws', 'wss'],
+                };
+
+                if (settings.pusher_driver === 'custom') {
+                    echoOptions.wsHost = settings.pusher_host;
+                    echoOptions.wsPort = parseInt(settings.pusher_port) || 6001;
+                    echoOptions.wssPort = parseInt(settings.pusher_port) || 6001;
+                } else {
+                    echoOptions.cluster = settings.pusher_cluster;
+                }
+
+                this.echo = new Echo(echoOptions);
+
+                const pusherInstance = this.echo.connector.pusher;
+                pusherInstance.connection.bind('state_change', (states) => {
+                    console.log('🔔 [PUSHER STATE]', states.previous, '➜', states.current);
+                });
+                pusherInstance.connection.bind('connected', () => {
+                    console.log('🔔 ✅ [PUSHER CONNECTED] socket_id:', pusherInstance.connection.socket_id);
+                });
+                pusherInstance.connection.bind('error', (err) => {
+                    console.error('🚨 [PUSHER ERROR]', err);
+                });
+
+                this.isReady = true;
+            } catch (e) {
+                console.error('🚨 [chatStore] initEcho failed', e);
+            }
+        },
+
+        /**
+         * Subscribe to the GLOBAL admin channel. Call this once from MainLayout
+         * so the sidebar/badge update on every dashboard page.
+         */
+        async subscribeGlobal() {
+            if (!this.echo) await this.initEcho();
+            if (!this.echo) return;
+
+            const channel = this.echo.channel('admin-chat');
+            console.log('🔔 [chatStore] subscribed to global admin-chat channel');
+
+            channel.listen('.message.sent', (raw) => {
+                console.log('🎉 [GLOBAL] message.sent', raw);
+                this.handleGlobalMessage(raw);
+            });
+
+            channel.listen('.conversation.closed', (raw) => {
+                console.log('🎉 [GLOBAL] conversation.closed', raw);
+                const id = Number(raw?.conversation_id);
+                const conv = this.conversations.find(c => Number(c.id) === id);
+                if (conv) conv.status = 'closed';
+            });
+        },
+
+        /* ------------------------------ Data loading ------------------------------ */
+
+        async fetchConversations() {
+            this.loadingConversations = true;
+            try {
+                const response = await axios.get('/auth/admin/chat/conversations');
+                if (response.data.success) {
+                    this.conversations = response.data.data;
+                }
+            } catch (e) {
+                console.error('🚨 [chatStore] fetchConversations failed', e);
+            } finally {
+                this.loadingConversations = false;
+            }
+        },
+
+        async openConversation(id) {
+            this.activeConversationId = id;
+            this.activeMessages = [];
+            this.loadingHistory = true;
+
+            try {
+                // Optimistically reset unread badge
+                const conv = this.conversations.find(c => c.id === id);
+                if (conv) conv.unread_count = 0;
+
+                // Load messages (also marks them read server-side)
+                const response = await axios.get(`/auth/admin/chat/conversations/${id}/messages`);
+                if (response.data.success) {
+                    this.activeMessages = response.data.data;
+                }
+
+                // Also hit mark-read to be explicit + refresh unread on server
+                try {
+                    await axios.post(`/auth/admin/chat/conversations/${id}/mark-read`);
+                } catch (_) { /* best effort */ }
+            } catch (e) {
+                console.error('🚨 [chatStore] openConversation failed', e);
+            } finally {
+                this.loadingHistory = false;
+            }
+        },
+
+        async sendReply(messageText) {
+            if (!this.activeConversationId || !messageText?.trim()) return null;
+            this.sendingReply = true;
+            try {
+                const response = await axios.post(
+                    `/auth/admin/chat/conversations/${this.activeConversationId}/reply`,
+                    { message: messageText }
+                );
+                if (response.data.success) {
+                    const newMsg = response.data.data;
+                    this._appendIfNew(newMsg);
+                    this._bubbleConversationToTop(this.activeConversationId, newMsg);
+                    return newMsg;
+                }
+            } catch (e) {
+                console.error('🚨 [chatStore] sendReply failed', e);
+            } finally {
+                this.sendingReply = false;
+            }
+            return null;
+        },
+
+        async closeActiveConversation() {
+            if (!this.activeConversationId) return false;
+            this.closingChat = true;
+            try {
+                const response = await axios.post(
+                    `/auth/admin/chat/conversations/${this.activeConversationId}/close`
+                );
+                if (response.data.success) {
+                    const conv = this.conversations.find(c => c.id === this.activeConversationId);
+                    if (conv) conv.status = 'closed';
+                    return true;
+                }
+            } catch (e) {
+                console.error('🚨 [chatStore] closeActiveConversation failed', e);
+            } finally {
+                this.closingChat = false;
+            }
+            return false;
+        },
+
+        clearActiveConversation() {
+            this.activeConversationId = null;
+            this.activeMessages = [];
+        },
+
+        disconnect() {
+            if (this.echo) {
+                try { this.echo.leave('admin-chat'); } catch (_) {}
+                // Per-conversation channels are managed by the Chat view too; leaving
+                // the global channel here is the safe minimum.
+                this.echo.disconnect();
+                this.echo = null;
+                this.isReady = false;
+            }
+        },
+
+        /* ------------------------------ Internal utils ----------------------------- */
+
+        handleGlobalMessage(raw) {
+            const safeParse = (v) => (typeof v === 'string' ? safeJsonParse(v) : v);
+            const payload = safeParse(raw) || {};
+            const message = safeParse(payload.message) || null;
+
+            const conversationId = Number(payload.conversation_id || message?.conversation_id);
+            const messageId = message?.id;
+
+            if (!conversationId || !messageId) {
+                console.warn('⚠️ [GLOBAL] skipping — missing ids', raw);
+                return;
+            }
+
+            // 1) If this conversation is currently open, append to the message window
+            if (conversationId === this.activeConversationId) {
+                this._appendIfNew(message);
+            }
+
+            // 2) Refresh last_message + unread for the sidebar list
+            const idx = this.conversations.findIndex(c => Number(c.id) === conversationId);
+            if (idx !== -1) {
+                const conv = this.conversations[idx];
+                conv.last_message = message;
+                conv.unread_count = Number(payload.unread_count ?? conv.unread_count ?? 0);
+
+                // Don't re-increment if this message came from admin itself
+                const senderType = message.sender_type || '';
+                const isOpen = conversationId === this.activeConversationId;
+
+                // If open and message is from guest, badge is already 0 from openConversation.
+                // If open and from admin, keep as is. If closed conversation, increment.
+                if (!isOpen && senderType && !senderType.includes('User')) {
+                    // Trust server-provided unread_count; fallback to +1
+                    conv.unread_count = Number(payload.unread_count ?? (conv.unread_count + 1));
+                }
+
+                this._bubbleConversationToTop(conversationId, message);
+            }
+        },
+
+        _appendIfNew(message) {
+            if (message && message.id && !this.activeMessages.some(m => m && m.id === message.id)) {
+                this.activeMessages.push(message);
+            }
+        },
+
+        _bubbleConversationToTop(conversationId, message) {
+            const idx = this.conversations.findIndex(c => Number(c.id) === Number(conversationId));
+            if (idx === -1) return;
+            const conv = this.conversations[idx];
+            conv.last_message = message;
+            conv.updated_at = new Date().toISOString();
+            this.conversations.splice(idx, 1);
+            this.conversations.unshift(conv);
+        },
+    },
+});
+
+function safeJsonParse(str) {
+    try { return JSON.parse(str); } catch (e) { return null; }
+}
