@@ -175,6 +175,22 @@ export const useChatStore = defineStore('chat', {
         async sendReply(messageText) {
             if (!this.activeConversationId || !messageText?.trim()) return null;
             this.sendingReply = true;
+
+            // Optimistic update — show the message instantly before the API responds.
+            // Use a temporary negative id so _appendIfNew won't duplicate it.
+            const tempId = -(Date.now());
+            const optimisticMsg = {
+                id: tempId,
+                conversation_id: this.activeConversationId,
+                message: messageText,
+                sender_type: 'App\\Models\\User',
+                is_read: false,
+                created_at: new Date().toISOString(),
+                sender_name: 'You',
+                _optimistic: true,
+            };
+            this.activeMessages.push(optimisticMsg);
+
             try {
                 const response = await axios.post(
                     `/auth/admin/chat/conversations/${this.activeConversationId}/reply`,
@@ -182,12 +198,20 @@ export const useChatStore = defineStore('chat', {
                 );
                 if (response.data.success) {
                     const newMsg = response.data.data;
-                    this._appendIfNew(newMsg);
+                    // Replace the optimistic placeholder with the confirmed server message.
+                    const idx = this.activeMessages.findIndex(m => m.id === tempId);
+                    if (idx !== -1) {
+                        this.activeMessages.splice(idx, 1, newMsg);
+                    } else {
+                        this._appendIfNew(newMsg);
+                    }
                     this._bubbleConversationToTop(this.activeConversationId, newMsg);
                     return newMsg;
                 }
             } catch (e) {
                 console.error('🚨 [chatStore] sendReply failed', e);
+                // Remove the optimistic message on failure so the UI is consistent.
+                this.activeMessages = this.activeMessages.filter(m => m.id !== tempId);
             } finally {
                 this.sendingReply = false;
             }
@@ -303,6 +327,49 @@ export const useChatStore = defineStore('chat', {
                 }
 
                 this._bubbleConversationToTop(conversationId, message);
+            } else if (!isAdminOwnReply) {
+                // ── NEW CONVERSATION ──────────────────────────────────────────────────
+                // This message belongs to a conversation we've never seen before
+                // (a brand-new student just initiated a chat). Fetch the full
+                // conversation object from the server and prepend it to the sidebar
+                // so the admin sees it immediately without a page refresh.
+                this._fetchAndPrependConversation(conversationId, message);
+            }
+        },
+
+        /**
+         * Fetch a single conversation by id and prepend it to the sidebar list.
+         * Called when a message.sent event arrives for an unknown conversation.
+         */
+        async _fetchAndPrependConversation(conversationId, triggerMessage) {
+            try {
+                const response = await axios.get('/auth/admin/chat/conversations');
+                if (!response.data.success) return;
+
+                const fresh = (response.data.data || []).find(
+                    c => Number(c.id) === conversationId
+                );
+                if (!fresh) return;
+
+                // Avoid duplicates (race condition: two events for same conversation).
+                const alreadyExists = this.conversations.some(
+                    c => Number(c.id) === conversationId
+                );
+                if (alreadyExists) return;
+
+                // Unread = 1 since this is a brand-new unseen conversation.
+                fresh.unread_count = fresh.unread_count ?? 1;
+                this.conversations.unshift(fresh);
+
+                // Notify admin of the new conversation.
+                try {
+                    import('@/stores/notification').then(({ useNotificationStore }) => {
+                        const notif = useNotificationStore();
+                        notif.handleIncomingMessage({ message: triggerMessage, conversation: fresh });
+                    });
+                } catch (_) { /* best effort */ }
+            } catch (e) {
+                console.warn('⚠️ [chatStore] _fetchAndPrependConversation failed', e);
             }
         },
 
