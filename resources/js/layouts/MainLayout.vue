@@ -40,6 +40,7 @@
 import { onMounted, onBeforeUnmount } from 'vue';
 import { useLayoutStore } from '@/stores/layout';
 import { useChatStore } from '@/stores/chat';
+import { useNotificationStore } from '@/stores/notification';
 import DashboardSidebar from '@/components/dashboard/DashboardSidebar.vue';
 import MobileSidebar from '@/components/dashboard/MobileSidebar.vue';
 import DashboardHeader from '@/components/dashboard/DashboardHeader.vue';
@@ -50,6 +51,7 @@ import GlobalConfirm from '@/components/ui/GlobalConfirm.vue';
 
 const layout = useLayoutStore();
 const chat = useChatStore();
+const notification = useNotificationStore();
 
 onMounted(async () => {
   layout.applyAllSettings();
@@ -62,6 +64,24 @@ onMounted(async () => {
   } catch (e) {
     console.error('Chat global listener init failed', e);
   }
+
+  // Load existing notifications + unread badge on every dashboard page.
+  try {
+    await Promise.all([
+      notification.fetchNotifications(),
+      notification.fetchUnreadCount(),
+    ]);
+  } catch (e) {
+    console.error('Notification store init failed', e);
+  }
+
+  // Politely request desktop-notification permission (used when the tab is
+  // hidden and a new guest message arrives). No-op if unsupported/denied.
+  try {
+    if (typeof Notification !== 'undefined' && Notification.permission === 'default') {
+      Notification.requestPermission();
+    }
+  } catch (_) { /* ignore */ }
 });
 
 onBeforeUnmount(() => {

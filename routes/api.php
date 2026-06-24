@@ -110,6 +110,16 @@ Route::group(['prefix' => 'auth'], function () {
             Route::post('chat/conversations/{id}/reply', [\App\Http\Controllers\Api\ChatController::class, 'sendAdminReply']);
             Route::post('chat/conversations/{id}/close', [\App\Http\Controllers\Api\ChatController::class, 'closeConversation']);
             Route::post('chat/conversations/{id}/mark-read', [\App\Http\Controllers\Api\ChatController::class, 'markConversationRead']);
+            Route::post('chat/conversations/{id}/typing', [\App\Http\Controllers\Api\ChatController::class, 'adminTyping']);
+
+            // App Notifications (inbox dropdown in header)
+            Route::get('notifications', [\App\Http\Controllers\Api\NotificationController::class, 'index']);
+            Route::get('notifications/unread-count', [\App\Http\Controllers\Api\NotificationController::class, 'unreadCount']);
+            Route::post('notifications', [\App\Http\Controllers\Api\NotificationController::class, 'store']);
+            Route::post('notifications/read-all', [\App\Http\Controllers\Api\NotificationController::class, 'markAllRead']);
+            Route::post('notifications/conversations/{conversationId}/read', [\App\Http\Controllers\Api\NotificationController::class, 'markConversationRead']);
+            Route::post('notifications/{id}/read', [\App\Http\Controllers\Api\NotificationController::class, 'markRead']);
+            Route::delete('notifications/{id}', [\App\Http\Controllers\Api\NotificationController::class, 'destroy']);
 
             Route::post('blocks/reorder', [BlockController::class, 'updateOrder']);
 

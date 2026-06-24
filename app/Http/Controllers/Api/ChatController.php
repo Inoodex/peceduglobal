@@ -219,7 +219,10 @@ class ChatController extends Controller
             'sender_id' => $user->id,
             'sender_type' => \App\Models\User::class,
             'message' => $request->message,
-            'is_read' => true,
+            // Admin-sent message starts UNREAD: the ✓ (sent) → ✓✓ (read) receipt
+            // flips only once the guest actually opens/views it.
+            'is_read' => false,
+            'read_at' => null,
         ]);
 
         // Trigger real-time event via Dynamic Pusher Service
@@ -288,14 +291,36 @@ class ChatController extends Controller
 
     /**
      * Mark all guest messages in a conversation as read (for badge reset).
+     * Also broadcasts a read-receipt event so the admin UI can flip ✓ → ✓✓.
      */
     public function markConversationRead($id)
     {
+        $now = now();
+
         ChatMessage::where('conversation_id', $id)
             ->where('sender_type', '!=', \App\Models\User::class)
-            ->update(['is_read' => true]);
+            ->where(function ($q) {
+                $q->where('is_read', false)->orWhereNull('read_at');
+            })
+            ->update(['is_read' => true, 'read_at' => $now]);
 
         $conversation = ChatConversation::with(['guest', 'lastMessage'])->find($id);
+
+        // Broadcast read receipt on the per-conversation channel so the
+        // admin's open ChatWindow can update its ✓✓ state in real time.
+        try {
+            $this->pusherService->trigger(
+                'chat.' . $id,
+                'message.read',
+                [
+                    'conversation_id' => (int) $id,
+                    'read_at' => $now->toIso8601String(),
+                    'reader_type' => \App\Models\User::class,
+                ]
+            );
+        } catch (\Throwable $e) {
+            // Non-fatal: receipt is cosmetic; the DB is already correct.
+        }
 
         return response()->json([
             'success' => true,
@@ -304,5 +329,36 @@ class ChatController extends Controller
                 'unread_count' => $conversation ? $conversation->unread_count : 0,
             ]
         ]);
+    }
+
+    /**
+     * Broadcast an admin "typing" signal to the guest (per-conversation channel).
+     * Stateless + fire-and-forget — no persistence. Throttle on the client side.
+     */
+    public function adminTyping(Request $request, $id)
+    {
+        $conversation = ChatConversation::find($id);
+        if (!$conversation) {
+            return response()->json(['success' => false, 'message' => 'Conversation not found'], 404);
+        }
+
+        $user = auth()->user();
+
+        try {
+            $this->pusherService->trigger(
+                'chat.' . $id,
+                'typing',
+                [
+                    'conversation_id' => (int) $id,
+                    'sender_id' => $user?->id,
+                    'sender_type' => \App\Models\User::class,
+                    'sender_name' => $user?->full_name ?? 'Consultant',
+                ]
+            );
+        } catch (\Throwable $e) {
+            return response()->json(['success' => false, 'message' => 'Failed to broadcast typing'], 500);
+        }
+
+        return response()->json(['success' => true]);
     }
 }

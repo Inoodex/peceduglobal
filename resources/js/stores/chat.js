@@ -135,13 +135,15 @@ export const useChatStore = defineStore('chat', {
         },
 
         async openConversation(id) {
-            this.activeConversationId = id;
+            // Normalize to a number so handleGlobalMessage's `===` comparison is exact
+            // (avodes string/number mismatch that would break the "open = read" gate).
+            this.activeConversationId = Number(id);
             this.activeMessages = [];
             this.loadingHistory = true;
 
             try {
                 // Optimistically reset unread badge
-                const conv = this.conversations.find(c => c.id === id);
+                const conv = this.conversations.find(c => Number(c.id) === Number(id));
                 if (conv) conv.unread_count = 0;
 
                 // Load messages (also marks them read server-side)
@@ -153,6 +155,15 @@ export const useChatStore = defineStore('chat', {
                 // Also hit mark-read to be explicit + refresh unread on server
                 try {
                     await axios.post(`/auth/admin/chat/conversations/${id}/mark-read`);
+                } catch (_) { /* best effort */ }
+
+                // Sync the notification store: clear any unread chat_message entries
+                // for this conversation so the bell badge doesn't stay stale after
+                // the admin has clearly opened (and thus read) the conversation.
+                try {
+                    const { useNotificationStore } = await import('@/stores/notification');
+                    const notif = useNotificationStore();
+                    notif.clearChatNotificationsForConversation(Number(id));
                 } catch (_) { /* best effort */ }
             } catch (e) {
                 console.error('🚨 [chatStore] openConversation failed', e);
@@ -234,8 +245,17 @@ export const useChatStore = defineStore('chat', {
                 return;
             }
 
+            const senderType = message.sender_type || '';
+            const isAdminOwnReply = senderType.includes('User');
+            // Messenger-style: "open" is the single source of truth for read state.
+            // If the conversation window is open, the message is read — regardless of
+            // whether the browser tab is focused. Tab visibility only controls whether
+            // we also fire a sound / desktop notification (not the unread badge).
+            const isOpen = Number(this.activeConversationId) === conversationId;
+            const isTabVisible = typeof document !== 'undefined' && !document.hidden;
+
             // 1) If this conversation is currently open, append to the message window
-            if (conversationId === this.activeConversationId) {
+            if (isOpen) {
                 this._appendIfNew(message);
             }
 
@@ -244,21 +264,57 @@ export const useChatStore = defineStore('chat', {
             if (idx !== -1) {
                 const conv = this.conversations[idx];
                 conv.last_message = message;
-                conv.unread_count = Number(payload.unread_count ?? conv.unread_count ?? 0);
 
-                // Don't re-increment if this message came from admin itself
-                const senderType = message.sender_type || '';
-                const isOpen = conversationId === this.activeConversationId;
+                if (isAdminOwnReply) {
+                    // Admin's own reply — never touch the unread badge.
+                    // unread_count is for GUEST messages only.
+                } else if (isOpen) {
+                    // Conversation is OPEN → message is read instantly (Messenger style).
+                    // Enforce unread = 0 locally so a stale server payload can't override it.
+                    conv.unread_count = 0;
+                    // Tell the server this message is read so other tabs / reloads stay in sync.
+                    this._silentMarkRead(conversationId);
 
-                // If open and message is from guest, badge is already 0 from openConversation.
-                // If open and from admin, keep as is. If closed conversation, increment.
-                if (!isOpen && senderType && !senderType.includes('User')) {
-                    // Trust server-provided unread_count; fallback to +1
+                    // Even though it's "read", if the admin is on ANOTHER tab right now
+                    // (conversation open but tab hidden), still play a soft sound + desktop
+                    // notification so they don't miss it. No badge, no notification entry.
+                    if (!isTabVisible) {
+                        try {
+                            import('@/stores/notification').then(({ useNotificationStore }) => {
+                                const notif = useNotificationStore();
+                                notif.playSound();
+                                notif.notifyBrowser({
+                                    title: `New message from ${conv.guest?.email || 'a guest'}`,
+                                    body: (message.message || '').slice(0, 100),
+                                });
+                            });
+                        } catch (_) { /* best effort */ }
+                    }
+                } else {
+                    // Conversation is CLOSED → genuinely unseen. Increment badge.
                     conv.unread_count = Number(payload.unread_count ?? (conv.unread_count + 1));
+                    // Create a full notification entry + sound + desktop notification.
+                    try {
+                        import('@/stores/notification').then(({ useNotificationStore }) => {
+                            const notif = useNotificationStore();
+                            notif.handleIncomingMessage({ message, conversation: conv });
+                        });
+                    } catch (_) { /* notification store not available yet */ }
                 }
 
                 this._bubbleConversationToTop(conversationId, message);
             }
+        },
+
+        /**
+         * Fire-and-forget mark-read call so the server-side unread_count stays in sync
+         * while the admin is actively viewing a conversation.
+         */
+        _silentMarkRead(conversationId) {
+            if (!conversationId) return;
+            axios
+                .post(`/auth/admin/chat/conversations/${conversationId}/mark-read`)
+                .catch(() => { /* best effort */ });
         },
 
         _appendIfNew(message) {

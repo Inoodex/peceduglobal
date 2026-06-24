@@ -27,21 +27,26 @@
         </div>
       </button>
 
-      <!-- Notifications -->
-      <button
-        v-ripple
-        @click="goToChat"
-        class="p-2 rounded-full hover:bg-gray-500/10 transition-colors relative"
-        title="Chat Inbox"
-      >
-        <Bell :size="22" class="text-gray-500" />
-        <span
-          v-if="chat.unreadTotal > 0"
-          class="absolute top-1 right-1 min-w-[16px] h-4 px-1 bg-red-500 text-white text-[10px] font-bold flex items-center justify-center rounded-full border-2 border-bg-dark"
+      <!-- Notifications (dropdown panel) -->
+      <div class="relative">
+        <button
+          v-ripple
+          @click.stop="notification.togglePanel()"
+          class="p-2 rounded-full hover:bg-gray-500/10 transition-colors relative"
+          title="Notifications"
         >
-          {{ chat.unreadTotal > 99 ? '99+' : chat.unreadTotal }}
-        </span>
-      </button>
+          <Bell :size="22" class="text-gray-500" />
+          <span
+            v-if="notification.unreadTotal > 0"
+            class="absolute top-1 right-1 min-w-[16px] h-4 px-1 bg-red-500 text-white text-[10px] font-bold flex items-center justify-center rounded-full border-2 border-bg-dark animate-pulse"
+          >
+            {{ notification.unreadTotal > 99 ? '99+' : notification.unreadTotal }}
+          </span>
+        </button>
+
+        <!-- Notification dropdown -->
+        <NotificationPanel />
+      </div>
 
       <!-- Settings -->
       <button 
@@ -72,17 +77,14 @@
 import { useLayoutStore } from '@/stores/layout';
 import { useAuthStore } from '@/stores/auth';
 import { useChatStore } from '@/stores/chat';
-import { useRouter } from 'vue-router';
+import { useNotificationStore } from '@/stores/notification';
+import NotificationPanel from '@/components/dashboard/NotificationPanel.vue';
 import { Search, Bell, Users, Settings, Menu } from 'lucide-vue-next';
 
 const layout = useLayoutStore();
 const auth = useAuthStore();
 const chat = useChatStore();
-const router = useRouter();
-
-const goToChat = () => {
-  router.push('/dashboard/chat');
-};
+const notification = useNotificationStore();
 </script>
 
 <style scoped>
