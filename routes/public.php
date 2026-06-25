@@ -91,5 +91,7 @@ Route::prefix('public')->group(function () {
         Route::post('init', [\App\Http\Controllers\Api\ChatController::class, 'init']);
         Route::post('send', [\App\Http\Controllers\Api\ChatController::class, 'sendMessage']);
         Route::get('history', [\App\Http\Controllers\Api\ChatController::class, 'getHistory']);
+        // Guest marks admin replies as read → flips the admin's ✓→✓✓ in real time.
+        Route::post('mark-read', [\App\Http\Controllers\Api\ChatController::class, 'markAdminMessagesRead']);
     });
 });

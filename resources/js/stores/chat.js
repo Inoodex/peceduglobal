@@ -198,13 +198,16 @@ export const useChatStore = defineStore('chat', {
                 );
                 if (response.data.success) {
                     const newMsg = response.data.data;
-                    // Replace the optimistic placeholder with the confirmed server message.
-                    const idx = this.activeMessages.findIndex(m => m.id === tempId);
-                    if (idx !== -1) {
-                        this.activeMessages.splice(idx, 1, newMsg);
-                    } else {
-                        this._appendIfNew(newMsg);
-                    }
+                    // The backend ALSO broadcasts message.sent on the global admin-chat
+                    // channel, so handleGlobalMessage may have already appended newMsg
+                    // by the time this HTTP response resolves (and vice-versa). The old
+                    // splice-in-place assumed the HTTP response always won that race —
+                    // when Pusher won, it left both the Pusher-delivered copy AND the
+                    // spliced copy, producing duplicate bubbles. Make this order-proof:
+                    // drop the optimistic placeholder unconditionally, then append the
+                    // confirmed message only if it isn't already present.
+                    this.activeMessages = this.activeMessages.filter(m => m.id !== tempId);
+                    this._appendIfNew(newMsg);
                     this._bubbleConversationToTop(this.activeConversationId, newMsg);
                     return newMsg;
                 }
@@ -281,6 +284,14 @@ export const useChatStore = defineStore('chat', {
             // 1) If this conversation is currently open, append to the message window
             if (isOpen) {
                 this._appendIfNew(message);
+                // Admin's own reply was optimistically inserted with a negative temp id.
+                // If the Pusher echo beat the HTTP response, that placeholder is still
+                // here next to the real message — drop it now so we never render both.
+                if (isAdminOwnReply) {
+                    this.activeMessages = this.activeMessages.filter(
+                        m => !(m._optimistic && m.conversation_id === conversationId)
+                    );
+                }
             }
 
             // 2) Refresh last_message + unread for the sidebar list

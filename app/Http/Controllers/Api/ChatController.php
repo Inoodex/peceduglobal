@@ -291,7 +291,12 @@ class ChatController extends Controller
 
     /**
      * Mark all guest messages in a conversation as read (for badge reset).
-     * Also broadcasts a read-receipt event so the admin UI can flip ✓ → ✓✓.
+     *
+     * NOTE: this does NOT broadcast `message.read`. That event drives the admin's
+     * ✓→✓✓ receipt on HIS OWN messages, which should only flip when the GUEST
+     * reads the admin's reply (handled by markAdminMessagesRead on the public
+     * route). Broadcasting it here falsely marked the admin's own messages as
+     * "read by guest" the instant he opened the conversation.
      */
     public function markConversationRead($id)
     {
@@ -306,8 +311,53 @@ class ChatController extends Controller
 
         $conversation = ChatConversation::with(['guest', 'lastMessage'])->find($id);
 
-        // Broadcast read receipt on the per-conversation channel so the
-        // admin's open ChatWindow can update its ✓✓ state in real time.
+        return response()->json([
+            'success' => true,
+            'data' => [
+                'conversation_id' => (int) $id,
+                'unread_count' => $conversation ? $conversation->unread_count : 0,
+            ]
+        ]);
+    }
+
+    /**
+     * Mark ADMIN messages in a conversation as read — called by the Next.js
+     * guest frontend when a guest actually opens / views an admin reply.
+     *
+     * This is the missing piece for the ✓✓ receipt: previously only the admin
+     * side had a mark-read endpoint (for resetting the guest-message badge), so
+     * a guest viewing an admin reply could never persist that "read" state on
+     * the server. The admin's ✓→✓✓ therefore only flipped after a page refresh.
+     *
+     * Here we:
+     *  1) Flip is_read / read_at for all ADMIN (User) messages in the convo.
+     *  2) Broadcast `message.read` on the per-conversation channel so the open
+     *     admin ChatWindow updates its ✓→✓✓ state in real time (no refresh).
+     */
+    public function markAdminMessagesRead(Request $request)
+    {
+        $validator = Validator::make($request->all(), [
+            'conversation_id' => 'required|exists:chat_conversations,id',
+        ]);
+
+        if ($validator->fails()) {
+            return response()->json(['success' => false, 'errors' => $validator->errors()], 422);
+        }
+
+        $id = $request->conversation_id;
+        $now = now();
+
+        // Only mark ADMIN (User) messages as read — guest messages are the
+        // admin's unread, not the guest's.
+        ChatMessage::where('conversation_id', $id)
+            ->where('sender_type', \App\Models\User::class)
+            ->where(function ($q) {
+                $q->where('is_read', false)->orWhereNull('read_at');
+            })
+            ->update(['is_read' => true, 'read_at' => $now]);
+
+        // Broadcast a read receipt on the per-conversation channel so the
+        // admin's open ChatWindow can flip its own ✓ → ✓✓ in real time.
         try {
             $this->pusherService->trigger(
                 'chat.' . $id,
@@ -315,7 +365,7 @@ class ChatController extends Controller
                 [
                     'conversation_id' => (int) $id,
                     'read_at' => $now->toIso8601String(),
-                    'reader_type' => \App\Models\User::class,
+                    'reader_type' => \App\Models\ChatGuest::class,
                 ]
             );
         } catch (\Throwable $e) {
@@ -326,7 +376,7 @@ class ChatController extends Controller
             'success' => true,
             'data' => [
                 'conversation_id' => (int) $id,
-                'unread_count' => $conversation ? $conversation->unread_count : 0,
+                'read_at' => $now->toIso8601String(),
             ]
         ]);
     }

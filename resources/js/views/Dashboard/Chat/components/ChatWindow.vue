@@ -147,11 +147,20 @@ const subscribeTyping = () => {
     });
 
     // Read receipts broadcast (backend lands in step 4)
-    typingChannel.listen('.message.read', () => {
+    typingChannel.listen('.message.read', (raw) => {
+      const payload = typeof raw === 'string' ? safeJson(raw) : raw;
+      // Only flip our ✓→✓✓ when the GUEST has read our messages.
+      // The admin-side mark-read endpoint no longer emits this event (it never
+      // should have), but guard defensively: ignore echoes where the reader is
+      // the admin/User themselves.
+      const readerType = payload?.reader_type || '';
+      if (readerType && readerType.includes('User')) return;
+
       // Mark all admin messages in this conversation as read locally
       chat.activeMessages.forEach((m) => {
         if (isAdminSender(m)) {
           m.is_read = true;
+          if (payload?.read_at && !m.read_at) m.read_at = payload.read_at;
         }
       });
     });
@@ -191,10 +200,15 @@ const safeJson = (str) => {
 
 /* ------------------------------ Actions ------------------------------ */
 const handleSend = async (text) => {
+  // Clear the input + typing state INSTANTLY — don't wait for the API round-trip.
+  // The optimistic bubble is already pushed into the store synchronously, so the
+  // only thing making this feel slow was the textarea keeping its text until the
+  // network responded. We restore the draft only if the send actually fails.
+  draft.value = '';
+  isTyping.value = false; // guest typing no longer relevant once we reply
+
   const ok = await chat.sendReply(text);
   if (ok) {
-    draft.value = '';
-    isTyping.value = false; // guest typing no longer relevant once we reply
     await scrollToBottom(true);
   } else {
     draft.value = text; // restore draft on failure
