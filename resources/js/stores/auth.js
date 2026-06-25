@@ -69,6 +69,38 @@ export const useAuthStore = defineStore('auth', {
             }
         },
 
+        async forgotPassword(email) {
+            this.loading = true;
+            this.error = null;
+            try {
+                const response = await axios.post('/auth/forgot-password', { email });
+                return response.data;
+            } catch (error) {
+                this.error = error.response?.data?.message || 'Failed to send OTP code.';
+                throw error;
+            } finally {
+                this.loading = false;
+            }
+        },
+
+        async resetPassword(payload) {
+            this.loading = true;
+            this.error = null;
+            try {
+                const response = await axios.post('/auth/reset-password', payload);
+                this.token = response.data.token;
+                this.user = response.data.data;
+                localStorage.setItem('token', this.token);
+                Cookies.set('auth_token', this.token, { domain: cookieDomain, expires: 14, secure: true, sameSite: 'Lax' });
+                return response.data;
+            } catch (error) {
+                this.error = error.response?.data?.message || 'Failed to reset password.';
+                throw error;
+            } finally {
+                this.loading = false;
+            }
+        },
+
         // Called when SSO token arrives via URL param from peceduglobal.com
         setTokenFromSSO(token) {
             this.token = token;

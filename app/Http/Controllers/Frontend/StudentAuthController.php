@@ -4,12 +4,22 @@ namespace App\Http\Controllers\Frontend;
 
 use App\Http\Controllers\Controller;
 use App\Models\User;
+use App\Mail\ResetPasswordOtpMail;
 use Illuminate\Http\JsonResponse;
 use Illuminate\Http\Request;
+use Illuminate\Support\Facades\DB;
+use Illuminate\Support\Facades\Hash;
+use Illuminate\Support\Facades\Mail;
 use Illuminate\Support\Facades\Validator;
+use PHPOpenSourceSaver\JWTAuth\Facades\JWTAuth;
+use Carbon\Carbon;
 
 class StudentAuthController extends Controller
 {
+    /**
+     * Number of minutes a password-reset OTP stays valid.
+     */
+    const RESET_OTP_TTL_MINUTES = 60;
     /**
      * Authenticate a student user and return a JWT.
      * Only users with the role 'student' are allowed to login here.
@@ -88,6 +98,126 @@ class StudentAuthController extends Controller
             'success' => true,
             'message' => 'Student successfully logged out',
             'data'    => null
+        ]);
+    }
+
+    /**
+     * Request a password-reset OTP for students.
+     */
+    public function forgotPassword(Request $request): JsonResponse
+    {
+        $validator = Validator::make($request->all(), [
+            'email' => 'required|email',
+        ]);
+
+        if ($validator->fails()) {
+            return response()->json([
+                'success' => false,
+                'message' => 'Validation error',
+                'errors' => $validator->errors()
+            ], 422);
+        }
+
+        $email = $request->email;
+        $user = User::where('email', $email)->first();
+
+        // Always return success to prevent email enumeration, but only send OTP to students.
+        if (!$user || $user->role !== 'student') {
+            return response()->json([
+                'success' => true,
+                'message' => 'If that email exists, a reset code has been sent.',
+            ]);
+        }
+
+        // Generate a 6-digit OTP
+        $otp = str_pad((string) random_int(0, 999999), 6, '0', STR_PAD_LEFT);
+
+        DB::table('password_reset_tokens')->where('email', $email)->delete();
+        DB::table('password_reset_tokens')->insert([
+            'email' => $email,
+            'token' => $otp,
+            'created_at' => now(),
+        ]);
+
+        try {
+            Mail::to($email)->send(new ResetPasswordOtpMail(
+                $user->full_name,
+                $otp,
+                self::RESET_OTP_TTL_MINUTES,
+            ));
+        } catch (\Throwable $e) {
+            // Mail failure is non-fatal in dev
+        }
+
+        return response()->json([
+            'success' => true,
+            'message' => 'If that email exists, a reset code has been sent.',
+        ]);
+    }
+
+    /**
+     * Reset a student password using the OTP.
+     */
+    public function resetPassword(Request $request): JsonResponse
+    {
+        $validator = Validator::make($request->all(), [
+            'email'    => 'required|email',
+            'otp'      => 'required|string|size:6',
+            'password' => 'required|string|min:6|confirmed',
+        ]);
+
+        if ($validator->fails()) {
+            return response()->json([
+                'success' => false,
+                'message' => 'Validation error',
+                'errors' => $validator->errors()
+            ], 422);
+        }
+
+        $email = $request->email;
+        $otp   = $request->otp;
+
+        $record = DB::table('password_reset_tokens')->where('email', $email)->first();
+
+        if (!$record || !hash_equals((string) $record->token, (string) $otp)) {
+            return response()->json([
+                'success' => false,
+                'message' => 'Invalid or expired reset code.',
+            ], 400);
+        }
+
+        // Expiry check
+        $expiresAt = Carbon::parse($record->created_at)->addMinutes(self::RESET_OTP_TTL_MINUTES);
+        if (now()->gt($expiresAt)) {
+            DB::table('password_reset_tokens')->where('email', $email)->delete();
+            return response()->json([
+                'success' => false,
+                'message' => 'This reset code has expired. Please request a new one.',
+            ], 400);
+        }
+
+        $user = User::where('email', $email)->first();
+        if (!$user || $user->role !== 'student') {
+            return response()->json([
+                'success' => false,
+                'message' => 'No student account found for this email.',
+            ], 404);
+        }
+
+        $user->password = Hash::make($request->password);
+        $user->save();
+
+        // Delete OTP
+        DB::table('password_reset_tokens')->where('email', $email)->delete();
+
+        // Authenticate student directly
+        $token = JWTAuth::fromUser($user);
+
+        return response()->json([
+            'success' => true,
+            'message' => 'Password reset successfully.',
+            'data' => $user,
+            'token' => $token,
         ]);
     }
 }

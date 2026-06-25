@@ -73,6 +73,8 @@ Route::prefix('public')->group(function () {
 
     // Student Authentication & Profile Management (strictly for public frontend)
     Route::post('/student/login', [FrontendStudentAuthController::class, 'login']);
+    Route::post('/student/forgot-password', [FrontendStudentAuthController::class, 'forgotPassword']);
+    Route::post('/student/reset-password', [FrontendStudentAuthController::class, 'resetPassword']);
     
     Route::middleware('auth:api')->prefix('student')->group(function () {
         Route::post('logout',           [FrontendStudentAuthController::class, 'logout']);

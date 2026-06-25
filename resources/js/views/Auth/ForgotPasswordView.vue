@@ -2,22 +2,27 @@
 import { ref } from 'vue';
 import { useAuthStore } from '../../stores/auth';
 import { useRouter } from 'vue-router';
-import { Settings, Info, Eye, EyeOff, Loader2 } from 'lucide-vue-next';
+import { Info, Loader2, ArrowLeft } from 'lucide-vue-next';
 
 const authStore = useAuthStore();
 const router = useRouter();
 
-const form = ref({
-    email: '',
-    password: '',
-});
-
-const showPassword = ref(false);
+const email = ref('');
+const successMessage = ref('');
 
 const handleSubmit = async () => {
     try {
-        await authStore.login(form.value);
-        router.push('/dashboard');
+        successMessage.value = '';
+        await authStore.forgotPassword(email.value);
+        successMessage.value = 'A 6-digit verification code has been sent to your email.';
+        
+        // Redirect to reset password after 2 seconds, pre-populating email
+        setTimeout(() => {
+            router.push({
+                path: '/reset-password',
+                query: { email: email.value }
+            });
+        }, 2000);
     } catch (error) {
         // Error handled in store
     }
@@ -26,7 +31,7 @@ const handleSubmit = async () => {
 
 <template>
     <div class="min-h-screen flex bg-white">
-        <!-- Left Column - Illustration -->
+        <!-- Left Column - Illustration (Matches LoginView) -->
         <div class="hidden lg:flex lg:w-1/2 bg-gradient-to-br from-gray-50 via-gray-50 to-gray-100 flex-col justify-between p-12">
             <div class="flex items-center">
                 <div class="w-10 h-10 bg-emerald-500 rounded-lg flex items-center justify-center">
@@ -35,8 +40,8 @@ const handleSubmit = async () => {
             </div>
 
             <div class="flex-1 flex flex-col justify-center max-w-md">
-                <h1 class="text-3xl font-bold text-gray-900 leading-tight mb-2">Hi, Welcome back</h1>
-                <p class="text-gray-600 text-sm">More effectively with optimized workflows.</p>
+                <h1 class="text-3xl font-bold text-gray-900 leading-tight mb-2">Password Recovery</h1>
+                <p class="text-gray-600 text-sm">Recover your account credentials securely using an OTP code sent to your inbox.</p>
 
                 <!-- Illustration placeholder -->
                 <div class="mt-12">
@@ -62,31 +67,23 @@ const handleSubmit = async () => {
             </div>
         </div>
 
-        <!-- Right Column - Login Form -->
+        <!-- Right Column - Form -->
         <div class="w-full lg:w-1/2 flex flex-col justify-center px-8 py-12 lg:px-20">
-            <!-- Top right help -->
-            <!-- <div class="flex justify-end mb-6">
-                <div class="flex items-center text-gray-500 cursor-pointer hover:text-gray-900 transition-colors">
-                    <span class="text-sm mr-2">Need help?</span>
-                    <Settings class="w-4 h-4" />
-                </div>
-            </div> -->
-
             <div class="max-w-sm">
-                <h2 class="text-2xl font-bold text-gray-900 mb-1.5">Sign in to your account</h2>
-                <p class="text-gray-500 text-sm mb-5">
-                    Don't have an account?
-                    <router-link to="/register" class="text-emerald-600 font-medium hover:text-emerald-700">
-                        Get started
-                    </router-link>
+                <!-- Back Link -->
+                <router-link to="/login" class="inline-flex items-center text-xs text-gray-500 hover:text-gray-900 transition-colors mb-6 font-medium">
+                    <ArrowLeft class="w-3.5 h-3.5 mr-1.5" />
+                    Back to sign in
+                </router-link>
+
+                <h2 class="text-2xl font-bold text-gray-900 mb-1.5">Forgot password?</h2>
+                <p class="text-gray-500 text-sm mb-6">
+                    Enter your email address and we'll send you a 6-digit OTP code to reset your password.
                 </p>
 
-                <!-- Info box -->
-                <div class="bg-cyan-50 border border-cyan-100 rounded-xl p-4 mb-5 flex items-start">
-                    <Info class="w-4 h-4 text-cyan-600 mr-2.5 mt-0.5 shrink-0" />
-                    <p class="text-xs text-cyan-800 leading-relaxed">
-                        Use user@gmail.com with password @password.
-                    </p>
+                <!-- Success message -->
+                <div v-if="successMessage" class="bg-emerald-50 text-emerald-700 p-4 rounded-xl text-xs mb-5 border border-emerald-100 leading-relaxed">
+                    {{ successMessage }}
                 </div>
 
                 <!-- Error message -->
@@ -94,7 +91,7 @@ const handleSubmit = async () => {
                     {{ authStore.error }}
                 </div>
 
-                <form class="space-y-4" @submit.prevent="handleSubmit">
+                <form class="space-y-5" @submit.prevent="handleSubmit">
                     <!-- Email field -->
                     <div>
                         <label for="email-address" class="block text-xs font-medium text-gray-700 mb-1.5">
@@ -102,8 +99,7 @@ const handleSubmit = async () => {
                         </label>
                         <input
                             id="email-address"
-                            v-model="form.email"
-                            name="email"
+                            v-model="email"
                             type="email"
                             required
                             class="w-full px-3.5 py-2.5 border border-gray-200 rounded-lg focus:outline-none focus:ring-2 focus:ring-slate-900 focus:border-transparent text-gray-900 placeholder-gray-400 text-sm"
@@ -111,48 +107,17 @@ const handleSubmit = async () => {
                         >
                     </div>
 
-                    <!-- Password field -->
-                    <div>
-                        <div class="flex justify-between items-center mb-1.5">
-                            <label for="password" class="block text-xs font-medium text-gray-700">
-                                Password
-                            </label>
-                            <router-link to="/forgot-password" class="text-xs text-gray-500 hover:text-gray-900">
-                                Forgot password?
-                            </router-link>
-                        </div>
-                        <div class="relative">
-                            <input
-                                id="password"
-                                v-model="form.password"
-                                name="password"
-                                :type="showPassword ? 'text' : 'password'"
-                                required
-                                class="w-full px-3.5 py-2.5 border border-gray-200 rounded-lg focus:outline-none focus:ring-2 focus:ring-slate-900 focus:border-transparent text-gray-900 placeholder-gray-400 pr-10 text-sm"
-                                placeholder="••••••••"
-                            >
-                            <button
-                                type="button"
-                                @click="showPassword = !showPassword"
-                                class="absolute right-3 top-1/2 transform -translate-y-1/2 text-gray-400 hover:text-gray-600"
-                            >
-                                <Eye v-if="!showPassword" class="w-4 h-4" />
-                                <EyeOff v-else class="w-4 h-4" />
-                            </button>
-                        </div>
-                    </div>
-
-                    <!-- Sign in button -->
+                    <!-- Submit button -->
                     <button
                         type="submit"
-                        :disabled="authStore.loading"
+                        :disabled="authStore.loading || !!successMessage"
                         class="w-full bg-gray-900 text-white py-2.5 px-4 rounded-lg text-sm font-medium hover:bg-gray-800 focus:outline-none focus:ring-2 focus:ring-slate-900 focus:ring-offset-2 disabled:opacity-50 disabled:cursor-not-allowed transition-colors hover:cursor-pointer"
                     >
                         <span v-if="authStore.loading" class="flex items-center justify-center">
                             <Loader2 class="animate-spin w-4 h-4 mr-2" />
-                            Signing in...
+                            Sending OTP...
                         </span>
-                        <span v-else>Sign in</span>
+                        <span v-else>Send verification code</span>
                     </button>
                 </form>
             </div>

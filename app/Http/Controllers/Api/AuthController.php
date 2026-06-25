@@ -3,14 +3,155 @@
 namespace App\Http\Controllers\Api;
 
 use App\Http\Controllers\Controller;
+use App\Mail\ResetPasswordOtpMail;
 use App\Models\User;
 use Illuminate\Http\Request;
+use Illuminate\Support\Facades\DB;
 use Illuminate\Support\Facades\Hash;
+use Illuminate\Support\Facades\Mail;
 use Illuminate\Support\Facades\Validator;
 use PHPOpenSourceSaver\JWTAuth\Facades\JWTAuth;
 
 class AuthController extends Controller
 {
+    /**
+     * Number of minutes a password-reset OTP stays valid.
+     */
+    const RESET_OTP_TTL_MINUTES = 60;
+
+    /**
+     * Request a password-reset OTP. Works for admin/consultant (dashboard) AND
+     * student (public) since all of them live in the same `users` table and the
+     * only input is an email address.
+     *
+     * Stores a 6-digit OTP in the `password_reset_tokens` table (reusing the
+     * standard Laravel table — token column holds the OTP, created_at holds the
+     * expiry) and emails it to the user. Always responds success (even for
+     * unknown emails) so attackers can't enumerate which emails are registered.
+     */
+    public function forgotPassword(Request $request)
+    {
+        $validator = Validator::make($request->all(), [
+            'email' => 'required|email',
+        ]);
+
+        if ($validator->fails()) {
+            return response()->json([
+                'success' => false,
+                'message' => 'Validation error',
+                'data' => $validator->errors()
+            ], 422);
+        }
+
+        $email = $request->email;
+        $user = User::where('email', $email)->first();
+
+        // Always return success — never reveal whether an email is registered.
+        if (!$user) {
+            return response()->json([
+                'success' => true,
+                'message' => 'If that email exists, a reset code has been sent.',
+            ]);
+        }
+
+        // Generate a 6-digit OTP. Keep one entry per email (delete old, insert new).
+        $otp = str_pad((string) random_int(0, 999999), 6, '0', STR_PAD_LEFT);
+
+        DB::table('password_reset_tokens')->where('email', $email)->delete();
+        DB::table('password_reset_tokens')->insert([
+            'email' => $email,
+            'token' => $otp,
+            'created_at' => now(),
+        ]);
+
+        // Best-effort email send — don't fail the request if mail is misconfigured.
+        try {
+            Mail::to($email)->send(new ResetPasswordOtpMail(
+                $user->full_name,
+                $otp,
+                self::RESET_OTP_TTL_MINUTES,
+            ));
+        } catch (\Throwable $e) {
+            // Mail failure is non-fatal; the OTP is in the DB and (in dev) the log.
+        }
+
+        return response()->json([
+            'success' => true,
+            'message' => 'If that email exists, a reset code has been sent.',
+        ]);
+    }
+
+    /**
+     * Reset a password using the OTP emailed by forgotPassword().
+     *
+     * Validates the OTP + expiry against password_reset_tokens, then updates the
+     * user's password and deletes the OTP so it can't be reused. Returns a fresh
+     * JWT so the SPA can log the user straight in without a second round-trip.
+     */
+    public function resetPassword(Request $request)
+    {
+        $validator = Validator::make($request->all(), [
+            'email'    => 'required|email',
+            'otp'      => 'required|string|size:6',
+            'password' => 'required|string|min:6|confirmed',
+        ]);
+
+        if ($validator->fails()) {
+            return response()->json([
+                'success' => false,
+                'message' => 'Validation error',
+                'data' => $validator->errors()
+            ], 422);
+        }
+
+        $email = $request->email;
+        $otp   = $request->otp;
+
+        $record = DB::table('password_reset_tokens')->where('email', $email)->first();
+
+        if (!$record || !hash_equals((string) $record->token, (string) $otp)) {
+            return response()->json([
+                'success' => false,
+                'message' => 'Invalid or expired reset code.',
+            ], 400);
+        }
+
+        // Expiry check: created_at + TTL minutes must still be in the future.
+        $expiresAt = \Carbon\Carbon::parse($record->created_at)
+            ->addMinutes(self::RESET_OTP_TTL_MINUTES);
+        if (now()->gt($expiresAt)) {
+            DB::table('password_reset_tokens')->where('email', $email)->delete();
+            return response()->json([
+                'success' => false,
+                'message' => 'This reset code has expired. Please request a new one.',
+            ], 400);
+        }
+
+        $user = User::where('email', $email)->first();
+        if (!$user) {
+            return response()->json([
+                'success' => false,
+                'message' => 'No account found for this email.',
+            ], 404);
+        }
+
+        $user->password = Hash::make($request->password);
+        $user->save();
+
+        // Burn the OTP so it's single-use.
+        DB::table('password_reset_tokens')->where('email', $email)->delete();
+
+        // Hand back a fresh JWT so the SPA can log in immediately.
+        $token = JWTAuth::fromUser($user);
+
+        return response()->json([
+            'success' => true,
+            'message' => 'Password reset successfully.',
+            'data' => $user,
+            'token' => $token,
+        ]);
+    }
+
     /**
      * Register a new user.
      *

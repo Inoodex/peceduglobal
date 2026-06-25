@@ -37,6 +37,11 @@ Route::group(['prefix' => 'auth'], function () {
     Route::post('login', [AuthController::class, 'login']);
     Route::post('student-login', [AuthController::class, 'studentLogin']);
 
+    // Password reset (OTP-based) — public, no auth required. Same endpoints
+    // serve both the admin dashboard and the public/student frontend.
+    Route::post('forgot-password', [AuthController::class, 'forgotPassword']);
+    Route::post('reset-password', [AuthController::class, 'resetPassword']);
+
     Route::middleware('auth:api')->group(function () {
         Route::post('logout', [AuthController::class, 'logout']);
         Route::post('refresh', [AuthController::class, 'refresh']);
