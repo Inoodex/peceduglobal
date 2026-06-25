@@ -7,6 +7,7 @@ use App\Models\Application;
 use App\Models\Course;
 use App\Models\Country;
 use App\Models\CourseLevel;
+use App\Services\NotificationService;
 use Illuminate\Http\Request;
 use Exception;
 
@@ -202,7 +203,25 @@ class ApplicationController extends Controller
                 'applied_at' => 'nullable|date',
             ]);
 
+            $oldStatus = $application->status;
             $application->update($validated);
+
+            // If status changed, notify the student
+            if (
+                isset($validated['status'])
+                && $validated['status'] !== $oldStatus
+                && $application->student?->user_id
+            ) {
+                $statusLabel = ucfirst($validated['status']);
+                NotificationService::forUser(
+                    $application->student->user_id,
+                    'application_status_updated',
+                    "Your application status changed to {$statusLabel}",
+                    'University: ' . ($application->university->name ?? 'N/A'),
+                    '/dashboard',
+                    ['applicationId' => $application->id]
+                );
+            }
 
             return response()->json([
                 'success' => true,

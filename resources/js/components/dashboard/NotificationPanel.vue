@@ -205,8 +205,14 @@ const handleClick = async (item) => {
     const conversationId = item.action_params?.conversationId;
     await router.push('/dashboard/chat');
     if (conversationId) {
-      // openConversation is async; fire it after navigation.
-      chat.openConversation(Number(conversationId)).catch(() => {});
+      const cid = Number(conversationId);
+      // Open the conversation in the chat view
+      chat.openConversation(cid).catch(() => {});
+      // Clear notification badge for this conversation (sidebar unread count reset)
+      notification.clearChatNotificationsForConversation(cid);
+      // Reset the conversation's own unread_count in the sidebar
+      const conv = chat.conversations.find((c) => Number(c.id) === cid);
+      if (conv) conv.unread_count = 0;
     }
   } else if (item.action_url) {
     router.push(item.action_url);

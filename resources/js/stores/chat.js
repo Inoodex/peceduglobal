@@ -126,6 +126,17 @@ export const useChatStore = defineStore('chat', {
                 const response = await axios.get('/auth/admin/chat/conversations');
                 if (response.data.success) {
                     this.conversations = response.data.data;
+                    
+                    // Force active conversation's unread_count to 0 to prevent race conditions 
+                    // where server data is fetched before the mark-read request is processed.
+                    if (this.activeConversationId) {
+                        const activeConv = this.conversations.find(
+                            c => Number(c.id) === Number(this.activeConversationId)
+                        );
+                        if (activeConv) {
+                            activeConv.unread_count = 0;
+                        }
+                    }
                 }
             } catch (e) {
                 console.error('🚨 [chatStore] fetchConversations failed', e);

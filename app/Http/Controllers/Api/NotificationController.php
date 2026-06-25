@@ -69,8 +69,9 @@ class NotificationController extends Controller
         // message within a short window. Match on message id in `data`.
         $messageId = $data['data']['message']['id'] ?? null;
         if ($messageId) {
-            $existing = AppNotification::where('type', $data['type'] ?? 'chat_message')
-                ->whereJsonContains('data->message->id', $messageId)
+            $existing = AppNotification::where('user_id', $request->user()?->id)
+                ->where('type', $data['type'] ?? 'chat_message')
+                ->where('data->message->id', $messageId)
                 ->latest()
                 ->first();
             if ($existing) {
@@ -81,6 +82,7 @@ class NotificationController extends Controller
             }
         }
 
+        $data['user_id'] = $request->user()?->id;
         $notification = AppNotification::create($data);
 
         return response()->json([
@@ -134,7 +136,7 @@ class NotificationController extends Controller
         $updated = AppNotification::forUser($userId)
             ->unread()
             ->where('type', 'chat_message')
-            ->whereJsonContains('data->message->conversation_id', (int) $conversationId)
+            ->where('data->message->conversation_id', (int) $conversationId)
             ->update(['is_read' => true]);
 
         $count = AppNotification::forUser($userId)->unread()->count();

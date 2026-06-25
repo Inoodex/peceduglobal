@@ -4,6 +4,7 @@ namespace App\Http\Controllers\Frontend;
 
 use App\Http\Controllers\Controller;
 use App\Models\Inquiry;
+use App\Services\NotificationService;
 use Illuminate\Http\Request;
 use Illuminate\Http\Response;
 use Illuminate\Support\Facades\Validator;
@@ -92,6 +93,24 @@ class InquiryController extends Controller
             'additional_info_file_path' => $additionalInfoFilePath,
             'status' => 'new',
         ]);
+
+        // Notify all admins about the new inquiry
+        $fullName = trim(($request->first_name ?? '') . ' ' . ($request->last_name ?? ''));
+        $actionUrl = match ($request->type) {
+            'university_apply' => '/dashboard/student-inquiries',
+            'air_ticket' => '/dashboard/air-ticket-bookings',
+            'career_oppurtunity' => '/dashboard/career-opportunities',
+            'agent_application' => '/dashboard/agent-applications',
+            default => '/dashboard/contact-list',
+        };
+
+        NotificationService::toAllAdmins(
+            'inquiry_received',
+            "New inquiry from {$fullName}",
+            "Email: {$request->email} · Type: " . ucfirst($request->type ?? 'general'),
+            $actionUrl,
+            ['inquiryId' => $inquiry->id]
+        );
 
         return response()->json([
             'success' => true,

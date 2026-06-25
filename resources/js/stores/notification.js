@@ -4,14 +4,13 @@ import axios from '@/plugins/axios';
 /**
  * Notification store.
  *
- * IMPORTANT — frontend-driven design:
- * The backend does NOT decide whether to create a notification (it has no way
- * to know which conversation the admin is currently viewing). Instead, the
- * chat store calls `handleIncomingMessage()` here only when the admin is NOT
- * viewing that conversation. This store then:
- *   1. Creates a notification row via API (so it persists across reloads/tabs)
- *   2. Updates the local unread count + list
- *   3. Plays a notification sound
+ * Hybrid design:
+ *  - Other modules (appointments, applications, inquiries) create notifications
+ *    server-side. The backend broadcasts `notification.created` on the private
+ *    Pusher channel `user.{id}`. This store listens and injects them in real-time.
+ *  - Chat notifications are still frontend-driven (chat store calls
+ *    `handleIncomingMessage`) because only the frontend knows which
+ *    conversation the admin is currently viewing.
  */
 export const useNotificationStore = defineStore('notification', {
     state: () => ({
@@ -22,6 +21,7 @@ export const useNotificationStore = defineStore('notification', {
         loading: false,
         _sound: null,
         _audioCtx: null,
+        _echoChannel: null,   // holds the subscribed Echo private channel instance
     }),
 
     getters: {
@@ -162,6 +162,16 @@ export const useNotificationStore = defineStore('notification', {
          * @param {object} param0.conversation  The conversation object (for guest email)
          */
         async handleIncomingMessage({ message, conversation }) {
+            // ── De-duplicate: if we already have a notification for this message
+            //    (same type + same message id in data), bail out immediately.
+            const alreadyExists = this.notifications.some((n) =>
+                n.type === 'chat_message' &&
+                (n.data?.message?.id === message.id ||
+                    String(n.id) === `local_${message.id}` ||
+                    String(n.id).startsWith(`local_${message.id}_`))
+            );
+            if (alreadyExists) return;
+
             // 1) Optimistic local notification (so the panel updates instantly)
             const tempNotification = {
                 id: `local_${message.id}_${Date.now()}`,
@@ -295,6 +305,57 @@ export const useNotificationStore = defineStore('notification', {
 
         openPanel() {
             this.isOpen = true;
+        },
+
+        /* ---------------------- Real-time Pusher subscription -------------------- */
+
+        /**
+         * Subscribe to the per-user notification channel using the chat store's
+         * Pusher/Echo connection (loaded from DB settings — same as the chat system).
+         * The channel `notification-user-{id}` is a PUBLIC channel so no auth required.
+         *
+         * @param {number} userId
+         * @param {object} echoInstance - the Echo instance from chatStore.echo
+         */
+        subscribeToUserChannel(userId, echoInstance) {
+            if (!userId || this._echoChannel) return;
+            if (!echoInstance) {
+                console.warn('[notificationStore] No Echo instance provided — real-time notifications will not work');
+                return;
+            }
+
+            try {
+                this._echoChannel = echoInstance
+                    .channel(`notification-user-${userId}`)
+                    .listen('.notification.created', ({ notification }) => {
+                        const exists = this.notifications.some((n) => n.id === notification.id);
+                        if (!exists) {
+                            this.notifications.unshift(notification);
+                            if (!notification.is_read) {
+                                this.unreadCount += 1;
+                            }
+                            this.playSound();
+                            this.notifyBrowser({
+                                title: notification.title,
+                                body: notification.body || '',
+                            });
+                        }
+                    });
+                console.log(`[notificationStore] subscribed to notification-user-${userId}`);
+            } catch (e) {
+                console.error('[notificationStore] subscribeToUserChannel failed', e);
+            }
+        },
+
+        /**
+         * Leave the notification channel.
+         */
+        unsubscribeFromUserChannel(userId, echoInstance) {
+            if (!userId || !this._echoChannel) return;
+            try {
+                echoInstance?.leave(`notification-user-${userId}`);
+            } catch (_) { /* ignore */ }
+            this._echoChannel = null;
         },
     },
 });

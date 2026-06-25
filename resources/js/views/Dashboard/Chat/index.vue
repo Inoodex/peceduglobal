@@ -31,7 +31,7 @@
 </template>
 
 <script setup>
-import { onMounted } from 'vue';
+import { onMounted, onBeforeUnmount } from 'vue';
 import MainLayout from '@/layouts/MainLayout.vue';
 import { useToastStore } from '@/stores/toast';
 import { useChatStore } from '@/stores/chat';
@@ -71,5 +71,11 @@ onMounted(async () => {
   if (chat.conversations.length === 0) {
     await chat.fetchConversations();
   }
+});
+
+// Clear active conversation pointer when navigating away from chat inbox
+// so subsequent messages are treated as unread and trigger notifications correctly.
+onBeforeUnmount(() => {
+  chat.clearActiveConversation();
 });
 </script>

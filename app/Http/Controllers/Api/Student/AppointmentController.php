@@ -6,6 +6,7 @@ use App\Http\Controllers\Controller;
 use App\Models\ConsultantSchedule;
 use App\Models\Appointment;
 use App\Models\User;
+use App\Services\NotificationService;
 use Illuminate\Http\Request;
 use Illuminate\Support\Facades\Validator;
 use Carbon\Carbon;
@@ -192,6 +193,29 @@ class AppointmentController extends Controller
             // Update schedule status
             $schedule->update(['status' => 'booked']);
 
+            // Load relations for notification context
+            $appointment->load(['schedule.consultant']);
+
+            // Notify consultant about the new student booking
+            $student = auth()->user();
+            NotificationService::forUser(
+                $schedule->consultant_id,
+                'appointment_booked',
+                "New appointment from {$student->full_name}",
+                "Date: {$schedule->slot_date} {$schedule->start_time} · Type: {$request->meeting_type}",
+                '/dashboard/consultant/appointments',
+                ['appointmentId' => $appointment->id]
+            );
+
+            // Notify all admins about the new student booking
+            NotificationService::toAllAdmins(
+                'appointment_booked',
+                "New appointment from {$student->full_name}",
+                "Date: {$schedule->slot_date} {$schedule->start_time} · Type: {$request->meeting_type}",
+                '/dashboard/booking-manager',
+                ['appointmentId' => $appointment->id]
+            );
+
             return response()->json([
                 'success' => true,
                 'message' => 'Appointment booked successfully',
@@ -328,10 +352,24 @@ class AppointmentController extends Controller
                 if ($request->status === 'cancelled') {
                     $appointment->schedule->update(['status' => 'available']);
                 } else {
-                    // Otherwise keep it booked
                     $appointment->schedule->update(['status' => 'booked']);
                 }
             });
+
+            // Notify the student (if registered) about their appointment status change
+            if ($appointment->student_id) {
+                $statusLabel = ucfirst($request->status);
+                $scheduleDate = $appointment->schedule->slot_date ?? '';
+                $scheduleTime = $appointment->schedule->start_time ?? '';
+                NotificationService::forUser(
+                    $appointment->student_id,
+                    'appointment_status_updated',
+                    "Your appointment has been {$statusLabel}",
+                    "Date: {$scheduleDate} {$scheduleTime}",
+                    '/dashboard/student/appointments',
+                    ['appointmentId' => $appointment->id]
+                );
+            }
 
             return response()->json([
                 'success' => true,

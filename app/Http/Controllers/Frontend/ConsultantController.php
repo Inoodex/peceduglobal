@@ -6,6 +6,7 @@ use App\Http\Controllers\Controller;
 use App\Models\ConsultantSchedule;
 use App\Models\Appointment;
 use App\Models\User;
+use App\Services\NotificationService;
 use Illuminate\Http\Request;
 use Illuminate\Support\Facades\Validator;
 use Carbon\Carbon;
@@ -239,6 +240,27 @@ class ConsultantController extends Controller
                 $appointment = Appointment::create($appointmentData);
                 $schedule->update(['status' => 'booked']);
                 $appointment->load(['schedule.consultant', 'student']);
+
+                // Notify the consultant about the new booking
+                $bookerName  = $appointment->student?->full_name ?? $request->name ?? 'A guest';
+                $bookerEmail = $appointment->student?->email ?? $request->email ?? '';
+                NotificationService::forUser(
+                    $schedule->consultant_id,
+                    'appointment_booked',
+                    "New appointment booked by {$bookerName}",
+                    "Email: {$bookerEmail} · Date: {$schedule->slot_date} {$schedule->start_time}",
+                    '/dashboard/consultant/appointments',
+                    ['appointmentId' => $appointment->id]
+                );
+
+                // Notify all admins about the new booking
+                NotificationService::toAllAdmins(
+                    'appointment_booked',
+                    "New appointment booked by {$bookerName}",
+                    "Email: {$bookerEmail} · Date: {$schedule->slot_date} {$schedule->start_time}",
+                    '/dashboard/booking-manager',
+                    ['appointmentId' => $appointment->id]
+                );
 
                 return response()->json([
                     'success' => true,

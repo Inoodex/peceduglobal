@@ -41,6 +41,7 @@ import { onMounted, onBeforeUnmount } from 'vue';
 import { useLayoutStore } from '@/stores/layout';
 import { useChatStore } from '@/stores/chat';
 import { useNotificationStore } from '@/stores/notification';
+import { useAuthStore } from '@/stores/auth';
 import DashboardSidebar from '@/components/dashboard/DashboardSidebar.vue';
 import MobileSidebar from '@/components/dashboard/MobileSidebar.vue';
 import DashboardHeader from '@/components/dashboard/DashboardHeader.vue';
@@ -52,12 +53,17 @@ import GlobalConfirm from '@/components/ui/GlobalConfirm.vue';
 const layout = useLayoutStore();
 const chat = useChatStore();
 const notification = useNotificationStore();
+const auth = useAuthStore();
 
 onMounted(async () => {
   layout.applyAllSettings();
 
-  // Start the global chat listener so the sidebar + bell badge stay live
-  // on every dashboard page, not just the Chat page.
+  // Ensure the current user profile is loaded before subscribing to channels
+  if (!auth.user) {
+    await auth.fetchUser().catch(() => {});
+  }
+
+  // Start the global chat listener
   try {
     await chat.fetchConversations();
     await chat.subscribeGlobal();
@@ -75,6 +81,13 @@ onMounted(async () => {
     console.error('Notification store init failed', e);
   }
 
+  // Subscribe to the private Pusher channel for real-time notifications
+  // (appointments, applications, inquiries, etc.)
+  // Reuses the chat store's Echo connection — same Pusher instance, no extra connection.
+  if (auth.user?.id && chat.echo) {
+    notification.subscribeToUserChannel(auth.user.id, chat.echo);
+  }
+
   // Politely request desktop-notification permission (used when the tab is
   // hidden and a new guest message arrives). No-op if unsupported/denied.
   try {
@@ -85,7 +98,9 @@ onMounted(async () => {
 });
 
 onBeforeUnmount(() => {
-  // Only disconnect when the whole dashboard unmounts (logout / route guard).
-  // Do NOT disconnect on every page navigation — layout persists.
+  // Leave the notification channel when dashboard unmounts (logout).
+  if (auth.user?.id) {
+    notification.unsubscribeFromUserChannel(auth.user.id, chat.echo);
+  }
 });
 </script>

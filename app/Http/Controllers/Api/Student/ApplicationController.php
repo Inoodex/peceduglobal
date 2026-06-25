@@ -7,6 +7,7 @@ use App\Http\Requests\Student\StoreApplicationRequest;
 use App\Http\Resources\Student\ApplicationResource;
 use App\Models\Application;
 use App\Models\StudentProfile;
+use App\Services\NotificationService;
 use Illuminate\Http\JsonResponse;
 use Illuminate\Http\Response;
 
@@ -47,9 +48,20 @@ class ApplicationController extends Controller
 
         $application = Application::create($validated);
 
+        // Notify all admins and consultants about the new application
+        $student = auth()->user();
+        $appResource = new ApplicationResource($application->load(['university']));
+        NotificationService::toAllAdminsAndConsultants(
+            'application_submitted',
+            "New application from {$student->full_name}",
+            "University: " . ($application->university->name ?? 'N/A'),
+            '/dashboard/applications',
+            ['applicationId' => $application->id]
+        );
+
         return response()->json([
             'success' => true,
-            'data' => new ApplicationResource($application),
+            'data' => $appResource,
             'message' => 'Application submitted successfully.'
         ], Response::HTTP_CREATED);
     }
