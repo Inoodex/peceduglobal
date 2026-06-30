@@ -145,6 +145,7 @@
             Mark all read
           </button>
           <button
+            v-if="auth.user?.role !== 'student'"
             @click="goToChat"
             class="text-[11px] font-semibold text-gray-500 dark:text-gray-400 hover:text-primary transition-colors"
           >
@@ -157,20 +158,22 @@
 </template>
 
 <script setup>
-import { onMounted, onBeforeUnmount } from 'vue';
+import { computed, onMounted, onBeforeUnmount } from 'vue';
 import { useRouter } from 'vue-router';
+import { useAuthStore } from '@/stores/auth';
 import { useNotificationStore } from '@/stores/notification';
 import { useChatStore } from '@/stores/chat';
 import { Bell, BellOff, X, Loader2, Info } from 'lucide-vue-next';
 
 const router = useRouter();
+const auth = useAuthStore();
 const notification = useNotificationStore();
 const chat = useChatStore();
 
-const tabs = [
-  { key: 'messages', label: 'Messages' },
+const tabs = computed(() => [
+  ...(auth.user?.role !== 'student' ? [{ key: 'messages', label: 'Messages' }] : []),
   { key: 'all', label: 'All' },
-];
+]);
 
 const getInitial = (item) => {
   const title = item.title || '';
@@ -231,6 +234,9 @@ const onKeydown = (e) => {
 
 onMounted(() => {
   document.addEventListener('keydown', onKeydown);
+  if (auth.user?.role === 'student' && notification.activeTab === 'messages') {
+    notification.activeTab = 'all';
+  }
 });
 
 onBeforeUnmount(() => {

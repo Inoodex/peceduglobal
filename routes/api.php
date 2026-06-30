@@ -60,6 +60,15 @@ Route::group(['prefix' => 'auth'], function () {
         Route::get('dropdowns/course-intakes', [CourseIntakeController::class, 'index']);
         Route::get('dropdowns/course-levels', [CourseLevelController::class, 'index']);
 
+        // App Notifications (any authenticated user — students see their own too)
+        Route::get('notifications', [\App\Http\Controllers\Api\NotificationController::class, 'index']);
+        Route::get('notifications/unread-count', [\App\Http\Controllers\Api\NotificationController::class, 'unreadCount']);
+        Route::post('notifications', [\App\Http\Controllers\Api\NotificationController::class, 'store']);
+        Route::post('notifications/read-all', [\App\Http\Controllers\Api\NotificationController::class, 'markAllRead']);
+        Route::post('notifications/conversations/{conversationId}/read', [\App\Http\Controllers\Api\NotificationController::class, 'markConversationRead']);
+        Route::post('notifications/{id}/read', [\App\Http\Controllers\Api\NotificationController::class, 'markRead']);
+        Route::delete('notifications/{id}', [\App\Http\Controllers\Api\NotificationController::class, 'destroy']);
+
         // Blog routes (permission-protected)
         Route::middleware('auto-permission')->group(function () {
             Route::apiResource('blog-categories', BlogCategoryController::class);
@@ -101,11 +110,13 @@ Route::group(['prefix' => 'auth'], function () {
             Route::apiResource('course-levels', CourseLevelController::class);
             Route::apiResource('course-intakes', CourseIntakeController::class);
 
-            // Content Management (Pages, Blocks, etc.)
+            // CMS Management
             Route::apiResource('pages', PageController::class);
-            Route::apiResource('blocks', BlockController::class);
+            Route::get('footer-infos', [FooterInfoController::class, 'index']);
+            Route::put('footer-infos', [FooterInfoController::class, 'update']);
+            Route::apiResource('footer-socials', FooterSocialController::class);
 
-            // Chat Settings Management
+            // Chats / inbox
             Route::get('chat-settings', [\App\Http\Controllers\Admin\ChatSettingController::class, 'index']);
             Route::post('chat-settings', [\App\Http\Controllers\Admin\ChatSettingController::class, 'update']);
 
@@ -116,15 +127,6 @@ Route::group(['prefix' => 'auth'], function () {
             Route::post('chat/conversations/{id}/close', [\App\Http\Controllers\Api\ChatController::class, 'closeConversation']);
             Route::post('chat/conversations/{id}/mark-read', [\App\Http\Controllers\Api\ChatController::class, 'markConversationRead']);
             Route::post('chat/conversations/{id}/typing', [\App\Http\Controllers\Api\ChatController::class, 'adminTyping']);
-
-            // App Notifications (inbox dropdown in header)
-            Route::get('notifications', [\App\Http\Controllers\Api\NotificationController::class, 'index']);
-            Route::get('notifications/unread-count', [\App\Http\Controllers\Api\NotificationController::class, 'unreadCount']);
-            Route::post('notifications', [\App\Http\Controllers\Api\NotificationController::class, 'store']);
-            Route::post('notifications/read-all', [\App\Http\Controllers\Api\NotificationController::class, 'markAllRead']);
-            Route::post('notifications/conversations/{conversationId}/read', [\App\Http\Controllers\Api\NotificationController::class, 'markConversationRead']);
-            Route::post('notifications/{id}/read', [\App\Http\Controllers\Api\NotificationController::class, 'markRead']);
-            Route::delete('notifications/{id}', [\App\Http\Controllers\Api\NotificationController::class, 'destroy']);
 
             Route::post('blocks/reorder', [BlockController::class, 'updateOrder']);
 

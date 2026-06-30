@@ -6,8 +6,6 @@ import MainLayout from '@/layouts/MainLayout.vue';
 import { 
   TrendingUp, 
   Users, 
-  ShoppingBag, 
-  Download, 
   GraduationCap, 
   Clock, 
   FileText, 
@@ -77,31 +75,33 @@ const checklistItems = computed(() => {
   ];
 });
 
+const statusOrder = [
+  'document_submitted',
+  'application',
+  'offer_letter',
+  'deposit_received',
+  'enrollment_confirmed',
+  'visa_processing',
+  'enrolled',
+];
+
+const statusIndex = computed(() => {
+  const s = latestApplication.value?.status || 'document_submitted';
+  const idx = statusOrder.indexOf(s);
+  return idx >= 0 ? idx : 0;
+});
+
 const funnelSteps = computed(() => {
-  const currentStatus = latestApplication.value?.status || 'pending';
+  const current = statusIndex.value;
   
   const steps = [
-    { label: 'Submitted', icon: FileText, active: true },
-    { 
-      label: 'Doc Review', 
-      icon: User, 
-      active: ['document_review', 'university_submitted', 'offer_letter', 'visa_process', 'completed'].includes(currentStatus) 
-    },
-    { 
-      label: 'Applied', 
-      icon: GraduationCap, 
-      active: ['university_submitted', 'offer_letter', 'visa_process', 'completed'].includes(currentStatus) 
-    },
-    { 
-      label: 'Offer Letter', 
-      icon: TrendingUp, 
-      active: ['offer_letter', 'visa_process', 'completed'].includes(currentStatus) 
-    },
-    { 
-      label: 'Visa Stage', 
-      icon: Users, 
-      active: ['visa_process', 'completed'].includes(currentStatus) 
-    }
+    { label: 'Submitted',    icon: FileText,      active: current >= 0 },
+    { label: 'Applied',      icon: GraduationCap, active: current >= 1 },
+    { label: 'Offer Letter', icon: TrendingUp,    active: current >= 2 },
+    { label: 'Deposited',    icon: Users,         active: current >= 3 },
+    { label: 'Enrolled',     icon: User,          active: current >= 4 },
+    { label: 'Visa',         icon: Clock,         active: current >= 5 },
+    { label: 'Completed',    icon: ClipboardList, active: current >= 6 },
   ];
 
   return steps;

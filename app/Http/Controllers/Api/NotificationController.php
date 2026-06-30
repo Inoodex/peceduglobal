@@ -9,7 +9,29 @@ use Illuminate\Http\Request;
 class NotificationController extends Controller
 {
     /**
-     * List notifications for the authenticated admin.
+     * Types a student is allowed to see — only their own appointment
+     * and application status changes, never chat messages or other users' data.
+     */
+    private const STUDENT_ALLOWED_TYPES = [
+        'appointment_status_updated',
+        'application_status_updated',
+    ];
+
+    /**
+     * Apply a type filter so students never see internal notifications
+     * (chat messages, other students' events, etc.).
+     */
+    private function scopeForRole(Request $request, $query)
+    {
+        if ($request->user()?->role === 'student') {
+            $query->whereIn('type', self::STUDENT_ALLOWED_TYPES);
+        }
+
+        return $query;
+    }
+
+    /**
+     * List notifications for the authenticated user.
      *
      * Query params:
      *  - unread_only=1   → only unread rows (used for badge count)
@@ -18,7 +40,7 @@ class NotificationController extends Controller
     {
         $userId = $request->user()?->id;
 
-        $query = AppNotification::forUser($userId)->latest();
+        $query = $this->scopeForRole($request, AppNotification::forUser($userId))->latest();
 
         if ($request->boolean('unread_only')) {
             $query->unread();
@@ -33,13 +55,13 @@ class NotificationController extends Controller
     }
 
     /**
-     * Unread count for the authenticated admin (used by the bell badge).
+     * Unread count for the authenticated user (used by the bell badge).
      */
     public function unreadCount(Request $request)
     {
         $userId = $request->user()?->id;
 
-        $count = AppNotification::forUser($userId)->unread()->count();
+        $count = $this->scopeForRole($request, AppNotification::forUser($userId))->unread()->count();
 
         return response()->json([
             'success' => true,
@@ -112,7 +134,7 @@ class NotificationController extends Controller
     {
         $userId = $request->user()?->id;
 
-        AppNotification::forUser($userId)
+        $this->scopeForRole($request, AppNotification::forUser($userId))
             ->unread()
             ->update(['is_read' => true]);
 
@@ -133,13 +155,13 @@ class NotificationController extends Controller
     {
         $userId = $request->user()?->id;
 
-        $updated = AppNotification::forUser($userId)
+        $updated = $this->scopeForRole($request, AppNotification::forUser($userId))
             ->unread()
             ->where('type', 'chat_message')
             ->where('data->message->conversation_id', (int) $conversationId)
             ->update(['is_read' => true]);
 
-        $count = AppNotification::forUser($userId)->unread()->count();
+        $count = $this->scopeForRole($request, AppNotification::forUser($userId))->unread()->count();
 
         return response()->json([
             'success'     => true,

@@ -46,7 +46,7 @@ export const useNotificationStore = defineStore('notification', {
         async fetchNotifications() {
             this.loading = true;
             try {
-                const response = await axios.get('/auth/admin/notifications');
+                const response = await axios.get('/auth/notifications');
                 if (response.data?.success) {
                     // API returns a paginator — take the items.
                     const data = response.data.data;
@@ -63,7 +63,7 @@ export const useNotificationStore = defineStore('notification', {
 
         async fetchUnreadCount() {
             try {
-                const response = await axios.get('/auth/admin/notifications/unread-count');
+                const response = await axios.get('/auth/notifications/unread-count');
                 if (response.data?.success) {
                     this.unreadCount = Number(response.data.data?.unread_count || 0);
                 }
@@ -74,7 +74,7 @@ export const useNotificationStore = defineStore('notification', {
 
         async markRead(id) {
             try {
-                await axios.post(`/auth/admin/notifications/${id}/read`);
+                await axios.post(`/auth/notifications/${id}/read`);
                 const n = this.notifications.find((x) => x.id === id);
                 if (n && !n.is_read) {
                     n.is_read = true;
@@ -87,7 +87,7 @@ export const useNotificationStore = defineStore('notification', {
 
         async markAllRead() {
             try {
-                await axios.post('/auth/admin/notifications/read-all');
+                await axios.post('/auth/notifications/read-all');
                 this.notifications.forEach((n) => (n.is_read = true));
                 this.unreadCount = 0;
             } catch (e) {
@@ -126,7 +126,7 @@ export const useNotificationStore = defineStore('notification', {
             // 2) Persist server-side so the DB stays in sync (authoritative).
             try {
                 const response = await axios.post(
-                    `/auth/admin/notifications/conversations/${cid}/read`
+                    `/auth/notifications/conversations/${cid}/read`
                 );
                 if (response.data?.success) {
                     // Trust the server's true remaining unread count.
@@ -137,7 +137,7 @@ export const useNotificationStore = defineStore('notification', {
 
         async dismiss(id) {
             try {
-                await axios.delete(`/auth/admin/notifications/${id}`);
+                await axios.delete(`/auth/notifications/${id}`);
                 const idx = this.notifications.findIndex((x) => x.id === id);
                 if (idx !== -1) {
                     const removed = this.notifications[idx];
@@ -199,7 +199,7 @@ export const useNotificationStore = defineStore('notification', {
 
             // 4) Persist server-side so other tabs / reloads stay consistent.
             try {
-                const response = await axios.post('/auth/admin/notifications', {
+                const response = await axios.post('/auth/notifications', {
                     type: 'chat_message',
                     title: tempNotification.title,
                     body: tempNotification.body,
