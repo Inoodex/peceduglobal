@@ -142,7 +142,7 @@
                 <th class="px-6 py-4 text-xs font-bold text-gray-500 uppercase">Booker</th>
                 <th class="px-6 py-4 text-xs font-bold text-gray-500 uppercase">Consultant</th>
                 <th class="px-6 py-4 text-xs font-bold text-gray-500 uppercase">Date & Time</th>
-                <th class="px-6 py-4 text-xs font-bold text-gray-500 uppercase">Type</th>
+                <!-- <th class="px-6 py-4 text-xs font-bold text-gray-500 uppercase">Type</th> -->
                 <th class="px-6 py-4 text-xs font-bold text-gray-500 uppercase">Status</th>
               </tr>
             </thead>
@@ -171,12 +171,12 @@
                   <div class="text-sm font-bold text-gray-900 dark:text-white">{{ app.schedule?.slot_date }}</div>
                   <div class="text-xs text-gray-500">{{ formatTime(app.schedule?.start_time) }} - {{ formatTime(app.schedule?.end_time) }}</div>
                 </td>
-                <td class="px-6 py-4">
+                  <!-- <td class="px-6 py-4">
                    <span class="px-2 py-1 text-[10px] font-bold rounded-lg border uppercase" 
                      :class="app.meeting_type === 'online' ? 'bg-blue-50 text-blue-600 border-blue-100' : 'bg-orange-50 text-orange-600 border-orange-100'">
                      {{ app.meeting_type }}
                    </span>
-                </td>
+                </td> -->
                 <td class="px-6 py-4">
                    <span class="px-2 py-1 text-[10px] font-bold rounded-lg border uppercase"
                      :class="app.status === 'confirmed' ? 'bg-green-50 text-green-600 border-green-100' : 'bg-yellow-50 text-yellow-600 border-yellow-100'">

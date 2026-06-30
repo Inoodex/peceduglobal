@@ -315,7 +315,7 @@ const routes = [
         path: '/dashboard/chat',
         name: 'chat-inbox',
         component: () => import('../views/Dashboard/Chat/index.vue'),
-        meta: { auth: true }
+        meta: { auth: true, role: 'consultant' }
     },
     {
         path: '/dashboard/footer-info',

@@ -23,6 +23,7 @@
           </div>
         </div>
         
+        <!-- ── Online Meets (commented out) ──
         <div class="bg-white dark:bg-[#1C252E] p-6 rounded-2xl border border-gray-100 dark:border-gray-800 shadow-sm">
           <div class="flex items-center gap-4">
             <div class="w-12 h-12 rounded-xl bg-green-500/10 flex items-center justify-center text-green-500">
@@ -34,8 +35,8 @@
             </div>
           </div>
         </div>
-
-        <div class="bg-white dark:bg-[#1C252E] p-6 rounded-2xl border border-gray-100 dark:border-gray-800 shadow-sm">
+        -->
+        <!-- <div class="bg-white dark:bg-[#1C252E] p-6 rounded-2xl border border-gray-100 dark:border-gray-800 shadow-sm">
           <div class="flex items-center gap-4">
             <div class="w-12 h-12 rounded-xl bg-purple-500/10 flex items-center justify-center text-purple-500">
               <Users :size="24" />
@@ -45,7 +46,7 @@
               <div class="text-xs text-gray-500 uppercase font-bold tracking-wider">Physical Meets</div>
             </div>
           </div>
-        </div>
+        </div> -->
       </div>
 
       <!-- Appointments List -->

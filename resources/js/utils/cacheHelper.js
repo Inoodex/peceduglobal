@@ -72,7 +72,18 @@ export async function fetchWithCache({
             
             // Handle Laravel's nested Resource Collection format (where data contains data, links, meta)
             if (!Array.isArray(data) && data !== null && typeof data === 'object' && Array.isArray(data.data)) {
-                meta = data.meta || data.pagination || meta;
+                meta = data.meta || data.pagination || null;
+                // Fallback: Laravel's paginate() puts pagination fields directly on the paginator object
+                if (!meta && data.current_page) {
+                    meta = {
+                        current_page: data.current_page,
+                        last_page: data.last_page,
+                        total: data.total,
+                        per_page: data.per_page,
+                        from: data.from,
+                        to: data.to,
+                    };
+                }
                 data = data.data;
             }
             

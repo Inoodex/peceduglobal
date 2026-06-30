@@ -27,8 +27,8 @@
         </div>
       </button>
 
-      <!-- Notifications (dropdown panel) -->
-      <div class="relative">
+      <!-- Notifications (dropdown panel) — hidden for students -->
+      <div v-if="auth.user?.role !== 'student'" class="relative">
         <button
           v-ripple
           @click.stop="notification.togglePanel()"

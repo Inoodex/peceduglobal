@@ -8,82 +8,72 @@
         </div>
       </div>
 
-      <!-- Filters & Table -->
-      <div class="bg-white dark:bg-[#1C252E] rounded-2xl border border-gray-200 dark:border-gray-700/50 overflow-hidden">
-        <div class="p-4 border-b border-gray-200 dark:border-gray-700/50 flex flex-wrap gap-4">
-          <select v-model="filters.status" @change="fetchInquiries" class="bg-gray-50 dark:bg-[#141A21] border border-gray-200 dark:border-gray-700 rounded-xl px-4 py-2 text-sm text-gray-900 dark:text-white focus:outline-none focus:ring-2 focus:ring-primary/20">
+      <DataTable
+        :columns="columns"
+        :data="inquiries"
+        :loading="loading"
+        :pagination="pagination"
+        @page-change="fetchInquiries"
+        @per-page-change="handlePerPageChange"
+      >
+        <template #toolbar>
+          <select v-model="filters.status" @change="fetchInquiries(1)" class="bg-gray-50 dark:bg-[#141A21] border border-gray-200 dark:border-gray-700 rounded-xl px-4 py-2 text-sm text-gray-900 dark:text-white focus:outline-none focus:ring-2 focus:ring-primary/20">
             <option value="">All Status</option>
             <option value="new">New</option>
             <option value="contacted">Contacted</option>
             <option value="pending">Pending</option>
             <option value="closed">Closed</option>
           </select>
-        </div>
+        </template>
 
-        <div class="overflow-x-auto">
-          <table class="w-full text-left border-collapse">
-            <thead>
-              <tr class="bg-gray-50 dark:bg-[#141A21] border-b border-gray-200 dark:border-gray-700/50">
-                <th class="px-6 py-4 text-xs font-bold text-gray-500 uppercase tracking-wider">Student</th>
-                <th class="px-6 py-4 text-xs font-bold text-gray-500 uppercase tracking-wider">Contact</th>
-                <th class="px-6 py-4 text-xs font-bold text-gray-500 uppercase tracking-wider">Type</th>
-                <th class="px-6 py-4 text-xs font-bold text-gray-500 uppercase tracking-wider">Status</th>
-                <th class="px-6 py-4 text-xs font-bold text-gray-500 uppercase tracking-wider text-right">Actions</th>
-              </tr>
-            </thead>
-            <tbody class="divide-y divide-gray-200 dark:divide-gray-700/50">
-              <tr v-for="inquiry in inquiries" :key="inquiry.id" class="hover:bg-gray-50 dark:hover:bg-gray-800/30 transition-colors">
-                <td class="px-6 py-4">
-                  <div class="font-bold text-gray-900 dark:text-white">{{ inquiry.first_name }} {{ inquiry.last_name }}</div>
-                  <div class="text-xs text-gray-500 mt-1">{{ formatDate(inquiry.created_at) }}</div>
-                </td>
-                <td class="px-6 py-4">
-                  <div class="text-sm text-gray-900 dark:text-white font-medium">{{ inquiry.email }}</div>
-                  <div class="text-sm text-gray-500">{{ inquiry.phone }}</div>
-                </td>
-                <td class="px-6 py-4">
-                  <span class="px-3 py-1 text-[10px] font-bold bg-blue-100 text-blue-700 dark:bg-blue-900/30 dark:text-blue-400 rounded-full uppercase tracking-tight">
-                    {{ inquiry.type.replace('_', ' ') }}
-                  </span>
-                </td>
-                <td class="px-6 py-4">
-                  <div class="relative inline-block">
-                    <select 
-                      v-model="inquiry.status" 
-                      @change="updateStatus(inquiry)" 
-                      :class="[
-                        'appearance-none pl-3 pr-8 py-1 text-[10px] font-bold rounded-lg border cursor-pointer transition-all focus:outline-none uppercase tracking-wider shadow-sm',
-                        statusStyles(inquiry.status)
-                      ]"
-                    >
-                      <option value="new">NEW</option>
-                      <option value="contacted">CONTACTED</option>
-                      <option value="pending">PENDING</option>
-                      <option value="closed">CLOSED</option>
-                    </select>
-                    <div class="absolute right-2 top-1/2 -translate-y-1/2 pointer-events-none opacity-40">
-                      <ChevronDown class="w-2.5 h-2.5" />
-                    </div>
-                  </div>
-                </td>
-                <td class="px-6 py-4 text-right">
-                  <div class="flex items-center justify-end gap-2">
-                    <button @click="showInquiryDetails(inquiry)" class="p-2 text-primary hover:bg-primary/10 rounded-lg transition-colors" title="View Details">
-                      <Eye class="w-5 h-5" />
-                    </button>
-                    <button @click="deleteInquiry(inquiry.id)" class="p-2 text-red-500 hover:bg-red-500/10 rounded-lg transition-colors" title="Delete">
-                      <Trash2 class="w-5 h-5" />
-                    </button>
-                  </div>
-                </td>
-              </tr>
-              <tr v-if="inquiries.length === 0">
-                <td colspan="5" class="px-6 py-12 text-center text-gray-500">No inquiries found.</td>
-              </tr>
-            </tbody>
-          </table>
-        </div>
-      </div>
+        <template #cell(student)="{ item }">
+          <div class="font-bold text-gray-900 dark:text-white">{{ item.first_name }} {{ item.last_name }}</div>
+          <div class="text-xs text-gray-500 mt-1">{{ formatDate(item.created_at) }}</div>
+        </template>
+
+        <template #cell(contact)="{ item }">
+          <div class="text-sm text-gray-900 dark:text-white font-medium">{{ item.email }}</div>
+          <div class="text-sm text-gray-500">{{ item.phone }}</div>
+        </template>
+
+        <template #cell(type)="{ item }">
+          <span class="px-3 py-1 text-[10px] font-bold bg-blue-100 text-blue-700 dark:bg-blue-900/30 dark:text-blue-400 rounded-full uppercase tracking-tight">
+            {{ item.type.replace('_', ' ') }}
+          </span>
+        </template>
+
+        <template #cell(status)="{ item }">
+          <div class="relative inline-block">
+            <select
+              v-model="item.status"
+              @change="updateStatus(item)"
+              :class="[
+                'appearance-none pl-3 pr-8 py-1 text-[10px] font-bold rounded-lg border cursor-pointer transition-all focus:outline-none uppercase tracking-wider shadow-sm',
+                statusStyles(item.status)
+              ]"
+            >
+              <option value="new">NEW</option>
+              <option value="contacted">CONTACTED</option>
+              <option value="pending">PENDING</option>
+              <option value="closed">CLOSED</option>
+            </select>
+            <div class="absolute right-2 top-1/2 -translate-y-1/2 pointer-events-none opacity-40">
+              <ChevronDown class="w-2.5 h-2.5" />
+            </div>
+          </div>
+        </template>
+
+        <template #cell(actions)="{ item }">
+          <div class="flex items-center justify-end gap-2">
+            <button @click="showInquiryDetails(item)" class="p-2 text-primary hover:bg-primary/10 rounded-lg transition-colors" title="View Details">
+              <Eye class="w-5 h-5" />
+            </button>
+            <button @click="deleteInquiry(item.id)" class="p-2 text-red-500 hover:bg-red-500/10 rounded-lg transition-colors" title="Delete">
+              <Trash2 class="w-5 h-5" />
+            </button>
+          </div>
+        </template>
+      </DataTable>
 
       <!-- Modal for Inquiry Details -->
       <div v-if="selectedInquiry" class="fixed inset-0 z-[60] flex items-center justify-center p-4 bg-black/60 backdrop-blur-sm">
@@ -94,7 +84,7 @@
               <X class="w-5 h-5" />
             </button>
           </div>
-          
+
           <div class="p-6 max-h-[70vh] overflow-y-auto">
             <div class="grid grid-cols-2 gap-6 mb-8">
               <div>
@@ -161,168 +151,188 @@
   </MainLayout>
 </template>
 
-<script>
+<script setup>
+import { ref, computed, onMounted, watch } from 'vue';
 import axios from '@/plugins/axios';
 import MainLayout from '@/layouts/MainLayout.vue';
+import DataTable from '@/components/Table/DataTable.vue';
+import { useToastStore } from '@/stores/toast';
+import { useConfirmStore } from '@/stores/confirm';
+import { fetchWithCache, clearCache } from '@/utils/cacheHelper';
+import { saveFiltersState, restoreFiltersState } from '@/utils/filterHelper';
 import { Trash2, Eye, FileText, X, ChevronDown } from 'lucide-vue-next';
 
-export default {
-  name: 'InquiryIndex',
-  components: { MainLayout, Trash2, Eye, FileText, X, ChevronDown },
-  props: {
-    type: {
-      type: String,
-      default: ''
-    }
-  },
-  data() {
-    return {
-      inquiries: [],
-      loading: false,
-      selectedInquiry: null,
-      filters: {
-        status: '',
-        type: this.type || '',
-      },
-    };
-  },
-  watch: {
-    type: {
-      handler(newType) {
-        this.filters.type = newType || '';
-        this.fetchInquiries();
-      },
-      immediate: true
-    }
-  },
-  computed: {
-    pageTitle() {
-      switch (this.filters.type) {
-        case 'university_apply': return 'Student Inquiries';
-        case 'air_ticket': return 'Air Ticket Bookings';
-        case 'agent_application': return 'Agent Applications';
-        case 'agent_applciation': return 'Agent Applications';
-        case 'career_opportunity': return 'Career Opportunities';
-        case 'consultation': return 'Consultation Requests';
-        default: return 'Leads & Inquiries';
-      }
-    },
-    pageDescription() {
-      switch (this.filters.type) {
-        case 'university_apply': return 'student university applications and inquiries';
-        case 'air_ticket': return 'flight details and ticket booking requests';
-        case 'agent_application': return 'applications submitted by agents';
-        case 'agent_applciation': return 'applications submitted by agents';
-        case 'career_opportunity': return 'career opportunities submitted by students/leads';
-        case 'consultation': return 'consultation and counseling appointments';
-        default: return 'all types of student inquiries and leads';
-      }
-    }
-  },
-  methods: {
-    async fetchInquiries() {
-      this.loading = true;
-      try {
-        const response = await axios.get('/auth/admin/inquiries', { params: this.filters });
-        this.inquiries = response.data.data.data || [];
-      } catch (error) {
-        console.error('Error fetching inquiries:', error);
-      } finally {
-        this.loading = false;
-      }
-    },
-    showInquiryDetails(inquiry) {
-      this.selectedInquiry = { ...inquiry };
-    },
-    async saveNotes() {
-      try {
-        await axios.put(`/auth/admin/inquiries/${this.selectedInquiry.id}`, {
-          admin_notes: this.selectedInquiry.admin_notes,
-          status: this.selectedInquiry.status
-        });
-        this.selectedInquiry = null;
-        this.fetchInquiries();
-      } catch (error) {
-        alert('Failed to save changes');
-      }
-    },
-    async updateStatus(inquiry) {
-      try {
-        await axios.put(`/auth/admin/inquiries/${inquiry.id}`, { status: inquiry.status });
-      } catch (error) {
-        console.error('Error updating status:', error);
-      }
-    },
-    async deleteInquiry(id) {
-      if (!confirm('Are you sure you want to delete this inquiry?')) return;
-      try {
-        await axios.delete(`/auth/admin/inquiries/${id}`);
-        this.fetchInquiries();
-      } catch (error) {
-        console.error('Error deleting inquiry:', error);
-      }
-    },
-    formatDate(date) {
-      return new Date(date).toLocaleDateString('en-US', {
-        year: 'numeric',
-        month: 'short',
-        day: 'numeric',
-        hour: '2-digit',
-        minute: '2-digit',
-      });
-    },
-    formatKey(key) {
-      return key.replace(/_/g, ' ');
-    },
-    statusStyles(status) {
-      const map = {
-        new: 'bg-blue-50 text-blue-700 border-blue-100 dark:bg-blue-900/10 dark:text-blue-500 dark:border-blue-900/20',
-        contacted: 'bg-indigo-50 text-indigo-700 border-indigo-100 dark:bg-indigo-900/10 dark:text-indigo-500 dark:border-indigo-900/20',
-        pending: 'bg-yellow-50 text-yellow-700 border-yellow-100 dark:bg-yellow-900/10 dark:text-yellow-500 dark:border-yellow-900/20',
-        closed: 'bg-emerald-50 text-emerald-700 border-emerald-100 dark:bg-emerald-900/10 dark:text-emerald-500 dark:border-emerald-900/20',
-      };
-      return map[status] || 'bg-gray-50 text-gray-700 border-gray-100';
-    }
-    ,
-    formatValue(value) {
-      if (value === null || value === undefined || value === '') return 'N/A';
-      if (typeof value === 'object') {
-        try {
-          return JSON.stringify(value);
-        } catch (e) {
-          return String(value);
-        }
-      }
-      return String(value);
-    },
-    extractFilename(url) {
-      if (!url) return 'file';
-      try {
-        const parts = url.split('/');
-        return parts[parts.length - 1] || url;
-      } catch (e) {
-        return url;
-      }
-    }
-    ,
-    async downloadFile(url, filename) {
-      try {
-        const res = await fetch(url, { credentials: 'same-origin' });
-        if (!res.ok) throw new Error('Network response was not ok');
-        const blob = await res.blob();
-        const blobUrl = window.URL.createObjectURL(blob);
-        const a = document.createElement('a');
-        a.href = blobUrl;
-        a.download = filename || 'file';
-        document.body.appendChild(a);
-        a.click();
-        a.remove();
-        window.URL.revokeObjectURL(blobUrl);
-      } catch (e) {
-        // fallback: open in new tab
-        window.open(url, '_blank');
-      }
-    }
+const toast = useToastStore();
+const confirm = useConfirmStore();
+
+const props = defineProps({
+  type: { type: String, default: '' }
+});
+
+const inquiries = ref([]);
+const loading = ref(false);
+const selectedInquiry = ref(null);
+const pagination = ref(null);
+const perPage = ref(15);
+const filters = ref({ status: '', type: props.type || '' });
+
+const columns = [
+  { key: 'student', label: 'Student' },
+  { key: 'contact', label: 'Contact' },
+  { key: 'type', label: 'Type' },
+  { key: 'status', label: 'Status' },
+  { key: 'actions', label: 'Actions', align: 'right' },
+];
+
+const pageTitle = computed(() => {
+  switch (filters.value.type) {
+    case 'university_apply': return 'Student Inquiries';
+    case 'air_ticket': return 'Air Ticket Bookings';
+    case 'agent_application':
+    case 'agent_applciation': return 'Agent Applications';
+    case 'career_opportunity':
+    case 'career_oppurtunity': return 'Career Opportunities';
+    case 'consultation': return 'Consultation Requests';
+    default: return 'Leads & Inquiries';
+  }
+});
+
+const pageDescription = computed(() => {
+  switch (filters.value.type) {
+    case 'university_apply': return 'student university applications and inquiries';
+    case 'air_ticket': return 'flight details and ticket booking requests';
+    case 'agent_application':
+    case 'agent_applciation': return 'applications submitted by agents';
+    case 'career_opportunity':
+    case 'career_oppurtunity': return 'career opportunities submitted by students/leads';
+    case 'consultation': return 'consultation and counseling appointments';
+    default: return 'all types of student inquiries and leads';
+  }
+});
+
+const fetchInquiries = async (page = 1) => {
+  saveFiltersState('inquiry_manager', { page, status: filters.value.status });
+  await fetchWithCache({
+    url: '/auth/admin/inquiries',
+    params: { page, per_page: perPage.value, ...filters.value },
+    loadingRef: loading,
+    dataRef: inquiries,
+    paginationRef: pagination,
+    toast
+  });
+};
+
+const handlePerPageChange = (newPerPage) => {
+  perPage.value = newPerPage;
+  fetchInquiries(1);
+};
+
+watch(() => props.type, (newType) => {
+  filters.value.type = newType || '';
+  restoreFiltersState('inquiry_manager', { status: '' });
+  fetchInquiries(1);
+}, { immediate: true });
+
+const showInquiryDetails = (inquiry) => {
+  selectedInquiry.value = { ...inquiry };
+};
+
+const saveNotes = async () => {
+  try {
+    await axios.put(`/auth/admin/inquiries/${selectedInquiry.value.id}`, {
+      admin_notes: selectedInquiry.value.admin_notes,
+      status: selectedInquiry.value.status
+    });
+    toast.success('Notes saved successfully.');
+    selectedInquiry.value = null;
+    await fetchInquiries(pagination.value?.current_page || 1);
+  } catch (error) {
+    toast.error(error.response?.data?.message || 'Failed to save changes');
   }
 };
+
+const updateStatus = async (inquiry) => {
+  try {
+    await axios.put(`/auth/admin/inquiries/${inquiry.id}`, { status: inquiry.status });
+    toast.success('Status updated.');
+  } catch (error) {
+    toast.error('Failed to update status.');
+  }
+};
+
+const deleteInquiry = async (id) => {
+  const confirmed = await confirm.ask({
+    title: 'Delete Inquiry',
+    message: 'Are you sure you want to delete this inquiry? This action cannot be undone.',
+    confirmText: 'Delete',
+    variant: 'danger',
+  });
+  if (!confirmed) return;
+  try {
+    await axios.delete(`/auth/admin/inquiries/${id}`);
+    clearCache('/auth/admin/inquiries');
+    toast.success('Inquiry deleted successfully.');
+    await fetchInquiries(pagination.value?.current_page || 1);
+  } catch (error) {
+    toast.error('Failed to delete inquiry.');
+  }
+};
+
+const statusStyles = (status) => {
+  const map = {
+    new: 'bg-blue-50 text-blue-700 border-blue-100 dark:bg-blue-900/10 dark:text-blue-500 dark:border-blue-900/20',
+    contacted: 'bg-indigo-50 text-indigo-700 border-indigo-100 dark:bg-indigo-900/10 dark:text-indigo-500 dark:border-indigo-900/20',
+    pending: 'bg-yellow-50 text-yellow-700 border-yellow-100 dark:bg-yellow-900/10 dark:text-yellow-500 dark:border-yellow-900/20',
+    closed: 'bg-emerald-50 text-emerald-700 border-emerald-100 dark:bg-emerald-900/10 dark:text-emerald-500 dark:border-emerald-900/20',
+  };
+  return map[status] || 'bg-gray-50 text-gray-700 border-gray-100';
+};
+
+const formatDate = (date) => {
+  return new Date(date).toLocaleDateString('en-US', {
+    year: 'numeric', month: 'short', day: 'numeric', hour: '2-digit', minute: '2-digit',
+  });
+};
+
+const formatKey = (key) => key.replace(/_/g, ' ');
+
+const formatValue = (value) => {
+  if (value === null || value === undefined || value === '') return 'N/A';
+  if (typeof value === 'object') {
+    try { return JSON.stringify(value); } catch (e) { return String(value); }
+  }
+  return String(value);
+};
+
+const extractFilename = (url) => {
+  if (!url) return 'file';
+  try {
+    const parts = url.split('/');
+    return parts[parts.length - 1] || url;
+  } catch (e) { return url; }
+};
+
+const downloadFile = async (url, filename) => {
+  try {
+    const res = await fetch(url, { credentials: 'same-origin' });
+    if (!res.ok) throw new Error('Network response was not ok');
+    const blob = await res.blob();
+    const blobUrl = window.URL.createObjectURL(blob);
+    const a = document.createElement('a');
+    a.href = blobUrl;
+    a.download = filename || 'file';
+    document.body.appendChild(a);
+    a.click();
+    a.remove();
+    window.URL.revokeObjectURL(blobUrl);
+  } catch (e) {
+    window.open(url, '_blank');
+  }
+};
+
+onMounted(() => {
+  const state = restoreFiltersState('inquiry_manager', { status: '', page: 1 });
+  filters.value.status = state.status;
+  setTimeout(() => fetchInquiries(state.page), 50);
+});
 </script>
