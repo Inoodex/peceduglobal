@@ -199,7 +199,7 @@ export default {
 
         await axios.post('/auth/blog-categories', payload);
         this.toast.success('Category created successfully!');
-        this.$router.push('/dashboard/blog-category');
+        this.$router.push('/blog-category');
       } catch (e) {
         console.error('Create failed', e);
         if (e.response?.status === 401) {

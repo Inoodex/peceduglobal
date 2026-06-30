@@ -249,9 +249,9 @@ const navigationData = [
         icon: BookOpen,
         permission: 'manage_blogs',
         children: [
+          { name: 'Categories', path: '/blog-category' },
           { name: 'Posts', path: '/blog-post' },
-          { name: 'Create Post', path: '/blog-post-create' },
-          { name: 'Categories', path: '/blog-category' }
+          { name: 'Create Post', path: '/blog-post-create' }
         ]
       },
     ]

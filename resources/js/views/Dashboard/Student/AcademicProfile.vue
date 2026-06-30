@@ -309,26 +309,25 @@
                   <input type="file" multiple accept=".pdf,.doc,.docx,.jpg,.jpeg,.png" @change="e => academicFiles = Array.from(e.target.files)" :class="fileInputClass" />
                 </div>
 
-                <!-- Translation Documents -->
+                <!-- Official University Documents -->
                 <div class="space-y-3">
-                  <label class="text-sm font-medium dark:text-gray-300">Translation Documents (Optional)</label>
+                  <label class="text-sm font-medium dark:text-gray-300">Official University Documents</label>
 
-                  <!-- Document List with View/Download/Remove -->
                   <div v-if="existingTranslationDocs.length > 0" class="space-y-2 mb-3">
                     <div v-for="(doc, index) in existingTranslationDocs" :key="index" class="flex items-center justify-between p-2 text-xs bg-gray-100 dark:bg-gray-800 rounded-lg border border-gray-200 dark:border-gray-700">
                       <span class="truncate font-medium text-gray-700 dark:text-gray-300 max-w-[150px]" :title="doc.file_name">{{ doc.file_name }}</span>
                       <div class="flex gap-2 shrink-0">
                         <a :href="doc.url" target="_blank" class="text-blue-600 hover:underline font-semibold cursor-pointer">View</a>
                         <a :href="doc.url" download :download="doc.file_name" class="text-green-600 hover:underline font-semibold cursor-pointer">Download</a>
-                        <button type="button" @click="deleteExistingDoc('translation_documents', doc.path)" class="text-red-500 hover:text-red-700 font-semibold cursor-pointer">Remove</button>
+                        <button v-if="viewingStudent" type="button" @click="deleteExistingDoc('translation_documents', doc.path)" class="text-red-500 hover:text-red-700 font-semibold cursor-pointer">Remove</button>
                       </div>
                     </div>
                   </div>
                   <div v-else class="text-xs text-orange-500 italic mb-2 font-medium">
-                    No translation documents found.
+                    No official university documents found.
                   </div>
 
-                  <input type="file" multiple accept=".pdf,.doc,.docx,.jpg,.jpeg,.png" @change="e => translationFiles = Array.from(e.target.files)" :class="fileInputClass" />
+                  <input v-if="viewingStudent" type="file" multiple accept=".pdf,.doc,.docx,.jpg,.jpeg,.png" @change="e => translationFiles = Array.from(e.target.files)" :class="fileInputClass" />
                 </div>
               </div>
             </div>
@@ -352,13 +351,24 @@
 
 <script setup>
 import { ref, computed, watch, onMounted } from 'vue';
+import { useRoute } from 'vue-router';
 import { useAuthStore } from '@/stores/auth';
 import MainLayout from '@/layouts/MainLayout.vue';
 import CustomSelect from '@/components/Form/CustomSelect.vue';
 import axios from '@/plugins/axios';
 import { GraduationCap, FileText, Trash2, Download, UploadCloud, Settings, Loader2, User } from 'lucide-vue-next';
 
-const auth = useAuthStore();
+const auth  = useAuthStore();
+const route = useRoute();
+
+const studentId = computed(() => route.query.student_id || null);
+const isAdminOrConsultant = computed(() => auth.user?.role === 'admin' || auth.user?.role === 'consultant');
+const viewingStudent = computed(() => studentId.value && isAdminOrConsultant.value);
+
+const profileApi = (path = '') => {
+  const base = viewingStudent.value ? `/auth/admin/students/${studentId.value}` : '/auth/profile';
+  return base + path;
+};
 
 // ── Date Format Helper ──────────────────────────────────────────
 // Converts '2007-01-21T00:00:00.000000Z' → '2007-01-21' for <input type="date">
@@ -547,7 +557,7 @@ const loadDropdownData = async () => {
 const fetchProfile = async () => {
   loadingProfile.value = true;
   try {
-    const res     = await axios.get('/auth/profile');
+    const res     = await axios.get(profileApi());
     const profile = res.data.data;
 
     // Prefill general info to satisfy backend validator
@@ -586,7 +596,10 @@ const fetchProfile = async () => {
 const deleteExistingDoc = async (type, path) => {
   if (!confirm('Are you sure you want to remove this document permanently?')) return;
   try {
-    await axios.delete('/auth/profile/document', { data: { type, path } });
+    const url = viewingStudent.value
+      ? `/auth/admin/students/${studentId.value}/document`
+      : '/auth/profile/document';
+    await axios.delete(url, { data: { type, path } });
     await fetchProfile();
   } catch (e) {
     console.error('Failed to remove document', e);
@@ -632,7 +645,7 @@ const saveAcademicProfile = async () => {
       fd.append('translation_docs[]', file);
     });
 
-    await axios.post('/auth/profile', fd, {
+    await axios.post(profileApi(), fd, {
       headers: { 'Content-Type': 'multipart/form-data' },
     });
 

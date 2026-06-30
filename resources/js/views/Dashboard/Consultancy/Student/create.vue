@@ -69,14 +69,6 @@
               <label class="text-sm font-medium dark:text-gray-300">Sponsor Phone</label>
               <input v-model="form.sponsor_phone" type="text" class="form-input" />
             </div>
-            <div class="space-y-2">
-              <label class="text-sm font-medium dark:text-gray-300">Passport Number</label>
-              <input v-model="form.passport_number" type="text" class="form-input" />
-            </div>
-            <div class="space-y-2">
-              <label class="text-sm font-medium dark:text-gray-300">Passport Validity</label>
-              <input v-model="form.passport_validity" type="date" class="form-input" />
-            </div>
             <div class="space-y-2 md:col-span-2">
               <label class="text-sm font-medium dark:text-gray-300">Address</label>
               <textarea v-model="form.address" rows="2" class="form-input" placeholder="Street, city, country"></textarea>
@@ -88,10 +80,47 @@
           </div>
         </div>
 
+        <!-- Academic Score & Passport -->
+        <div class="bg-white dark:bg-[#1C252E] rounded-2xl border border-gray-200 dark:border-gray-700/50 p-6 shadow-sm">
+          <h2 class="text-lg font-semibold mb-6 flex items-center gap-2 text-primary">
+            <GraduationCap class="w-5 h-5" /> Academic Score & Passport
+          </h2>
+          <div class="grid grid-cols-1 md:grid-cols-2 gap-6">
+            <div class="space-y-2">
+              <label class="text-sm font-medium dark:text-gray-300">Last Education Level</label>
+              <select v-model="form.last_education_level" class="form-input">
+                <option value="">Select education level</option>
+                <option value="ssc">SSC</option>
+                <option value="hsc">HSC</option>
+                <option value="diploma">Diploma</option>
+                <option value="bachelor">Bachelor</option>
+                <option value="masters">Masters</option>
+                <option value="postgraduate">Postgraduate</option>
+              </select>
+            </div>
+            <div class="space-y-2">
+              <label class="text-sm font-medium dark:text-gray-300">CGPA Score</label>
+              <input v-model="form.cgpa" type="number" step="0.01" placeholder="e.g. 3.85" class="form-input" />
+            </div>
+            <div class="space-y-2">
+              <label class="text-sm font-medium dark:text-gray-300">IELTS Score</label>
+              <input v-model="form.ielts_score" type="number" step="0.5" placeholder="e.g. 7.0" class="form-input" />
+            </div>
+            <div class="space-y-2">
+              <label class="text-sm font-medium dark:text-gray-300">Passport Number</label>
+              <input v-model="form.passport_number" type="text" class="form-input" />
+            </div>
+            <div class="space-y-2">
+              <label class="text-sm font-medium dark:text-gray-300">Passport Validity</label>
+              <input v-model="form.passport_validity" type="date" class="form-input" />
+            </div>
+          </div>
+        </div>
+
         <!-- Study preferences -->
         <div class="bg-white dark:bg-[#1C252E] rounded-2xl border border-gray-200 dark:border-gray-700/50 p-6 shadow-sm">
           <h2 class="text-lg font-semibold mb-6 flex items-center gap-2 text-primary">
-            <GraduationCap class="w-5 h-5" /> Study preferences
+            <Settings class="w-5 h-5" /> Study preferences
           </h2>
           <div class="grid grid-cols-1 md:grid-cols-2 gap-6">
             <div class="space-y-2 md:col-span-2">
@@ -156,7 +185,7 @@
               </p>
             </div>
             <div class="space-y-2">
-              <label class="text-sm font-medium dark:text-gray-300">Translation Documents (Optional)</label>
+              <label class="text-sm font-medium dark:text-gray-300">Official University Documents</label>
               <input type="file" multiple accept=".pdf,.doc,.docx,.jpg,.jpeg,.png" @change="handleFiles($event, 'translation_docs')" class="file-input" />
               <p class="text-xs text-gray-500 dark:text-gray-400">
                 Multiple translation documents can be uploaded (PDF, DOC, JPG, PNG). Max 10MB per file.
@@ -185,7 +214,7 @@ import axios from '@/plugins/axios';
 import { useToastStore } from '@/stores/toast';
 import MainLayout from '@/layouts/MainLayout.vue';
 import { clearCache } from '@/utils/cacheHelper';
-import { ChevronRight, Loader2, User, FileText, GraduationCap, UploadCloud } from 'lucide-vue-next';
+import { ChevronRight, Loader2, User, FileText, GraduationCap, UploadCloud, Settings } from 'lucide-vue-next';
 
 const toast = useToastStore();
 const router = useRouter();
@@ -211,6 +240,9 @@ const form = ref({
   passport_validity: '',
   address: '',
   date_of_birth: '',
+  last_education_level: '',
+  cgpa: '',
+  ielts_score: '',
   country_id: '',
   university_id: '',
   course_id: '',
@@ -334,6 +366,10 @@ const submit = async () => {
     fd.append('password', f.password);
     fd.append('phone', f.phone);
     fd.append('country_id', f.country_id);
+    fd.append('last_education_level', f.last_education_level ?? '');
+    fd.append('cgpa', f.cgpa ?? '');
+    fd.append('ielts_score', f.ielts_score ?? '');
+
     const optional = [
       'father_name',
       'mother_name',

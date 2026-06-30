@@ -77,14 +77,6 @@
               <label class="text-sm font-medium dark:text-gray-300">Sponsor Phone</label>
               <input v-model="form.sponsor_phone" type="text" :class="[inputClass, { 'border-orange-500': !form.sponsor_phone }]" />
             </div>
-            <div class="space-y-2">
-              <label class="text-sm font-medium dark:text-gray-300">Passport Number</label>
-              <input v-model="form.passport_number" type="text" :class="[inputClass, { 'border-orange-500': !form.passport_number }]" />
-            </div>
-            <div class="space-y-2">
-              <label class="text-sm font-medium dark:text-gray-300">Passport Validity</label>
-              <input v-model="form.passport_validity" type="date" :class="[inputClass, { 'border-orange-500': !form.passport_validity }]" />
-            </div>
             <div class="space-y-2 md:col-span-2">
               <label class="text-sm font-medium dark:text-gray-300">Address</label>
               <textarea v-model="form.address" rows="2" :class="[inputClass, { 'border-orange-500': !form.address }]" placeholder="Street, city, country"></textarea>
@@ -96,10 +88,47 @@
           </div>
         </div>
 
-        <!-- 3. Study Preferences -->
+        <!-- 3. Academic Score & Passport -->
         <div class="bg-white dark:bg-[#1C252E] rounded-2xl border border-gray-200 dark:border-gray-700/50 p-6 shadow-sm">
           <h2 class="text-lg font-semibold mb-6 flex items-center gap-2 text-primary">
-            <GraduationCap class="w-5 h-5" /> Study preferences
+            <GraduationCap class="w-5 h-5" /> Academic Score & Passport
+          </h2>
+          <div class="grid grid-cols-1 md:grid-cols-2 gap-6">
+            <div class="space-y-2">
+              <label class="text-sm font-medium dark:text-gray-300">Last Education Level</label>
+              <select v-model="form.last_education_level" :class="inputClass">
+                <option value="">Select education level</option>
+                <option value="ssc">SSC</option>
+                <option value="hsc">HSC</option>
+                <option value="diploma">Diploma</option>
+                <option value="bachelor">Bachelor</option>
+                <option value="masters">Masters</option>
+                <option value="postgraduate">Postgraduate</option>
+              </select>
+            </div>
+            <div class="space-y-2">
+              <label class="text-sm font-medium dark:text-gray-300">CGPA Score</label>
+              <input v-model="form.cgpa" type="number" step="0.01" placeholder="e.g. 3.85" :class="inputClass" />
+            </div>
+            <div class="space-y-2">
+              <label class="text-sm font-medium dark:text-gray-300">IELTS Score</label>
+              <input v-model="form.ielts_score" type="number" step="0.5" placeholder="e.g. 7.0" :class="inputClass" />
+            </div>
+            <div class="space-y-2">
+              <label class="text-sm font-medium dark:text-gray-300">Passport Number</label>
+              <input v-model="form.passport_number" type="text" :class="[inputClass, { 'border-orange-500': !form.passport_number }]" />
+            </div>
+            <div class="space-y-2">
+              <label class="text-sm font-medium dark:text-gray-300">Passport Validity</label>
+              <input v-model="form.passport_validity" type="date" :class="[inputClass, { 'border-orange-500': !form.passport_validity }]" />
+            </div>
+          </div>
+        </div>
+
+        <!-- 4. Study Preferences -->
+        <div class="bg-white dark:bg-[#1C252E] rounded-2xl border border-gray-200 dark:border-gray-700/50 p-6 shadow-sm">
+          <h2 class="text-lg font-semibold mb-6 flex items-center gap-2 text-primary">
+            <Settings class="w-5 h-5" /> Study preferences
           </h2>
           <div class="grid grid-cols-1 md:grid-cols-2 gap-6">
             <div class="space-y-2 md:col-span-2">
@@ -135,7 +164,7 @@
           </div>
         </div>
 
-        <!-- 4. Documents Section -->
+        <!-- 5. Documents Section -->
         <div class="bg-white dark:bg-[#1C252E] rounded-2xl border border-gray-200 dark:border-gray-700/50 p-6 shadow-sm">
           <h2 class="text-lg font-semibold mb-6 flex items-center gap-2 text-primary">
             <UploadCloud class="w-5 h-5" /> Documents
@@ -163,9 +192,9 @@
               <input type="file" multiple accept=".pdf,.doc,.docx,.jpg,.jpeg,.png" @change="handleFiles($event, 'documents')" :class="fileInputClass" />
             </div>
 
-            <!-- Translation Documents -->
+            <!-- Official University Documents -->
             <div class="space-y-3">
-              <label class="text-sm font-medium dark:text-gray-300">Translation Documents (Optional)</label>
+              <label class="text-sm font-medium dark:text-gray-300">Official University Documents</label>
 
               <div v-if="existingTransDocs.length > 0" class="space-y-2 mb-3">
                 <div v-for="(doc, index) in existingTransDocs" :key="index" class="flex items-center justify-between p-2 text-xs bg-gray-100 dark:bg-gray-800 rounded-lg border border-gray-200 dark:border-gray-700">
@@ -207,7 +236,7 @@ import axios from '@/plugins/axios';
 import { useToastStore } from '@/stores/toast';
 import MainLayout from '@/layouts/MainLayout.vue';
 import { clearCache } from '@/utils/cacheHelper';
-import { ChevronRight, Loader2, User, FileText, GraduationCap, UploadCloud } from 'lucide-vue-next';
+import { ChevronRight, Loader2, User, FileText, GraduationCap, UploadCloud, Settings } from 'lucide-vue-next';
 
 const toast = useToastStore();
 const route = useRoute();
@@ -227,6 +256,7 @@ const form = ref({
   father_name: '', mother_name: '', sponsor_phone: '', passport_number: '',
   passport_validity: '', address: '', date_of_birth: '', country_id: '',
   university_id: '', course_id: '', course_intake_id: '',
+  last_education_level: '', cgpa: '', ielts_score: '',
 });
 
 const existingDocs = ref([]);
@@ -307,6 +337,9 @@ const fetchStudent = async () => {
       university_id: idStr(student.university_id),
       course_id: idStr(student.course_id),
       course_intake_id: idStr(student.course_intake_id),
+      last_education_level: student.last_education_level || '',
+      cgpa: student.cgpa || '',
+      ielts_score: student.ielts_score || '',
     };
 
     existingDocs.value = student.documents || [];
@@ -355,6 +388,10 @@ const submit = async () => {
     fd.append('university_id', f.university_id ?? '');
     fd.append('course_id', f.course_id ?? '');
     fd.append('course_intake_id', f.course_intake_id ?? '');
+
+    fd.append('last_education_level', f.last_education_level ?? '');
+    fd.append('cgpa', f.cgpa ?? '');
+    fd.append('ielts_score', f.ielts_score ?? '');
 
     const optional = [
       'father_name', 'mother_name', 'sponsor_phone',

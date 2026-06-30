@@ -390,7 +390,7 @@ export default {
       } catch (e) {
         console.error('Failed to load post', e);
         this.toast.error('Failed to load post data');
-        this.$router.push('/dashboard/blog-post');
+        this.$router.push('/blog-post');
       } finally {
         this.loading = false;
       }
@@ -409,7 +409,7 @@ export default {
         const postId = this.$route.params.id;
         await axios.put(`/auth/blog-posts/${postId}`, payload);
         this.toast.success('Post updated successfully!');
-        this.$router.push('/dashboard/blog-post');
+        this.$router.push('/blog-post');
       } catch (e) {
         console.error('Update failed', e);
         if (e.response?.status === 401) {

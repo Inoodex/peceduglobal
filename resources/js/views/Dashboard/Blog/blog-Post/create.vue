@@ -401,7 +401,7 @@ export default {
 
         await axios.post('/auth/blog-posts', payload);
         this.toast.success('Post created successfully!');
-        this.$router.push('/dashboard/blog-post');
+        this.$router.push('/blog-post');
       } catch (e) {
         console.error('Create failed', e);
         if (e.response?.status === 401) {

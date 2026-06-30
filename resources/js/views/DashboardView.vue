@@ -20,6 +20,13 @@ const authStore = useAuthStore();
 
 const isStudent = computed(() => authStore.user?.role === 'student');
 
+const hasPermission = (permission) => {
+  if (!permission) return true;
+  if (authStore.user?.role === 'admin') return true;
+  const userPermissions = authStore.user?.permissions?.map((p) => p.slug) || [];
+  return userPermissions.includes(permission);
+};
+
 const welcomeMessage = computed(() => {
   if (authStore.user?.role === 'student') {
     return 'Your admission pipeline is active! Check your academic completeness score and advisory timeline below.';
@@ -465,7 +472,7 @@ onMounted(() => {
 
       <!-- Admin & Consultant Management Cards -->
       <div v-else class="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-4 gap-6 mb-8">
-        <router-link to="/dashboard/page-manager" class="p-6 rounded-3xl transition-all shadow-card dark:shadow-card-dark bg-paper-light dark:bg-paper-dark border border-transparent hover:border-primary/20 block">
+        <router-link v-if="hasPermission('manage_pages')" to="/dashboard/page-manager" class="p-6 rounded-3xl transition-all shadow-card dark:shadow-card-dark bg-paper-light dark:bg-paper-dark border border-transparent hover:border-primary/20 block">
           <div class="flex items-center justify-between mb-4">
             <div class="text-lg font-bold">Page Manager</div>
             <div class="p-3 rounded-2xl bg-blue-500/5 text-blue-500">
@@ -477,7 +484,7 @@ onMounted(() => {
           <p class="text-sm opacity-70">Manage website pages</p>
         </router-link>
 
-        <router-link to="/dashboard/block-manager" class="p-6 rounded-3xl transition-all shadow-card dark:shadow-card-dark bg-paper-light dark:bg-paper-dark border border-transparent hover:border-primary/20 block">
+        <router-link v-if="hasPermission('manage_pages')" to="/dashboard/block-manager" class="p-6 rounded-3xl transition-all shadow-card dark:shadow-card-dark bg-paper-light dark:bg-paper-dark border border-transparent hover:border-primary/20 block">
           <div class="flex items-center justify-between mb-4">
             <div class="text-lg font-bold">Block Manager</div>
             <div class="p-3 rounded-2xl bg-green-500/5 text-green-500">
@@ -489,7 +496,7 @@ onMounted(() => {
           <p class="text-sm opacity-70">Manage page blocks</p>
         </router-link>
 
-        <router-link to="/dashboard/country-manager" class="p-6 rounded-3xl transition-all shadow-card dark:shadow-card-dark bg-paper-light dark:bg-paper-dark border border-transparent hover:border-primary/20 block">
+        <router-link v-if="hasPermission('manage_countries')" to="/dashboard/country-manager" class="p-6 rounded-3xl transition-all shadow-card dark:shadow-card-dark bg-paper-light dark:bg-paper-dark border border-transparent hover:border-primary/20 block">
           <div class="flex items-center justify-between mb-4">
             <div class="text-lg font-bold">Country Manager</div>
             <div class="p-3 rounded-2xl bg-purple-500/5 text-purple-500">
@@ -501,7 +508,7 @@ onMounted(() => {
           <p class="text-sm opacity-70">Manage countries</p>
         </router-link>
 
-        <router-link to="#" class="p-6 rounded-3xl transition-all shadow-card dark:shadow-card-dark bg-paper-light dark:bg-paper-dark border border-transparent hover:border-primary/20 block">
+        <router-link v-if="hasPermission('manage_blogs')" to="/blog-post" class="p-6 rounded-3xl transition-all shadow-card dark:shadow-card-dark bg-paper-light dark:bg-paper-dark border border-transparent hover:border-primary/20 block">
           <div class="flex items-center justify-between mb-4">
             <div class="text-lg font-bold">Blog Manager</div>
             <div class="p-3 rounded-2xl bg-orange-500/5 text-orange-500">
@@ -513,7 +520,7 @@ onMounted(() => {
           <p class="text-sm opacity-70">Manage blog posts</p>
         </router-link>
 
-        <router-link to="/dashboard/university-manager" class="p-6 rounded-3xl transition-all shadow-card dark:shadow-card-dark bg-paper-light dark:bg-paper-dark border border-transparent hover:border-primary/20 block">
+        <router-link v-if="hasPermission('manage_education')" to="/dashboard/university-manager" class="p-6 rounded-3xl transition-all shadow-card dark:shadow-card-dark bg-paper-light dark:bg-paper-dark border border-transparent hover:border-primary/20 block">
           <div class="flex items-center justify-between mb-4">
             <div class="text-lg font-bold">University Manager</div>
             <div class="p-3 rounded-2xl bg-pink-500/5 text-pink-500">

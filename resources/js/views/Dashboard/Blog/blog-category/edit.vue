@@ -213,7 +213,7 @@ export default {
       } catch (e) {
         console.error('Failed to load category', e);
         this.toast.error('Failed to load category data');
-        this.$router.push('/dashboard/blog-category');
+        this.$router.push('/blog-category');
       } finally {
         this.loading = false;
       }
@@ -232,7 +232,7 @@ export default {
 
         await axios.put(`/auth/blog-categories/${categoryId}`, payload);
         this.toast.success('Category updated successfully!');
-        this.$router.push('/dashboard/blog-category');
+        this.$router.push('/blog-category');
       } catch (e) {
         console.error('Update failed', e);
         if (e.response?.status === 401) {
