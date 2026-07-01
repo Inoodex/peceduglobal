@@ -111,26 +111,53 @@
                 Additional Information
               </h4>
               <div class="grid grid-cols-1 sm:grid-cols-2 gap-4">
-                <div v-for="(value, key) in selectedInquiry.additional_info" :key="key" class="p-3 bg-white dark:bg-[#1C252E] rounded-xl border border-gray-200 dark:border-gray-700/50">
-                  <p class="text-[10px] uppercase font-bold text-gray-400 mb-0.5">{{ formatKey(key) }}</p>
-                  <div v-if="key === 'uploaded_file' && value" class="flex items-center gap-3">
-                    <a :href="value" target="_blank" rel="noopener noreferrer" class="text-sm font-medium text-primary underline flex items-center gap-2">
-                      <svg xmlns="http://www.w3.org/2000/svg" class="h-4 w-4" viewBox="0 0 24 24" fill="none" stroke="currentColor"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M12 5v14m7-7H5"/></svg>
-                      <span>{{ extractFilename(value) }}</span>
-                    </a>
-                    <button @click.prevent="downloadFile(value, extractFilename(value))" class="px-3 py-1 text-xs font-semibold bg-gray-100 dark:bg-gray-800 rounded-md hover:bg-gray-200 dark:hover:bg-gray-700">Download</button>
+                <template v-for="(value, key) in selectedInquiry.additional_info" :key="key">
+                  <div v-if="key !== 'uploaded_file' && key !== 'uploaded_file_path'" class="p-3 bg-white dark:bg-[#1C252E] rounded-xl border border-gray-200 dark:border-gray-700/50">
+                    <p class="text-[10px] uppercase font-bold text-gray-400 mb-0.5">{{ formatKey(key) }}</p>
+                    <p class="text-sm font-medium text-gray-900 dark:text-gray-200">{{ formatValue(value) }}</p>
                   </div>
-                  <p v-else class="text-sm font-medium text-gray-900 dark:text-gray-200">{{ formatValue(value) }}</p>
+                </template>
+              </div>
+            </div>
+
+            <!-- Beautiful Attachment Section -->
+            <div v-if="selectedInquiry.additional_info_file_url" class="mt-6 bg-blue-50/50 dark:bg-blue-950/10 rounded-2xl p-6 border border-blue-100/50 dark:border-blue-900/20">
+              <h4 class="text-sm font-bold text-gray-900 dark:text-white mb-3 flex items-center gap-2">
+                <Paperclip class="w-4 h-4 text-primary" />
+                Attachment / Document
+              </h4>
+              <div class="flex flex-col sm:flex-row items-start sm:items-center justify-between gap-4 p-4 bg-white dark:bg-[#1C252E] rounded-xl border border-gray-200 dark:border-gray-700/50 shadow-sm">
+                <div class="flex items-center gap-3 min-w-0 flex-1">
+                  <div class="p-2.5 bg-primary/10 text-primary rounded-lg flex-shrink-0">
+                    <FileText class="w-6 h-6" />
+                  </div>
+                  <div class="min-w-0 flex-1">
+                    <p class="text-sm font-semibold text-gray-900 dark:text-white truncate">
+                      {{ selectedInquiry.additional_info_file_name || 'Document File' }}
+                    </p>
+                    <p class="text-xs text-gray-500 dark:text-gray-400 mt-0.5 truncate select-all">
+                      {{ extractFilename(selectedInquiry.additional_info_file_url) }}
+                    </p>
+                  </div>
                 </div>
-                <div v-if="selectedInquiry.additional_info_file_url" class="p-3 bg-white dark:bg-[#1C252E] rounded-xl border border-gray-200 dark:border-gray-700/50">
-                  <p class="text-[10px] uppercase font-bold text-gray-400 mb-0.5">Uploaded File</p>
-                  <div class="flex items-center gap-3">
-                    <a :href="selectedInquiry.additional_info_file_url" target="_blank" rel="noopener noreferrer" class="text-sm font-medium text-primary underline flex items-center gap-2">
-                      <svg xmlns="http://www.w3.org/2000/svg" class="h-4 w-4" viewBox="0 0 24 24" fill="none" stroke="currentColor"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M12 5v14m7-7H5"/></svg>
-                      <span>{{ selectedInquiry.additional_info_file_name || extractFilename(selectedInquiry.additional_info_file_url) }}</span>
-                    </a>
-                    <button @click.prevent="downloadFile(selectedInquiry.additional_info_file_url, selectedInquiry.additional_info_file_name || extractFilename(selectedInquiry.additional_info_file_url))" class="px-3 py-1 text-xs font-semibold bg-gray-100 dark:bg-gray-800 rounded-md hover:bg-gray-200 dark:hover:bg-gray-700">Download</button>
-                  </div>
+                
+                <div class="flex items-center gap-2 w-full sm:w-auto">
+                  <a 
+                    :href="selectedInquiry.additional_info_file_url" 
+                    target="_blank" 
+                    rel="noopener noreferrer" 
+                    class="flex-1 sm:flex-none inline-flex items-center justify-center gap-1.5 px-4 py-2.5 text-xs font-bold text-gray-700 dark:text-gray-200 bg-gray-100 dark:bg-gray-800 hover:bg-gray-200 dark:hover:bg-gray-700 rounded-xl transition-all border border-gray-250 dark:border-gray-700"
+                  >
+                    <Eye class="w-3.5 h-3.5" />
+                    View
+                  </a>
+                  <button 
+                    @click.prevent="downloadFile(selectedInquiry.additional_info_file_url, selectedInquiry.additional_info_file_name || extractFilename(selectedInquiry.additional_info_file_url))" 
+                    class="flex-1 sm:flex-none inline-flex items-center justify-center gap-1.5 px-4 py-2.5 text-xs font-bold text-white bg-primary hover:bg-primary/90 rounded-xl transition-all shadow-md shadow-primary/10"
+                  >
+                    <Download class="w-3.5 h-3.5" />
+                    Download
+                  </button>
                 </div>
               </div>
             </div>
@@ -160,7 +187,7 @@ import { useToastStore } from '@/stores/toast';
 import { useConfirmStore } from '@/stores/confirm';
 import { fetchWithCache, clearCache } from '@/utils/cacheHelper';
 import { saveFiltersState, restoreFiltersState } from '@/utils/filterHelper';
-import { Trash2, Eye, FileText, X, ChevronDown } from 'lucide-vue-next';
+import { Trash2, Eye, FileText, X, ChevronDown, Paperclip, Download } from 'lucide-vue-next';
 
 const toast = useToastStore();
 const confirm = useConfirmStore();

@@ -23,6 +23,12 @@ class ElementController extends Controller
             });
         }
 
+        if ($request->has('page_id')) {
+            $query->whereHas('pageBlock', function($q) use ($request) {
+                $q->where('page_id', $request->page_id);
+            });
+        }
+
         if ($request->has('block_id')) {
             $query->where('page_block_id', $request->block_id);
         }
