@@ -20,6 +20,16 @@ class UniversityController extends Controller
         if ($request->filled('country_id')) {
             $query->where('country_id', (int) $request->query('country_id'));
         }
+        if ($request->filled('search')) {
+            $search = $request->query('search');
+            $query->where(function ($q) use ($search) {
+                $q->where('name', 'like', "%{$search}%")
+                  ->orWhere('location', 'like', "%{$search}%")
+                  ->orWhereHas('country', function ($qCountry) use ($search) {
+                      $qCountry->where('name', 'like', "%{$search}%");
+                  });
+            });
+        }
         $universities = $query->paginate($perPage);
         return response()->json([
             'success' => true,

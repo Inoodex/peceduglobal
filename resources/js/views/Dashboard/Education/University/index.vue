@@ -44,7 +44,7 @@
       <!-- Universities Table -->
       <DataTable 
         :columns="columns" 
-        :data="filteredUniversities" 
+        :data="universities" 
         :loading="loading"
         :pagination="pagination"
         @page-change="fetchUniversities"
@@ -93,7 +93,7 @@
 </template>
 
 <script setup>
-import { ref, computed, onMounted, watch, nextTick } from 'vue';
+import { ref, onMounted, watch, nextTick } from 'vue';
 import axios from '@/plugins/axios';
 import MainLayout from '@/layouts/MainLayout.vue';
 import DataTable from '@/components/Table/DataTable.vue';
@@ -126,15 +126,7 @@ const columns = [
   { key: 'actions', label: 'Actions', align: 'right' }
 ];
 
-const filteredUniversities = computed(() => {
-  if (!searchQuery.value.trim()) return universities.value;
-  const query = searchQuery.value.toLowerCase();
-  return universities.value.filter(u =>
-    u.name.toLowerCase().includes(query) ||
-    (u.location && u.location.toLowerCase().includes(query)) ||
-    (u.country?.name && u.country.name.toLowerCase().includes(query))
-  );
-});
+
 
 const handlePerPageChange = (newPerPage) => {
   perPage.value = newPerPage;
@@ -176,6 +168,9 @@ const fetchUniversities = async (page = 1) => {
   const params = { page, per_page: perPage.value };
   if (selectedCountryId.value) {
     params.country_id = selectedCountryId.value;
+  }
+  if (searchQuery.value) {
+    params.search = searchQuery.value;
   }
   
   await fetchWithCache({
