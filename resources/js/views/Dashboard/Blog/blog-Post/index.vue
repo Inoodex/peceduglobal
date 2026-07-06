@@ -30,19 +30,19 @@
         @per-page-change="handlePerPageChange"
       >
         <template #toolbar>
-          <div class="flex flex-col sm:flex-row gap-4 w-full">
-            <div class="flex-1 relative">
+          <div class="flex flex-col sm:flex-row items-center gap-4 w-full">
+            <div class="flex-1 relative w-full">
               <Search class="absolute left-3 top-1/2 -translate-y-1/2 w-5 h-5 text-gray-400" />
               <input
                 v-model="searchQuery"
                 type="text"
                 placeholder="Search post..."
-                class="w-full bg-gray-50 dark:bg-[#141A21] border border-gray-200 dark:border-gray-700 rounded-xl pl-10 pr-4 py-2.5 text-gray-900 dark:text-white placeholder-gray-400 focus:outline-none focus:ring-2 focus:ring-primary/20 focus:border-primary transition-all"
+                class="w-full h-12 bg-gray-50 dark:bg-[#141A21] border border-gray-200 dark:border-gray-700 rounded-xl pl-10 pr-4 text-gray-900 dark:text-white placeholder-gray-400 focus:outline-none focus:ring-2 focus:ring-primary/20 focus:border-primary transition-all"
               />
             </div>
             <select
               v-model="statusFilter"
-              class="bg-gray-50 dark:bg-[#141A21] border border-gray-200 dark:border-gray-700 rounded-xl px-4 py-2.5 text-gray-900 dark:text-white focus:outline-none focus:ring-2 focus:ring-primary/20 focus:border-primary transition-all"
+              class="w-full sm:w-36 h-12 bg-gray-50 dark:bg-[#141A21] border border-gray-200 dark:border-gray-700 rounded-xl px-4 text-gray-900 dark:text-white focus:outline-none focus:ring-2 focus:ring-primary/20 focus:border-primary transition-all cursor-pointer"
             >
               <option value="">All Status</option>
               <option value="published">Published</option>
@@ -53,7 +53,7 @@
             </select>
             <select
               v-model="categoryFilter"
-              class="bg-gray-50 dark:bg-[#141A21] border border-gray-200 dark:border-gray-700 rounded-xl px-4 py-2.5 text-gray-900 dark:text-white focus:outline-none focus:ring-2 focus:ring-primary/20 focus:border-primary transition-all"
+              class="w-full sm:w-60 h-12 bg-gray-50 dark:bg-[#141A21] border border-gray-200 dark:border-gray-700 rounded-xl px-4 text-gray-900 dark:text-white focus:outline-none focus:ring-2 focus:ring-primary/20 focus:border-primary transition-all cursor-pointer"
             >
               <option value="">All Categories</option>
               <option v-for="cat in categories" :key="cat.id" :value="cat.id">
@@ -63,7 +63,7 @@
             <button
               v-if="searchQuery || statusFilter || categoryFilter"
               @click="clearFilters"
-              class="px-4 py-2 text-gray-600 dark:text-gray-400 hover:text-gray-900 dark:hover:text-white transition-colors"
+              class="px-4 py-2 text-gray-600 dark:text-gray-400 hover:text-gray-900 dark:hover:text-white transition-colors h-12 flex items-center justify-center shrink-0"
             >
               Clear
             </button>
@@ -83,14 +83,14 @@
                 <ImageIcon class="w-6 h-6 text-gray-400 dark:text-gray-500" />
               </div>
             </div>
-            <div class="min-w-0">
-              <p class="font-medium text-gray-900 dark:text-white truncate">{{ item.title }}</p>
-              <p class="text-sm text-gray-500 dark:text-gray-400 truncate">{{ item.excerpt || item.slug }}</p>
+            <div class="min-w-0 max-w-[150px] sm:max-w-[200px] md:max-w-[250px] lg:max-w-[300px]">
+              <p class="font-medium text-gray-900 dark:text-white truncate" :title="item.title">{{ item.title }}</p>
+              <p class="text-sm text-gray-500 dark:text-gray-400 truncate" :title="item.excerpt || item.slug">{{ item.excerpt || item.slug }}</p>
             </div>
           </div>
         </template>
         <template #cell(author)="{ item }">
-          <div class="flex items-center gap-2">
+          <div class="flex items-center gap-2 whitespace-nowrap">
             <div class="w-8 h-8 rounded-full bg-primary/10 flex items-center justify-center flex-shrink-0">
               <span class="text-sm font-medium text-primary">
                 {{ getInitials(item.author?.full_name || item.author?.name) }}
@@ -100,20 +100,20 @@
           </div>
         </template>
         <template #cell(category)="{ item }">
-          <span class="px-3 py-1 rounded-lg text-sm font-medium bg-gray-100 dark:bg-gray-800 text-gray-700 dark:text-gray-300">
+          <span class="px-3 py-1 rounded-lg text-sm font-medium bg-gray-100 dark:bg-gray-800 text-gray-700 dark:text-gray-300 whitespace-nowrap">
             {{ item.category?.name || 'Uncategorized' }}
           </span>
         </template>
         <template #cell(status)="{ item }">
           <span
-            class="px-3 py-1 rounded-lg text-sm font-medium"
+            class="px-3 py-1 rounded-lg text-sm font-medium whitespace-nowrap"
             :class="getStatusClass(item.status)"
           >
             {{ formatStatus(item.status) }}
           </span>
         </template>
         <template #cell(published)="{ item }">
-          <span class="text-sm text-gray-700 dark:text-gray-300">
+          <span class="text-sm text-gray-700 dark:text-gray-300 whitespace-nowrap">
             {{ formatDate(item.published_at || item.created_at) }}
           </span>
         </template>
@@ -217,7 +217,7 @@ export default {
       }
 
       if (this.categoryFilter) {
-        result = result.filter(post => post.category?.id === this.categoryFilter);
+        result = result.filter(post => post.category?.id == this.categoryFilter);
       }
 
       return result;
@@ -326,3 +326,10 @@ export default {
   }
 };
 </script>
+
+<style scoped>
+:deep(th), :deep(td) {
+  padding-left: 1rem !important;  /* px-4 */
+  padding-right: 1rem !important; /* px-4 */
+}
+</style>

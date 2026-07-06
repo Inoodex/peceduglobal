@@ -100,6 +100,12 @@
               :src="option[imageKey]"
               class="w-5 h-5 rounded-full object-cover border border-gray-100 dark:border-gray-700/50 shrink-0"
             />
+            <div
+              v-else-if="imageKey"
+              class="w-5 h-5 rounded-full bg-gray-100 dark:bg-gray-800/80 flex items-center justify-center shrink-0 border border-gray-100 dark:border-gray-700/50"
+            >
+              <Globe class="w-3 h-3 text-gray-400 dark:text-gray-500" />
+            </div>
  
             <!-- Slot for custom option display -->
             <slot name="option" :option="option">
@@ -119,7 +125,7 @@
 
 <script setup>
 import { ref, computed, onMounted, onUnmounted, nextTick } from 'vue';
-import { ChevronDown, ChevronUp, X, SearchX, Check } from 'lucide-vue-next';
+import { ChevronDown, ChevronUp, X, SearchX, Check, Globe } from 'lucide-vue-next';
 
 const props = defineProps({
   modelValue: { type: [String, Number, Object], default: '' },

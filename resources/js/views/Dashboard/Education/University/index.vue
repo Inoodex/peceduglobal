@@ -18,12 +18,26 @@
 
       <!-- Filters Card -->
       <div class="bg-white dark:bg-[#1C252E] rounded-2xl border border-gray-200 dark:border-gray-700/50 p-4 mb-4">
-        <div class="flex flex-col sm:flex-row gap-4">
-          <div class="flex-1 relative">
+        <div class="flex flex-col sm:flex-row items-center gap-4">
+          <div class="flex-1 w-full relative">
             <Search class="absolute left-3 top-1/2 -translate-y-1/2 w-5 h-5 text-gray-400" />
             <input v-model="searchQuery" type="text" placeholder="Search university by name or location..." class="w-full bg-gray-50 dark:bg-[#141A21] border border-gray-200 dark:border-gray-700 rounded-xl pl-10 pr-4 py-2.5 text-gray-900 dark:text-white placeholder-gray-400 focus:outline-none focus:ring-2 focus:ring-primary/20 focus:border-primary transition-all" />
           </div>
-          <button v-if="searchQuery" @click="searchQuery = ''; clearFiltersState('university_manager');" class="px-4 py-2 text-gray-600 dark:text-gray-400 hover:text-gray-900 dark:hover:text-white transition-colors cursor-pointer">Clear</button>
+          <!-- Country Filter Dropdown -->
+          <div class="w-full sm:w-64">
+            <CustomSelect
+              v-model="selectedCountryId"
+              :options="countries"
+              label="Country"
+              placeholder="All Countries"
+              label-key="name"
+              value-key="id"
+              image-key="thumbnail"
+              :searchable="true"
+              :clearable="true"
+            />
+          </div>
+          <button v-if="searchQuery || selectedCountryId" @click="clearAllFilters" class="px-4 py-2.5 bg-gray-100 hover:bg-gray-200 dark:bg-gray-800 dark:hover:bg-gray-700 text-gray-600 dark:text-gray-400 hover:text-gray-900 dark:hover:text-white rounded-xl transition-colors cursor-pointer w-full sm:w-auto font-medium">Clear</button>
         </div>
       </div>
 
@@ -79,15 +93,15 @@
 </template>
 
 <script setup>
-import { ref, computed, onMounted } from 'vue';
+import { ref, computed, onMounted, watch, nextTick } from 'vue';
 import axios from '@/plugins/axios';
 import MainLayout from '@/layouts/MainLayout.vue';
 import DataTable from '@/components/Table/DataTable.vue';
+import CustomSelect from '@/components/Form/CustomSelect.vue';
 import { useToastStore } from '@/stores/toast';
 import { useConfirmStore } from '@/stores/confirm';
 import { fetchWithCache, clearCache } from '@/utils/cacheHelper';
 import { saveFiltersState, restoreFiltersState, clearFiltersState } from '@/utils/filterHelper';
-import { watch } from 'vue';
 import {
   ChevronRight, Plus, Search, Loader2, Pencil, Trash2, AlertTriangle, School
 } from 'lucide-vue-next';
@@ -96,10 +110,13 @@ const toast = useToastStore();
 const confirm = useConfirmStore();
 
 const universities = ref([]);
+const countries = ref([]);
 const loading = ref(false);
 const searchQuery = ref('');
+const selectedCountryId = ref('');
 const pagination = ref(null);
 const perPage = ref(15);
+const isReady = ref(false);
 
 const columns = [
   { key: 'university', label: 'University' },
@@ -126,26 +143,56 @@ const handlePerPageChange = (newPerPage) => {
 
 let searchTimer = null;
 watch(searchQuery, () => {
+  if (!isReady.value) return;
   clearTimeout(searchTimer);
   searchTimer = setTimeout(() => {
-    saveFiltersState('university_manager', { page: 1, searchQuery: searchQuery.value });
+    saveFiltersState('university_manager', { page: 1, searchQuery: searchQuery.value, countryId: selectedCountryId.value });
     fetchUniversities(1);
   }, 400);
 });
 
+watch(selectedCountryId, () => {
+  if (!isReady.value) return;
+  saveFiltersState('university_manager', { page: 1, searchQuery: searchQuery.value, countryId: selectedCountryId.value });
+  fetchUniversities(1);
+});
+
+const fetchCountries = async () => {
+  try {
+    const response = await axios.get('/auth/admin/countries');
+    countries.value = response.data.data?.data || response.data.data || [];
+  } catch (e) {
+    console.error('Failed to load countries:', e);
+  }
+};
+
 const fetchUniversities = async (page = 1) => {
   saveFiltersState('university_manager', {
     page,
-    searchQuery: searchQuery.value
+    searchQuery: searchQuery.value,
+    countryId: selectedCountryId.value
   });
+  
+  const params = { page, per_page: perPage.value };
+  if (selectedCountryId.value) {
+    params.country_id = selectedCountryId.value;
+  }
+  
   await fetchWithCache({
     url: '/auth/admin/universities',
-    params: { page, per_page: perPage.value },
+    params,
     loadingRef: loading,
     dataRef: universities,
     paginationRef: pagination,
     toast
   });
+};
+
+const clearAllFilters = () => {
+  searchQuery.value = '';
+  selectedCountryId.value = '';
+  clearFiltersState('university_manager');
+  fetchUniversities(1);
 };
 
 const confirmDelete = async (university) => {
@@ -167,12 +214,19 @@ const confirmDelete = async (university) => {
   }
 };
 
-onMounted(() => {
-  const state = restoreFiltersState('university_manager', { searchQuery: '', page: 1 });
+onMounted(async () => {
+  await fetchCountries();
+  const state = restoreFiltersState('university_manager', { searchQuery: '', page: 1, countryId: '' });
   searchQuery.value = state.searchQuery;
-  // Use nextTick or simple setTimeout to ensure search watch does not immediately trigger fetch on mount
-  setTimeout(() => {
-    fetchUniversities(state.page);
-  }, 50);
+  selectedCountryId.value = state.countryId || '';
+  
+  // Wait for Vue to flush the watchers triggered by the changes above while isReady is still false
+  await nextTick();
+  
+  // Fetch restored page directly
+  await fetchUniversities(state.page);
+  
+  // Set isReady to true so that future user interactions trigger the watcher updates correctly
+  isReady.value = true;
 });
 </script>

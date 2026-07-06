@@ -246,12 +246,12 @@
           </div>
 
           <div class="flex items-center gap-3">
-            <button
+            <!-- <button
               type="button"
               class="px-4 py-2 text-sm font-medium text-gray-700 dark:text-gray-300 bg-white dark:bg-[#1C252E] border border-gray-300 dark:border-gray-600 rounded-xl hover:bg-gray-50 dark:hover:bg-gray-800 transition-colors"
             >
               Preview
-            </button>
+            </button> -->
             <button
               type="submit"
               class="px-4 py-2 text-sm font-medium text-gray-900 bg-white border border-gray-300 dark:border-gray-600 rounded-xl hover:bg-gray-50 dark:hover:bg-gray-400 transition-colors shadow-sm"

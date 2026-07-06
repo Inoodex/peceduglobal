@@ -23,19 +23,19 @@
 
       <DataTable :columns="columns" :data="paginatedCategories" :loading="loading" :pagination="pagination" @page-change="changePage" @per-page-change="handlePerPageChange">
         <template #toolbar>
-          <div class="flex flex-col sm:flex-row gap-4 w-full">
-            <div class="flex-1 relative">
+          <div class="flex flex-col sm:flex-row items-center gap-4 w-full">
+            <div class="flex-1 relative w-full">
               <Search class="absolute left-3 top-1/2 -translate-y-1/2 w-5 h-5 text-gray-400" />
               <input
                 v-model="searchQuery"
                 type="text"
                 placeholder="Search category..."
-                class="w-full bg-gray-50 dark:bg-[#141A21] border border-gray-200 dark:border-gray-700 rounded-xl pl-10 pr-4 py-2.5 text-gray-900 dark:text-white placeholder-gray-400 focus:outline-none focus:ring-2 focus:ring-primary/20 focus:border-primary transition-all"
+                class="w-full h-12 bg-gray-50 dark:bg-[#141A21] border border-gray-200 dark:border-gray-700 rounded-xl pl-10 pr-4 text-gray-900 dark:text-white placeholder-gray-400 focus:outline-none focus:ring-2 focus:ring-primary/20 focus:border-primary transition-all"
               />
             </div>
             <select
               v-model="statusFilter"
-              class="bg-gray-50 dark:bg-[#141A21] border border-gray-200 dark:border-gray-700 rounded-xl px-4 py-2.5 text-gray-900 dark:text-white focus:outline-none focus:ring-2 focus:ring-primary/20 focus:border-primary transition-all"
+              class="w-full sm:w-36 h-12 bg-gray-50 dark:bg-[#141A21] border border-gray-200 dark:border-gray-700 rounded-xl px-4 text-gray-900 dark:text-white focus:outline-none focus:ring-2 focus:ring-primary/20 focus:border-primary transition-all cursor-pointer"
             >
               <option value="">All Status</option>
               <option value="active">Active</option>
@@ -44,7 +44,7 @@
             <button
               v-if="searchQuery || statusFilter"
               @click="clearFilters"
-              class="px-4 py-2 text-gray-600 dark:text-gray-400 hover:text-gray-900 dark:hover:text-white transition-colors"
+              class="px-4 py-2 text-gray-600 dark:text-gray-400 hover:text-gray-900 dark:hover:text-white transition-colors h-12 flex items-center justify-center shrink-0"
             >
               Clear
             </button>
@@ -52,18 +52,18 @@
         </template>
         <template #cell(name)="{ item }">
           <div class="flex items-center gap-3">
-            <div class="w-10 h-10 rounded-lg bg-gradient-to-br from-primary/20 to-primary/10 flex items-center justify-center">
-              <FolderOpen class="w-5 h-5 text-primary" />
+            <div class="w-10 h-10 rounded-xl bg-primary/10 dark:bg-blue-500/10 flex items-center justify-center shrink-0">
+              <FolderOpen class="w-5 h-5 text-primary dark:text-blue-400" />
             </div>
-            <div>
-              <p class="font-medium text-gray-900 dark:text-white">{{ item.name }}</p>
-              <p v-if="item.description" class="text-sm text-gray-500 dark:text-gray-400 line-clamp-1">{{ item.description }}</p>
+            <div class="min-w-0 max-w-[200px] sm:max-w-[300px] md:max-w-[400px]">
+              <p class="font-medium text-gray-900 dark:text-white truncate" :title="item.name">{{ item.name }}</p>
+              <p v-if="item.description" class="text-sm text-gray-500 dark:text-gray-400 truncate" :title="item.description">{{ item.description }}</p>
             </div>
           </div>
         </template>
-        <template #cell(slug)="{ item }">
+        <!-- <template #cell(slug)="{ item }">
           <span class="text-sm text-gray-600 dark:text-gray-400 font-mono">{{ item.slug }}</span>
-        </template>
+        </template> -->
         <template #cell(status)="{ item }">
           <span
             :class="[
@@ -148,7 +148,7 @@ export default {
       },
       columns: [
         { key: 'name', label: 'Category' },
-        { key: 'slug', label: 'Slug' },
+        // { key: 'slug', label: 'Slug' },
         { key: 'status', label: 'Status' },
         { key: 'posts', label: 'Posts' },
         { key: 'order', label: 'Order' },
@@ -254,3 +254,10 @@ export default {
   },
 };
 </script>
+
+<style scoped>
+:deep(th), :deep(td) {
+  padding-left: 1rem !important;  /* px-4 */
+  padding-right: 1rem !important; /* px-4 */
+}
+</style>
