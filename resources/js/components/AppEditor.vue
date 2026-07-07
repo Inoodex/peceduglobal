@@ -1,8 +1,6 @@
 <template>
   <div v-if="editor" class="editor-container border border-gray-200 dark:border-gray-700/50 rounded-2xl overflow-hidden bg-white dark:bg-[#1C252E] shadow-sm">
-    <!-- Toolbar -->
     <div class="toolbar flex flex-wrap items-center gap-1 p-2 border-b border-gray-200 dark:border-gray-700/50 bg-gray-50 dark:bg-[#141A21]">
-      <!-- Formatting -->
       <div class="flex items-center gap-1 pr-2 mr-2 border-r border-gray-200 dark:border-gray-700/50">
         <button type="button" @click="editor.chain().focus().toggleBold().run()" :class="{ 'is-active': editor.isActive('bold') }" class="toolbar-btn" title="Bold"><Bold class="w-4 h-4" /></button>
         <button type="button" @click="editor.chain().focus().toggleItalic().run()" :class="{ 'is-active': editor.isActive('italic') }" class="toolbar-btn" title="Italic"><Italic class="w-4 h-4" /></button>
@@ -10,14 +8,22 @@
         <button type="button" @click="editor.chain().focus().toggleStrike().run()" :class="{ 'is-active': editor.isActive('strike') }" class="toolbar-btn" title="Strike"><Strikethrough class="w-4 h-4" /></button>
       </div>
 
-      <!-- Headings -->
       <div class="flex items-center gap-1 pr-2 mr-2 border-r border-gray-200 dark:border-gray-700/50">
-        <button type="button" @click="editor.chain().focus().toggleHeading({ level: 1 }).run()" :class="{ 'is-active': editor.isActive('heading', { level: 1 }) }" class="toolbar-btn" title="H1"><Heading1 class="w-4 h-4" /></button>
-        <button type="button" @click="editor.chain().focus().toggleHeading({ level: 2 }).run()" :class="{ 'is-active': editor.isActive('heading', { level: 2 }) }" class="toolbar-btn" title="H2"><Heading2 class="w-4 h-4" /></button>
-        <button type="button" @click="editor.chain().focus().toggleHeading({ level: 3 }).run()" :class="{ 'is-active': editor.isActive('heading', { level: 3 }) }" class="toolbar-btn" title="H3"><Heading3 class="w-4 h-4" /></button>
+        <select
+          @change="setHeading"
+          :value="currentHeading"
+          class="text-sm bg-white dark:bg-[#1C252E] border border-gray-200 dark:border-gray-700 rounded-lg px-2 py-1.5 text-gray-700 dark:text-gray-300 focus:outline-none focus:ring-2 focus:ring-primary/20 cursor-pointer"
+        >
+          <option value="paragraph">Paragraph</option>
+          <option value="h1">Heading 1</option>
+          <option value="h2">Heading 2</option>
+          <option value="h3">Heading 3</option>
+          <option value="h4">Heading 4</option>
+          <option value="h5">Heading 5</option>
+          <option value="h6">Heading 6</option>
+        </select>
       </div>
 
-      <!-- Alignment & Floating -->
       <div class="flex items-center gap-1 pr-2 mr-2 border-r border-gray-200 dark:border-gray-700/50">
         <button type="button" @click="editor.chain().focus().setTextAlign('left').run()" :class="{ 'is-active': editor.isActive({ textAlign: 'left' }) }" class="toolbar-btn" title="Align Left"><AlignLeft class="w-4 h-4" /></button>
         <button type="button" @click="editor.chain().focus().setTextAlign('center').run()" :class="{ 'is-active': editor.isActive({ textAlign: 'center' }) }" class="toolbar-btn" title="Align Center"><AlignCenter class="w-4 h-4" /></button>
@@ -27,14 +33,12 @@
         <button type="button" @click="toggleFloat('right')" :class="{ 'is-active': isFloatActive('right') }" class="toolbar-btn" title="Wrap Right"><ArrowRightToLine class="w-4 h-4" /></button>
       </div>
 
-      <!-- Lists & Quote -->
       <div class="flex items-center gap-1 pr-2 mr-2 border-r border-gray-200 dark:border-gray-700/50">
         <button type="button" @click="editor.chain().focus().toggleBulletList().run()" :class="{ 'is-active': editor.isActive('bulletList') }" class="toolbar-btn" title="Bullet List"><List class="w-4 h-4" /></button>
         <button type="button" @click="editor.chain().focus().toggleOrderedList().run()" :class="{ 'is-active': editor.isActive('orderedList') }" class="toolbar-btn" title="Ordered List"><ListOrdered class="w-4 h-4" /></button>
-        <button type="button" @click="editor.chain().focus().toggleBlockquote().run()" :class="{ 'is-active': editor.isActive('blockquote') }" class="toolbar-btn" title="Quote"><Quote class="w-4 h-4" /></button>
+        <button type="button" @click="editor.chain().focus().toggleBlockquote().run()" :class="{ 'is-active': editor.isActive('blockquote') }" class="toolbar-btn" title="Quote"><TextQuote class="w-4 h-4" /></button>
       </div>
 
-      <!-- Table -->
       <div class="flex items-center gap-1 pr-2 mr-2 border-r border-gray-200 dark:border-gray-700/50">
         <button type="button" @click="editor.chain().focus().insertTable({ rows: 3, cols: 3, withHeaderRow: true }).run()" class="toolbar-btn" title="Insert Table"><TableIcon class="w-4 h-4" /></button>
         <div v-if="editor.isActive('table')" class="flex items-center gap-1 ml-1 bg-primary/10 rounded-lg px-1">
@@ -46,7 +50,6 @@
         </div>
       </div>
 
-      <!-- Misc -->
       <div class="flex items-center gap-1">
         <button type="button" @click="setLink" :class="{ 'is-active': editor.isActive('link') }" class="toolbar-btn" title="Link"><LinkIcon class="w-4 h-4" /></button>
         <button type="button" @click="triggerImageUpload" :disabled="uploading" class="toolbar-btn" title="Upload Image">
@@ -56,17 +59,17 @@
         <input type="file" ref="fileInput" class="hidden" accept="image/*" @change="handleImageUpload" />
         <button type="button" @click="editor.chain().focus().undo().run()" class="toolbar-btn" title="Undo"><Undo class="w-4 h-4" /></button>
         <button type="button" @click="editor.chain().focus().redo().run()" class="toolbar-btn" title="Redo"><Redo class="w-4 h-4" /></button>
-        <button type="button" @click="editor.chain().focus().unsetAllMarks().run()" class="toolbar-btn text-red-500" title="Clear Formatting"><Eraser class="w-4 h-4" /></button>
+        <button type="button" @click="editor.chain().focus().unsetAllMarks().clearNodes().run()" class="toolbar-btn text-red-500" title="Clear Formatting"><Eraser class="w-4 h-4" /></button>
       </div>
     </div>
 
     <!-- Editor Area -->
-    <EditorContent :editor="editor" class="prose prose-sm dark:prose-invert max-w-none p-4 min-h-[350px] outline-none" />
+    <EditorContent :editor="editor" class="prose prose-sm max-w-none p-4 min-h-[350px] outline-none" />
   </div>
 </template>
 
 <script setup>
-import { ref, watch } from 'vue';
+import { ref, watch, computed } from 'vue';
 import { useEditor, EditorContent } from '@tiptap/vue-3';
 import StarterKit from '@tiptap/starter-kit';
 import { Underline } from '@tiptap/extension-underline';
@@ -84,9 +87,8 @@ import axios from '@/plugins/axios';
 
 import {
   Bold, Italic, Underline as UnderlineIcon, Strikethrough,
-  Heading1, Heading2, Heading3,
   AlignLeft, AlignCenter, AlignRight,
-  List, ListOrdered, Quote,
+  List, ListOrdered, TextQuote,
   Table as TableIcon, ChevronLeft, ChevronRight, ChevronUp, ChevronDown, Trash2,
   Link as LinkIcon, Image as ImageIcon, Undo, Redo, Eraser, Loader2,
   ArrowLeftToLine, ArrowRightToLine
@@ -110,6 +112,9 @@ const editor = useEditor({
     StarterKit.configure({
       link: false,
       underline: false,
+      heading: {
+        levels: [1, 2, 3, 4, 5, 6],
+      },
     }),
     Underline,
     Link.configure({
@@ -128,7 +133,7 @@ const editor = useEditor({
     TableHeader,
     TableCell,
     TextAlign.configure({
-      types: ['heading', 'paragraph', 'image'],
+      types: ['heading', 'paragraph'],
     }),
     Highlight,
     TextStyle,
@@ -139,17 +144,35 @@ const editor = useEditor({
   },
 });
 
+const currentHeading = computed(() => {
+  if (!editor.value) return 'paragraph';
+  for (let i = 1; i <= 6; i++) {
+    if (editor.value.isActive('heading', { level: i })) return `h${i}`;
+  }
+  return 'paragraph';
+});
+
+const setHeading = (event) => {
+  const value = event.target.value;
+  if (value === 'paragraph') {
+    editor.value.chain().focus().setParagraph().run();
+  } else {
+    const level = parseInt(value.charAt(1));
+    editor.value.chain().focus().toggleHeading({ level }).run();
+  }
+};
+
 const toggleFloat = (direction) => {
   if (!editor.value.isActive('image')) return;
-  
+
   const currentAttributes = editor.value.getAttributes('image');
   const currentFloat = currentAttributes.style?.includes(`float: ${direction}`) ? null : direction;
-  
+
   if (!currentFloat) {
     editor.value.chain().focus().updateAttributes('image', { style: null }).run();
   } else {
-    editor.value.chain().focus().updateAttributes('image', { 
-      style: `float: ${direction}; margin: ${direction === 'left' ? '0 20px 20px 0' : '0 0 20px 20px'}; display: inline-block;` 
+    editor.value.chain().focus().updateAttributes('image', {
+      style: `float: ${direction}; margin: ${direction === 'left' ? '0 20px 20px 0' : '0 0 20px 20px'}; display: inline-block;`
     }).run();
   }
 };
@@ -196,11 +219,10 @@ const handleImageUpload = async (event) => {
     alert('Failed to upload image. Please try again.');
   } finally {
     uploading.value = false;
-    event.target.value = ''; // Reset input
+    event.target.value = '';
   }
 };
 
-// Sync with prop
 watch(() => props.modelValue, (value) => {
   if (!editor.value) return;
   const isSame = editor.value.getHTML() === value;
@@ -213,7 +235,6 @@ watch(() => props.modelValue, (value) => {
 <style>
 @reference "../../css/app.css";
 
-/* Tiptap specific styles */
 .ProseMirror {
   outline: none !important;
 }
@@ -230,7 +251,6 @@ watch(() => props.modelValue, (value) => {
   @apply p-1 rounded-md text-gray-600 dark:text-gray-400 hover:bg-white/50 dark:hover:bg-gray-800 transition-colors;
 }
 
-/* Image Resize Styles */
 .ProseMirror img {
   @apply cursor-pointer transition-all;
   display: inline-block !important;
@@ -242,13 +262,36 @@ watch(() => props.modelValue, (value) => {
   @apply ring-4 ring-primary/30 outline-none rounded-lg;
 }
 
-/* Ensure wrappers don't break the inline flow */
 .ProseMirror *:has(> img.resizable-image) {
   display: inline-block !important;
   vertical-align: middle !important;
 }
 
-/* Ensure text can wrap around floated images properly */
+.ProseMirror { color: #ffffff; }
+.ProseMirror p { font-size: 1rem; line-height: 1.75; margin: 0.5em 0; color: #ffffff; }
+
+.ProseMirror h1 { font-size: 2em; font-weight: 700; line-height: 1.2; margin: 0.67em 0; color: #ffffff; }
+.ProseMirror h2 { font-size: 1.5em; font-weight: 700; line-height: 1.3; margin: 0.75em 0; color: #ffffff; }
+.ProseMirror h3 { font-size: 1.25em; font-weight: 600; line-height: 1.4; margin: 0.83em 0; color: #ffffff; }
+.ProseMirror h4 { font-size: 1.1em; font-weight: 600; line-height: 1.4; margin: 1em 0; color: #ffffff; }
+.ProseMirror h5 { font-size: 1em; font-weight: 600; line-height: 1.5; margin: 1em 0; color: #ffffff; }
+.ProseMirror h6 { font-size: 0.9em; font-weight: 600; line-height: 1.5; margin: 1em 0; text-transform: uppercase; color: #ffffff; }
+
+.ProseMirror ul { list-style-type: disc; padding-left: 1.5em; margin: 0.5em 0; color: #ffffff; }
+.ProseMirror ol { list-style-type: decimal; padding-left: 1.5em; margin: 0.5em 0; color: #ffffff; }
+.ProseMirror li { margin: 0.25em 0; color: #ffffff; }
+.ProseMirror ul ul { list-style-type: circle; }
+.ProseMirror ul ul ul { list-style-type: square; }
+
+.ProseMirror blockquote {
+  border-left: 4px solid #ffffff;
+  padding: 0.5em 1em;
+  margin: 0.5em 0;
+  font-style: italic;
+  color: #ffffff;
+  border-radius: 0 8px 8px 0;
+}
+
 .ProseMirror p {
   clear: none;
 }
@@ -258,7 +301,6 @@ watch(() => props.modelValue, (value) => {
   clear: both;
 }
 
-/* Table styles inside editor */
 .ProseMirror table {
   border-collapse: collapse;
   table-layout: fixed;

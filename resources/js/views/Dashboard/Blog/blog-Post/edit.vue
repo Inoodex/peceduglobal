@@ -1,10 +1,6 @@
 <template>
   <MainLayout>
-    <div
-      class="max-w-3xl mx-auto pb-20 relative"
-      :class="{ 'dark': layout.isDarkMode }"
-    >
-      <!-- Loading Overlay -->
+    <div class="max-w-3xl mx-auto pb-20 relative">
       <div v-if="loading" class="absolute inset-0 bg-white/80 dark:bg-gray-900/80 z-50 flex items-center justify-center">
         <div class="flex flex-col items-center gap-3">
           <div class="w-10 h-10 border-4 border-primary border-t-transparent rounded-full animate-spin"></div>
@@ -12,7 +8,6 @@
         </div>
       </div>
 
-      <!-- Header -->
       <div class="mb-6">
         <h1 class="text-2xl font-bold text-gray-900 dark:text-white mb-2">Edit post</h1>
         <nav class="flex items-center gap-2 text-sm text-gray-500 dark:text-gray-400">
@@ -25,7 +20,6 @@
       </div>
 
       <form @submit.prevent="submit" :class="{ 'opacity-50 pointer-events-none': loading }">
-        <!-- Details Section -->
         <div class="bg-white dark:bg-[#1C252E] rounded-2xl border border-gray-200 dark:border-gray-700/50 mb-4 overflow-hidden">
           <button
             type="button"
@@ -43,7 +37,6 @@
           </button>
 
           <div v-show="sections.details" class="p-4 pt-0 space-y-4">
-            <!-- Title -->
             <div>
               <label class="block text-sm font-medium text-gray-700 dark:text-gray-300 mb-1.5">Title</label>
               <input
@@ -54,7 +47,6 @@
               />
             </div>
 
-            <!-- Description -->
             <div>
               <label class="block text-sm font-medium text-gray-700 dark:text-gray-300 mb-1.5">Description</label>
               <textarea
@@ -66,57 +58,11 @@
               <p class="text-xs text-gray-500 dark:text-gray-400 mt-1">{{ form.excerpt?.length || 0 }} characters</p>
             </div>
 
-            <!-- Content -->
             <div>
               <label class="block text-sm font-medium text-gray-700 dark:text-gray-300 mb-1.5">Content</label>
-              <div class="border border-gray-200 dark:border-gray-700 rounded-xl overflow-hidden">
-                <!-- Toolbar -->
-                <div class="flex items-center gap-1 p-2 border-b border-gray-200 dark:border-gray-700 bg-gray-50 dark:bg-[#141A21]">
-                  <button type="button" class="p-1.5 rounded hover:bg-gray-200 dark:hover:bg-gray-700 text-gray-600 dark:text-gray-400">
-                    <Bold class="w-4 h-4" />
-                  </button>
-                  <button type="button" class="p-1.5 rounded hover:bg-gray-200 dark:hover:bg-gray-700 text-gray-600 dark:text-gray-400">
-                    <Italic class="w-4 h-4" />
-                  </button>
-                  <button type="button" class="p-1.5 rounded hover:bg-gray-200 dark:hover:bg-gray-700 text-gray-600 dark:text-gray-400">
-                    <Underline class="w-4 h-4" />
-                  </button>
-                  <div class="w-px h-5 bg-gray-300 dark:bg-gray-600 mx-1" />
-                  <button type="button" class="p-1.5 rounded hover:bg-gray-200 dark:hover:bg-gray-700 text-gray-600 dark:text-gray-400">
-                    <AlignLeft class="w-4 h-4" />
-                  </button>
-                  <button type="button" class="p-1.5 rounded hover:bg-gray-200 dark:hover:bg-gray-700 text-gray-600 dark:text-gray-400">
-                    <AlignCenter class="w-4 h-4" />
-                  </button>
-                  <button type="button" class="p-1.5 rounded hover:bg-gray-200 dark:hover:bg-gray-700 text-gray-600 dark:text-gray-400">
-                    <AlignRight class="w-4 h-4" />
-                  </button>
-                  <div class="w-px h-5 bg-gray-300 dark:bg-gray-600 mx-1" />
-                  <button type="button" class="p-1.5 rounded hover:bg-gray-200 dark:hover:bg-gray-700 text-gray-600 dark:text-gray-400">
-                    <List class="w-4 h-4" />
-                  </button>
-                  <button type="button" class="p-1.5 rounded hover:bg-gray-200 dark:hover:bg-gray-700 text-gray-600 dark:text-gray-400">
-                    <ListOrdered class="w-4 h-4" />
-                  </button>
-                  <div class="w-px h-5 bg-gray-300 dark:bg-gray-600 mx-1" />
-                  <button type="button" class="p-1.5 rounded hover:bg-gray-200 dark:hover:bg-gray-700 text-gray-600 dark:text-gray-400">
-                    <Link class="w-4 h-4" />
-                  </button>
-                  <button type="button" class="p-1.5 rounded hover:bg-gray-200 dark:hover:bg-gray-700 text-gray-600 dark:text-gray-400">
-                    <ImageIcon class="w-4 h-4" />
-                  </button>
-                </div>
-                <!-- Editor -->
-                <textarea
-                  v-model="form.content"
-                  rows="8"
-                  placeholder="Write your post content here..."
-                  class="w-full bg-white dark:bg-[#1C252E] px-4 py-3 text-gray-900 dark:text-white focus:outline-none resize-none"
-                />
-              </div>
+              <AppEditor v-model="form.content" />
             </div>
 
-            <!-- Cover -->
             <div>
               <label class="block text-sm font-medium text-gray-700 dark:text-gray-300 mb-1.5">Cover</label>
               <FileUpload
@@ -132,7 +78,6 @@
           </div>
         </div>
 
-        <!-- Properties Section -->
         <div class="bg-white dark:bg-[#1C252E] rounded-2xl border border-gray-200 dark:border-gray-700/50 mb-4 overflow-hidden">
           <button
             type="button"
@@ -150,21 +95,18 @@
           </button>
 
           <div v-show="sections.properties" class="p-4 pt-0 space-y-4">
-            <!-- Category -->
             <div>
-              <label class="block text-sm font-medium text-gray-700 dark:text-gray-300 mb-1.5">Category</label>
-              <select
+              <CustomSelect
                 v-model="form.blog_category_id"
-                class="w-full bg-gray-50 dark:bg-[#141A21] border border-gray-200 dark:border-gray-700 rounded-xl px-4 py-2.5 text-gray-900 dark:text-white focus:outline-none focus:ring-2 focus:ring-primary/20 focus:border-primary transition-all"
-              >
-                <option value="">Select category</option>
-                <option v-for="cat in categories" :key="cat.id" :value="cat.id">
-                  {{ cat.name }}
-                </option>
-              </select>
+                :options="categories"
+                label="Category"
+                placeholder="Select a category"
+                labelKey="name"
+                valueKey="id"
+                :clearable="true"
+              />
             </div>
 
-            <!-- Status -->
             <div>
               <label class="block text-sm font-medium text-gray-700 dark:text-gray-300 mb-1.5">Status</label>
               <select
@@ -179,7 +121,6 @@
               </select>
             </div>
 
-            <!-- Publish Date -->
             <div v-if="form.status === 'scheduled' || form.status === 'published'">
               <label class="block text-sm font-medium text-gray-700 dark:text-gray-300 mb-1.5">
                 {{ form.status === 'scheduled' ? 'Schedule Date' : 'Publish Date' }}
@@ -191,7 +132,6 @@
               />
             </div>
 
-            <!-- SEO -->
             <div>
               <label class="block text-sm font-medium text-gray-700 dark:text-gray-300 mb-1.5">SEO Title</label>
               <input
@@ -214,7 +154,6 @@
           </div>
         </div>
 
-        <!-- Actions -->
         <div class="flex items-center justify-between">
           <div class="flex items-center gap-2">
             <span class="text-sm text-gray-500 dark:text-gray-400">Status:</span>
@@ -222,12 +161,6 @@
           </div>
 
           <div class="flex items-center gap-3">
-            <!-- <button
-              type="button"
-              class="px-4 py-2 text-sm font-medium text-gray-700 dark:text-gray-300 bg-white dark:bg-[#1C252E] border border-gray-300 dark:border-gray-600 rounded-xl hover:bg-gray-50 dark:hover:bg-gray-800 transition-colors"
-            >
-              Preview
-            </button> -->
             <button
               type="submit"
               class="px-4 py-2 text-sm font-medium text-gray-900 bg-white border border-gray-300 dark:border-gray-600 rounded-xl hover:bg-gray-50 dark:hover:bg-gray-400 transition-colors shadow-sm"
@@ -244,20 +177,11 @@
 <script>
 import axios from '@/plugins/axios';
 import MainLayout from '@/layouts/MainLayout.vue';
-import { useLayoutStore } from '@/stores/layout';
+import AppEditor from '@/components/AppEditor.vue';
+import CustomSelect from '@/components/Form/CustomSelect.vue';
 import {
   ChevronRight,
   ChevronDown,
-  Bold,
-  Italic,
-  Underline,
-  AlignLeft,
-  AlignCenter,
-  AlignRight,
-  List,
-  ListOrdered,
-  Link,
-  Image as ImageIcon
 } from 'lucide-vue-next';
 import FileUpload from '@/components/FileUpload.vue';
 import { useToastStore } from '@/stores/toast';
@@ -266,24 +190,15 @@ export default {
   name: 'BlogEdit',
   components: {
     MainLayout,
+    AppEditor,
+    CustomSelect,
     ChevronRight,
     ChevronDown,
-    Bold,
-    Italic,
-    Underline,
-    AlignLeft,
-    AlignCenter,
-    AlignRight,
-    List,
-    ListOrdered,
-    Link,
-    ImageIcon,
     FileUpload
   },
   setup() {
-    const layout = useLayoutStore();
     const toast = useToastStore();
-    return { layout, toast };
+    return { toast };
   },
   data() {
     return {
@@ -322,7 +237,6 @@ export default {
       this.sections[section] = !this.sections[section];
     },
     async handleFileUpload(file) {
-      // Show preview immediately
       this.form.featured_image_url = URL.createObjectURL(file);
       this.selectedImageFile = file;
       this.uploadingImage = true;
@@ -338,16 +252,13 @@ export default {
         });
 
         if (response.data.success) {
-          // Replace blob URL with real URL from server
           this.form.featured_image_url = response.data.url;
-          console.log('Image uploaded:', response.data.url);
         } else {
           this.toast.error('Failed to upload image');
         }
       } catch (e) {
         console.error('Image upload failed', e);
         this.toast.error(e.response?.data?.message || 'Failed to upload image');
-        // Clear preview on error
         this.form.featured_image_url = '';
       } finally {
         this.uploadingImage = false;
@@ -370,7 +281,6 @@ export default {
       try {
         const response = await axios.get(`/auth/blog-posts/${postId}`);
         const post = response.data.data;
-        // Fill form with existing data
         this.form = {
           title: post.title || '',
           slug: post.slug || '',
@@ -401,7 +311,6 @@ export default {
         if (payload.published_at) {
           payload.published_at = new Date(payload.published_at).toISOString().slice(0, 19).replace('T', ' ');
         }
-        // Generate slug from title if not provided
         if (!payload.slug && payload.title) {
           payload.slug = payload.title.toLowerCase().replace(/[^a-z0-9]+/g, '-').replace(/(^-|-$)/g, '');
         }
@@ -422,18 +331,3 @@ export default {
   },
 };
 </script>
-
-<style scoped>
-.bg-primary {
-  background-color: var(--palette-primary-main, #00AB55);
-}
-.text-primary {
-  color: var(--palette-primary-main, #00AB55);
-}
-.focus\:ring-primary\/20:focus {
-  --tw-ring-color: rgb(var(--palette-primary-main, 0 171 85) / 0.2);
-}
-.focus\:border-primary:focus {
-  border-color: var(--palette-primary-main, #00AB55);
-}
-</style>
