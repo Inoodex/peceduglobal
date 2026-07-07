@@ -1,11 +1,12 @@
 <script setup>
-import { ref } from 'vue';
+import { ref, onBeforeUnmount } from 'vue';
 import { useAuthStore } from '../../stores/auth';
 import { useRouter } from 'vue-router';
 import { Settings, Info, Eye, EyeOff, Loader2 } from 'lucide-vue-next';
 
 const authStore = useAuthStore();
 const router = useRouter();
+let errorTimer = null;
 
 const form = ref({
     email: '',
@@ -19,9 +20,12 @@ const handleSubmit = async () => {
         await authStore.login(form.value);
         router.push('/dashboard');
     } catch (error) {
-        // Error handled in store
+        clearTimeout(errorTimer);
+        errorTimer = setTimeout(() => { authStore.error = null; }, 30000);
     }
 };
+
+onBeforeUnmount(() => clearTimeout(errorTimer));
 </script>
 
 <template>

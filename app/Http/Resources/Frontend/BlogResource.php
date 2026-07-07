@@ -13,7 +13,7 @@ class BlogResource extends JsonResource
             'title' => $this->title,
             'slug' => $this->slug,
             'excerpt' => $this->excerpt,
-            // 'content' => $this->content,
+            'content' => $this->content,
             'featured_image' => $this->featured_image_url ? (str_starts_with($this->featured_image_url, '/storage/') ? $this->featured_image_url : '/storage/' . $this->featured_image_url) : null,
             'featured_image_alt' => $this->featured_image_alt,
             'category' => $this->category ? [

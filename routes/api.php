@@ -43,7 +43,7 @@ Route::group(['prefix' => 'auth'], function () {
     Route::post('forgot-password', [AuthController::class, 'forgotPassword']);
     Route::post('reset-password', [AuthController::class, 'resetPassword']);
 
-    Route::middleware('auth:api')->group(function () {
+    Route::middleware(['auth:api', 'active'])->group(function () {
         Route::post('logout', [AuthController::class, 'logout']);
         Route::post('refresh', [AuthController::class, 'refresh']);
         Route::get('me', [AuthController::class, 'me']);
@@ -76,6 +76,7 @@ Route::group(['prefix' => 'auth'], function () {
             Route::post('users', [UserController::class, 'store']);
             Route::put('users/{user}/role', [UserController::class, 'updateRole']);
             Route::put('users/{user}/permissions', [UserController::class, 'updatePermissions']);
+            Route::put('users/{user}/toggle-active', [UserController::class, 'toggleActive']);
 
             // Permission Management
             Route::apiResource('permissions', PermissionController::class)->only(['index', 'store', 'destroy']);

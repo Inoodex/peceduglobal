@@ -215,12 +215,23 @@ class AuthController extends Controller
             ], 401);
         }
 
-        $guard->user()->update(['last_seen_at' => now()]);
+        $user = $guard->user();
+
+        if (!$user->is_active) {
+            $guard->logout();
+            return response()->json([
+                'success' => false,
+                'message' => 'Your account has been deactivated. Contact an administrator.',
+                'data' => null
+            ], 403);
+        }
+
+        $user->update(['last_seen_at' => now()]);
 
         return response()->json([
             'success' => true,
             'message' => 'Login successful',
-            'data' => $guard->user()->load('permissions'),
+            'data' => $user->load('permissions'),
             'token' => $token
         ]);
     }
@@ -244,6 +255,15 @@ class AuthController extends Controller
         }
 
         $user = $guard->user();
+
+        if (!$user->is_active) {
+            $guard->logout();
+            return response()->json([
+                'success' => false,
+                'message' => 'Your account has been deactivated. Contact an administrator.',
+                'data' => null
+            ], 403);
+        }
 
         // Check if the user is actually a student
         if ($user->role !== 'student') {

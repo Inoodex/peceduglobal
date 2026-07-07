@@ -98,7 +98,24 @@
               </div>
             </div>
 
-            <div class="mt-6 pt-4 border-t border-gray-50 dark:border-gray-800 flex justify-end">
+            <div class="mt-6 pt-4 border-t border-gray-50 dark:border-gray-800 flex items-center justify-between">
+              <div class="flex items-center gap-2">
+                <button
+                  @click="toggleActive(user)"
+                  :disabled="user.id === authStore.user?.id"
+                  class="relative inline-flex h-5 w-9 items-center rounded-full transition-colors disabled:opacity-50 disabled:cursor-not-allowed"
+                  :class="user.is_active ? 'bg-emerald-500' : 'bg-gray-300 dark:bg-gray-600'"
+                  :title="user.id === authStore.user?.id ? 'Cannot deactivate yourself' : (user.is_active ? 'Active' : 'Inactive')"
+                >
+                  <span
+                    class="inline-block h-3.5 w-3.5 transform rounded-full bg-white shadow-sm transition-transform"
+                    :class="user.is_active ? 'translate-x-[18px]' : 'translate-x-[3px]'"
+                  />
+                </button>
+                <span class="text-xs font-medium" :class="user.is_active ? 'text-emerald-600 dark:text-emerald-400' : 'text-gray-400'">
+                  {{ user.is_active ? 'Active' : 'Inactive' }}
+                </span>
+              </div>
               <button
                 @click="editUser(user)"
                 class="flex items-center gap-2 text-sm font-semibold text-primary hover:bg-primary/10 px-3 py-1.5 rounded-lg transition-colors"
@@ -395,6 +412,20 @@ const filteredUsers = computed(() => {
     u.email.toLowerCase().includes(query)
   );
 });
+
+const toggleActive = async (user) => {
+  if (user.id === authStore.user?.id) return;
+  const wasActive = user.is_active;
+  user.is_active = !user.is_active;
+  try {
+    await axios.put(`/auth/admin/users/${user.id}/toggle-active`);
+    toast.success(user.is_active ? 'User activated' : 'User deactivated');
+    await fetchData();
+  } catch (error) {
+    user.is_active = wasActive;
+    toast.error(error.response?.data?.message || 'Failed to toggle status');
+  }
+};
 
 const createUser = async () => {
   saving.value = true;

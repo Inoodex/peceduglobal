@@ -103,6 +103,20 @@ class UserController extends Controller
     }
 
     /**
+     * Toggle user active status.
+     */
+    public function toggleActive(User $user)
+    {
+        $user->update(['is_active' => !$user->is_active]);
+
+        return response()->json([
+            'success' => true,
+            'message' => $user->is_active ? 'User activated successfully' : 'User deactivated successfully',
+            'data' => $user
+        ]);
+    }
+
+    /**
      * List all users.
      */
     public function index()
