@@ -65,7 +65,8 @@ import {
   Mail,
   Settings,
   User,
-  MessageSquare
+  MessageSquare,
+  Activity
 } from 'lucide-vue-next';
 
 defineProps({
@@ -222,6 +223,11 @@ const navigationData = [
         name: 'User Management',
         icon: Users,
         path: '/dashboard/user-management'
+      },
+      {
+        name: 'Activity Log',
+        icon: Activity,
+        path: '/dashboard/activity-log'
       },
       {
         name: 'Settings',

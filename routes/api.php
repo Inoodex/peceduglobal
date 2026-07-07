@@ -25,6 +25,7 @@ use App\Http\Controllers\Api\Student\ApplicationController;
 use App\Http\Controllers\Api\Student\ProfileController;
 use App\Http\Controllers\Api\Admin\UserController;
 use App\Http\Controllers\Api\Admin\PermissionController;
+use App\Http\Controllers\Api\Admin\ActivityLogController;
 use App\Http\Controllers\Api\CourseIntakeController;
 use App\Http\Controllers\Api\PingController;
 
@@ -77,6 +78,7 @@ Route::group(['prefix' => 'auth'], function () {
             Route::put('users/{user}/role', [UserController::class, 'updateRole']);
             Route::put('users/{user}/permissions', [UserController::class, 'updatePermissions']);
             Route::put('users/{user}/toggle-active', [UserController::class, 'toggleActive']);
+            Route::get('activity-logs', [ActivityLogController::class, 'index']);
 
             // Permission Management
             Route::apiResource('permissions', PermissionController::class)->only(['index', 'store', 'destroy']);

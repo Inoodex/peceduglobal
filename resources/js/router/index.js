@@ -306,6 +306,12 @@ const routes = [
         meta: { auth: true, role: 'admin' }
     },
     {
+        path: '/dashboard/activity-log',
+        name: 'activity-log',
+        component: () => import('../views/Dashboard/ActivityLog/index.vue'),
+        meta: { auth: true, role: 'admin' }
+    },
+    {
         path: '/dashboard/settings',
         name: 'settings',
         component: () => import('../views/Dashboard/Setting/index.vue'),

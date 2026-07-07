@@ -45,6 +45,16 @@ axiosInstance.interceptors.response.use(
     (error) => {
         const originalRequest = error.config;
 
+        if (error.response && error.response.status === 403 && error.response?.data?.message?.includes('deactivated')) {
+            if (!originalRequest?.url?.includes('/auth/login') && !originalRequest?.url?.includes('/auth/student-login')) {
+                localStorage.removeItem('token');
+                Cookies.remove('auth_token');
+                Cookies.remove('token');
+                window.location.href = '/login';
+            }
+            return Promise.reject(error);
+        }
+
         if (error.response && error.response.status === 401 && originalRequest) {
             // Avoid infinite loops if login or refresh itself fails
             if (originalRequest.url.includes('/auth/login') || originalRequest.url.includes('/auth/refresh')) {

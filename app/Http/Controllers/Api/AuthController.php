@@ -4,6 +4,7 @@ namespace App\Http\Controllers\Api;
 
 use App\Http\Controllers\Controller;
 use App\Mail\ResetPasswordOtpMail;
+use App\Models\ActivityLog;
 use App\Models\User;
 use Illuminate\Http\Request;
 use Illuminate\Support\Facades\DB;
@@ -208,6 +209,16 @@ class AuthController extends Controller
         /** @var \PHPOpenSourceSaver\JWTAuth\JWTGuard $guard */
         $guard = auth('api');
         if (!$token = $guard->attempt($credentials)) {
+            ActivityLog::create([
+                'user_id' => null,
+                'event' => 'failed_login',
+                'description' => "Failed login attempt for {$request->email}",
+                'ip_address' => $request->ip(),
+                'user_agent' => $request->userAgent(),
+                'loggable_type' => User::class,
+                'loggable_id' => 0,
+            ]);
+
             return response()->json([
                 'success' => false,
                 'message' => 'Unauthorized',
@@ -227,6 +238,16 @@ class AuthController extends Controller
         }
 
         $user->update(['last_seen_at' => now()]);
+
+        ActivityLog::create([
+            'user_id' => $user->id,
+            'event' => 'login',
+            'description' => "Login successful for {$user->full_name}",
+            'ip_address' => $request->ip(),
+            'user_agent' => $request->userAgent(),
+            'loggable_type' => User::class,
+            'loggable_id' => $user->id,
+        ]);
 
         return response()->json([
             'success' => true,
@@ -276,6 +297,16 @@ class AuthController extends Controller
 
         $user->update(['last_seen_at' => now()]);
 
+        ActivityLog::create([
+            'user_id' => $user->id,
+            'event' => 'login',
+            'description' => "Student login successful for {$user->full_name}",
+            'ip_address' => $request->ip(),
+            'user_agent' => $request->userAgent(),
+            'loggable_type' => User::class,
+            'loggable_id' => $user->id,
+        ]);
+
         // Dynamic redirect URL based on environment
         $redirectUrl = config('app.env') === 'production' 
             ? 'https://apps.peceduglobal.com/dashboard' 
@@ -315,7 +346,21 @@ class AuthController extends Controller
     {
         /** @var \PHPOpenSourceSaver\JWTAuth\JWTGuard $guard */
         $guard = auth('api');
-        $guard->user()?->update(['last_seen_at' => null]);
+        $user = $guard->user();
+        $user?->update(['last_seen_at' => null]);
+
+        if ($user) {
+            ActivityLog::create([
+                'user_id' => $user->id,
+                'event' => 'logout',
+                'description' => "Logout successful for {$user->full_name}",
+                'ip_address' => request()->ip(),
+                'user_agent' => request()->userAgent(),
+                'loggable_type' => User::class,
+                'loggable_id' => $user->id,
+            ]);
+        }
+
         $guard->logout();
 
         return response()->json([
