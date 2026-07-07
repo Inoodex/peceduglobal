@@ -26,6 +26,7 @@ use App\Http\Controllers\Api\Student\ProfileController;
 use App\Http\Controllers\Api\Admin\UserController;
 use App\Http\Controllers\Api\Admin\PermissionController;
 use App\Http\Controllers\Api\CourseIntakeController;
+use App\Http\Controllers\Api\PingController;
 
 use App\Http\Controllers\Api\Admin\InquiryController as AdminInquiryController;
 use App\Http\Controllers\Api\Admin\AppointmentController as AdminAppointmentController;
@@ -46,6 +47,7 @@ Route::group(['prefix' => 'auth'], function () {
         Route::post('logout', [AuthController::class, 'logout']);
         Route::post('refresh', [AuthController::class, 'refresh']);
         Route::get('me', [AuthController::class, 'me']);
+        Route::post('ping', [PingController::class, 'ping']);
 
         // Profile Routes (Any authenticated user - supports POST and PUT)
         Route::get('profile', [ProfileController::class, 'show']);

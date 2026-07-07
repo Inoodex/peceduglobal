@@ -215,6 +215,8 @@ class AuthController extends Controller
             ], 401);
         }
 
+        $guard->user()->update(['last_seen_at' => now()]);
+
         return response()->json([
             'success' => true,
             'message' => 'Login successful',
@@ -251,6 +253,8 @@ class AuthController extends Controller
                 'data' => null
             ], 403);
         }
+
+        $user->update(['last_seen_at' => now()]);
 
         // Dynamic redirect URL based on environment
         $redirectUrl = config('app.env') === 'production' 
@@ -291,6 +295,7 @@ class AuthController extends Controller
     {
         /** @var \PHPOpenSourceSaver\JWTAuth\JWTGuard $guard */
         $guard = auth('api');
+        $guard->user()?->update(['last_seen_at' => null]);
         $guard->logout();
 
         return response()->json([

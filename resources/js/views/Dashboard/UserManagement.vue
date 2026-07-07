@@ -69,8 +69,15 @@
 
             <!-- Avatar & Info -->
             <div class="flex items-start gap-4 mb-4 pr-20">
-              <div class="w-12 h-12 rounded-full bg-primary/10 flex items-center justify-center text-primary font-bold text-xl flex-shrink-0 mt-1">
-                {{ user.full_name.charAt(0) }}
+              <div class="relative inline-block flex-shrink-0 mt-1">
+                <div class="w-12 h-12 rounded-full bg-primary/10 flex items-center justify-center text-primary font-bold text-xl">
+                  {{ user.full_name.charAt(0) }}
+                </div>
+                <span
+                  class="absolute -bottom-0.5 -right-0.5 w-4 h-4 rounded-full border-[2.5px] border-white dark:border-[#1C252E] shadow-sm"
+                  :class="onlineStatuses[user.id] ? 'bg-emerald-500 online-dot' : 'bg-gray-300'"
+                  :title="onlineStatuses[user.id] ? 'Online' : 'Offline'"
+                ></span>
               </div>
               <div class="flex-1 min-w-0">
                 <h3 class="font-bold text-gray-900 dark:text-white text-base leading-tight break-words mb-1">{{ user.full_name }}</h3>
@@ -326,6 +333,7 @@ import { ref, computed, onMounted } from 'vue';
 import { useToastStore } from '@/stores/toast';
 import axios from '@/plugins/axios';
 import MainLayout from '@/layouts/MainLayout.vue';
+import { useAuthStore } from '@/stores/auth';
 import {
   Search, Users, ShieldCheck, X, Loader2, Plus, Lock, Trash2, Eye, EyeOff
 } from 'lucide-vue-next';
@@ -344,7 +352,24 @@ const editingUser = ref(null);
 const newUser = ref({ first_name: '', last_name: '', email: '', password: '', role: 'consultant' });
 const newPerm = ref({ name: '', description: '' });
 const showPassword = ref(false);
+const statusTick = ref(0);
+const authStore = useAuthStore();
 const toast = useToastStore();
+
+setInterval(() => { statusTick.value++; }, 10000);
+
+const onlineStatuses = computed(() => {
+  statusTick.value;
+  const map = {};
+  const currentUserId = authStore.user?.id;
+  for (const u of users.value) {
+    if (u.id === currentUserId) { map[u.id] = true; continue; }
+    if (!u.last_seen_at) { map[u.id] = false; continue; }
+    const seenAt = new Date(u.last_seen_at).getTime();
+    map[u.id] = !isNaN(seenAt) && (Date.now() - seenAt) / 1000 < 120;
+  }
+  return map;
+});
 
 const fetchData = async () => {
   loading.value = true;
@@ -459,3 +484,14 @@ const deletePermission = async (id) => {
 
 onMounted(fetchData);
 </script>
+
+<style scoped>
+.online-dot {
+  box-shadow: 0 0 0 2px rgba(16, 185, 129, 0.15);
+  animation: pulse-dot 2s ease-in-out infinite;
+}
+@keyframes pulse-dot {
+  0%, 100% { box-shadow: 0 0 0 2px rgba(16, 185, 129, 0.15); }
+  50% { box-shadow: 0 0 0 5px rgba(16, 185, 129, 0.08); }
+}
+</style>

@@ -37,11 +37,12 @@
 </template>
 
 <script setup>
-import { onMounted, onBeforeUnmount } from 'vue';
+import { onMounted, onBeforeUnmount, ref } from 'vue';
 import { useLayoutStore } from '@/stores/layout';
 import { useChatStore } from '@/stores/chat';
 import { useNotificationStore } from '@/stores/notification';
 import { useAuthStore } from '@/stores/auth';
+import axios from '@/plugins/axios';
 import DashboardSidebar from '@/components/dashboard/DashboardSidebar.vue';
 import MobileSidebar from '@/components/dashboard/MobileSidebar.vue';
 import DashboardHeader from '@/components/dashboard/DashboardHeader.vue';
@@ -55,12 +56,22 @@ const chat = useChatStore();
 const notification = useNotificationStore();
 const auth = useAuthStore();
 
+const pingInterval = ref(null);
+
 onMounted(async () => {
   layout.applyAllSettings();
 
   // Ensure the current user profile is loaded before subscribing to channels
   if (!auth.user) {
     await auth.fetchUser().catch(() => {});
+  }
+
+  // Heartbeat ping to track online status (every 30s)
+  if (auth.user) {
+    axios.post('/auth/ping').catch(() => {});
+    pingInterval.value = setInterval(() => {
+      axios.post('/auth/ping').catch(() => {});
+    }, 30000);
   }
 
   // Start the global chat listener
@@ -98,7 +109,10 @@ onMounted(async () => {
 });
 
 onBeforeUnmount(() => {
-  // Leave the notification channel when dashboard unmounts (logout).
+  if (pingInterval.value) {
+    clearInterval(pingInterval.value);
+  }
+
   if (auth.user?.id) {
     notification.unsubscribeFromUserChannel(auth.user.id, chat.echo);
   }
