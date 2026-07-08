@@ -79,6 +79,7 @@ Route::group(['prefix' => 'auth'], function () {
             Route::put('users/{user}/permissions', [UserController::class, 'updatePermissions']);
             Route::put('users/{user}/toggle-active', [UserController::class, 'toggleActive']);
             Route::get('activity-logs', [ActivityLogController::class, 'index']);
+            Route::get('user-sessions', [AuthController::class, 'getAllUserSessions']);
             Route::get('user-sessions/{id}', [AuthController::class, 'getUserSessions']);
 
             // Permission Management

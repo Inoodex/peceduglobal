@@ -1,25 +1,24 @@
 <template>
   <MainLayout>
-    <div class="p-6">
-      <div class="flex justify-between items-center mb-8">
+    <div class="space-y-8">
+      <div class="flex flex-col sm:flex-row sm:items-center sm:justify-between gap-4">
         <div>
           <h1 class="text-2xl font-bold text-gray-900 dark:text-white">Access Control</h1>
-          <p class="text-gray-500 dark:text-gray-400 text-sm">Manage users, roles and custom permissions</p>
+          <p class="text-gray-500 dark:text-gray-400 text-sm mt-1">Manage users, roles and custom permissions</p>
         </div>
 
-        <!-- Tab Switcher -->
-        <div class="bg-gray-100 dark:bg-gray-800 p-1 rounded-xl flex gap-1">
+        <div class="bg-gray-100 dark:bg-gray-800 p-1 rounded-xl flex gap-1 self-start">
           <button
             @click="activeTab = 'users'"
-            class="px-4 py-1.5 rounded-lg text-sm font-bold transition-all"
-            :class="activeTab === 'users' ? 'bg-white dark:bg-gray-700 text-primary shadow-sm' : 'text-gray-500'"
+            class="px-4 py-2 rounded-lg text-sm font-bold transition-all"
+            :class="activeTab === 'users' ? 'bg-white dark:bg-gray-700 text-primary shadow-sm' : 'text-gray-500 hover:text-gray-700 dark:hover:text-gray-300'"
           >
             Users
           </button>
           <button
             @click="activeTab = 'permissions'"
-            class="px-4 py-1.5 rounded-lg text-sm font-bold transition-all"
-            :class="activeTab === 'permissions' ? 'bg-white dark:bg-gray-700 text-primary shadow-sm' : 'text-gray-500'"
+            class="px-4 py-2 rounded-lg text-sm font-bold transition-all"
+            :class="activeTab === 'permissions' ? 'bg-white dark:bg-gray-700 text-primary shadow-sm' : 'text-gray-500 hover:text-gray-700 dark:hover:text-gray-300'"
           >
             Permissions
           </button>
@@ -28,21 +27,21 @@
 
       <!-- USERS TAB -->
       <div v-if="activeTab === 'users'" class="space-y-6">
-        <div class="flex justify-between items-center">
-          <div class="relative">
-            <Search class="absolute left-3 top-1/2 -translate-y-1/2 text-gray-400" :size="18" />
+        <div class="flex flex-col sm:flex-row sm:items-center sm:justify-between gap-4">
+          <div class="relative flex-1 max-w-md">
+            <Search class="absolute left-3 top-1/2 -translate-y-1/2 text-gray-400" :size="20" />
             <input
               v-model="searchQuery"
               type="text"
               placeholder="Search users..."
-              class="pl-10 pr-4 py-2 bg-white dark:bg-gray-800 border border-gray-200 dark:border-gray-700 rounded-lg focus:ring-2 focus:ring-primary outline-none transition-all w-64 text-sm"
+              class="w-full h-12 bg-gray-50 dark:bg-[#141A21] border border-gray-200 dark:border-gray-700 rounded-xl pl-10 pr-4 text-gray-900 dark:text-white placeholder-gray-400 focus:outline-none focus:ring-2 focus:ring-primary/20 focus:border-primary transition-all"
             />
           </div>
           <button
             @click="isCreateUserModalOpen = true"
-            class="bg-primary text-white px-4 py-2 rounded-xl text-sm font-bold flex items-center gap-2 hover:bg-primary-dark transition-all"
+            class="bg-primary text-white px-5 py-2.5 rounded-xl text-sm font-bold flex items-center gap-2 hover:bg-primary/90 transition-all shadow-lg shadow-primary/20"
           >
-            <Plus :size="18" />
+            <Plus :size="20" />
             Create User
           </button>
         </div>
@@ -55,7 +54,7 @@
           <div
             v-for="user in filteredUsers"
             :key="user.id"
-            class="bg-white dark:bg-[#1C252E] rounded-2xl border border-gray-100 dark:border-gray-800 p-5 shadow-sm hover:shadow-md transition-all group relative flex flex-col"
+            class="rounded-3xl transition-all shadow-card dark:shadow-card-dark bg-paper-light dark:bg-paper-dark border border-transparent hover:border-primary/20 p-6 hover:shadow-lg group relative flex flex-col"
           >
             <!-- Floating Role Badge -->
             <div class="absolute top-4 right-4">
@@ -146,20 +145,20 @@
 
       <!-- PERMISSIONS TAB -->
       <div v-if="activeTab === 'permissions'" class="space-y-6">
-        <div class="flex justify-between items-center">
-          <h2 class="text-lg font-bold">Dynamic Permissions</h2>
+        <div class="flex flex-col sm:flex-row sm:items-center sm:justify-between gap-4">
+          <h2 class="text-lg font-bold text-gray-900 dark:text-white">Dynamic Permissions</h2>
           <button
             @click="isPermModalOpen = true"
-            class="bg-primary text-white px-4 py-2 rounded-xl text-sm font-bold flex items-center gap-2 hover:bg-primary-dark transition-all"
+            class="bg-primary text-white px-5 py-2.5 rounded-xl text-sm font-bold flex items-center gap-2 hover:bg-primary/90 transition-all shadow-lg shadow-primary/20"
           >
-            <Plus :size="18" />
+            <Plus :size="20" />
             Create Permission
           </button>
         </div>
 
-        <div class="bg-white dark:bg-[#1C252E] rounded-2xl border border-gray-100 dark:border-gray-800 overflow-hidden">
+        <div class="bg-paper-light dark:bg-paper-dark rounded-3xl border border-gray-100 dark:border-gray-800 shadow-card dark:shadow-card-dark overflow-hidden transition-all duration-300">
           <table class="w-full text-left">
-            <thead class="bg-gray-50 dark:bg-gray-800/50">
+            <thead class="bg-gray-50 dark:bg-[#141A21]/50 border-b border-gray-100 dark:border-gray-800">
               <tr>
                 <th class="px-6 py-4 text-xs font-bold uppercase tracking-wider text-gray-500">Name</th>
                 <th class="px-6 py-4 text-xs font-bold uppercase tracking-wider text-gray-500">Slug</th>
@@ -168,21 +167,21 @@
               </tr>
             </thead>
             <tbody class="divide-y divide-gray-100 dark:divide-gray-800">
-              <tr v-for="perm in availablePermissions" :key="perm.id" class="hover:bg-gray-50 dark:hover:bg-gray-800/20 transition-colors">
+              <tr v-for="perm in availablePermissions" :key="perm.id" class="hover:bg-gray-50 dark:hover:bg-[#141A21]/80 transition-colors group">
                 <td class="px-6 py-4">
                   <div class="flex items-center gap-3">
                     <div class="w-8 h-8 rounded-lg bg-primary/10 text-primary flex items-center justify-center">
                       <Lock :size="16" />
                     </div>
-                    <span class="font-bold text-sm">{{ perm.name }}</span>
+                    <span class="font-bold text-sm text-gray-900 dark:text-white">{{ perm.name }}</span>
                   </div>
                 </td>
                 <td class="px-6 py-4">
-                  <code class="text-[11px] bg-gray-100 dark:bg-gray-800 px-2 py-1 rounded text-primary">{{ perm.slug }}</code>
+                  <code class="text-[11px] bg-gray-100 dark:bg-gray-800 px-2 py-1 rounded text-primary font-medium">{{ perm.slug }}</code>
                 </td>
-                <td class="px-6 py-4 text-sm text-gray-500">{{ perm.description || 'No description' }}</td>
+                <td class="px-6 py-4 text-sm text-gray-500 dark:text-gray-400">{{ perm.description || 'No description' }}</td>
                 <td class="px-6 py-4 text-right">
-                  <button @click="deletePermission(perm.id)" class="text-red-500 hover:bg-red-50 p-2 rounded-lg transition-colors">
+                  <button @click="deletePermission(perm.id)" class="text-red-500 hover:bg-red-50 dark:hover:bg-red-900/20 p-2 rounded-lg transition-colors">
                     <Trash2 :size="18" />
                   </button>
                 </td>
@@ -361,35 +360,38 @@
 
     <!-- Session History Modal -->
     <div v-if="isHistoryModalOpen" class="fixed inset-0 z-[110] flex items-center justify-center p-4 bg-black/50 backdrop-blur-sm">
-      <div class="bg-white dark:bg-[#1C252E] rounded-2xl w-full max-w-2xl shadow-2xl overflow-hidden animate-in fade-in zoom-in duration-200">
+      <div class="bg-paper-light dark:bg-paper-dark rounded-3xl shadow-card dark:shadow-card-dark border border-gray-100 dark:border-gray-800 w-full max-w-2xl overflow-hidden">
         <div class="p-6 border-b border-gray-100 dark:border-gray-800 flex justify-between items-center">
           <div>
             <h2 class="text-xl font-bold text-gray-900 dark:text-white">Login History</h2>
-            <p class="text-sm text-gray-500">{{ selectedUser?.full_name }}</p>
+            <p class="text-sm text-gray-500 dark:text-gray-400 mt-1">{{ selectedUser?.full_name }}</p>
           </div>
-          <button @click="isHistoryModalOpen = false" class="text-gray-400 hover:text-gray-600 dark:hover:text-gray-200">
-            <X :size="24" />
-          </button>
+          <div class="flex items-center gap-3">
+            <button @click="loadAllSessionHistory" class="text-sm bg-primary/10 text-primary px-4 py-2 rounded-xl font-semibold hover:bg-primary/20 transition-all">View all in Activity Log</button>
+            <button @click="isHistoryModalOpen = false" class="p-2 rounded-lg hover:bg-gray-100 dark:hover:bg-gray-800 text-gray-400 hover:text-gray-600 dark:hover:text-gray-200 transition-all">
+              <X :size="20" />
+            </button>
+          </div>
         </div>
-        <div class="p-6 overflow-x-auto">
+        <div class="overflow-x-auto">
           <table class="w-full text-left">
-            <thead class="bg-gray-50 dark:bg-gray-800/50">
+            <thead class="bg-gray-50 dark:bg-[#141A21]/50 border-b border-gray-100 dark:border-gray-800">
               <tr class="text-xs font-bold uppercase tracking-wider text-gray-500">
-                <th class="px-4 py-3">Login At</th>
-                <th class="px-4 py-3">Logout At</th>
-                <th class="px-4 py-3">Duration</th>
-                <th class="px-4 py-3">IP Address</th>
+                <th class="px-6 py-4">Login At</th>
+                <th class="px-6 py-4">Logout At</th>
+                <th class="px-6 py-4">Duration</th>
+                <th class="px-6 py-4">IP Address</th>
               </tr>
             </thead>
             <tbody class="divide-y divide-gray-100 dark:divide-gray-800">
-              <tr v-for="session in userSessions" :key="session.id" class="text-sm text-gray-900 dark:text-white">
-                <td class="px-4 py-3">{{ formatDate(session.login_at) }}</td>
-                <td class="px-4 py-3">{{ session.logout_at ? formatDate(session.logout_at) : 'Still Active' }}</td>
-                <td class="px-4 py-3 font-medium text-primary">{{ session.duration_human || 'Calculating...' }}</td>
-                <td class="px-4 py-3 text-xs text-gray-500">{{ session.ip_address || '—' }}</td>
+              <tr v-for="session in userSessions" :key="session.id" class="text-sm text-gray-900 dark:text-white hover:bg-gray-50 dark:hover:bg-[#141A21]/80 transition-colors group">
+                <td class="px-6 py-4">{{ formatDate(session.login_at) }}</td>
+                <td class="px-6 py-4">{{ session.logout_at ? formatDate(session.logout_at) : 'Still Active' }}</td>
+                <td class="px-6 py-4 font-medium text-primary">{{ formatSessionDuration(session) }}</td>
+                <td class="px-6 py-4 text-xs text-gray-500 dark:text-gray-400">{{ session.ip_address || '—' }}</td>
               </tr>
               <tr v-if="userSessions.length === 0">
-                <td colspan="4" class="px-4 py-10 text-center text-gray-500 italic">No session history found.</td>
+                <td colspan="4" class="px-6 py-10 text-center text-gray-500 dark:text-gray-400 italic">No session history found.</td>
               </tr>
             </tbody>
           </table>
@@ -406,6 +408,7 @@ import MainLayout from '@/layouts/MainLayout.vue';
 import { ChevronRight, Search, Plus, Loader2, ShieldCheck, Lock, Trash2, X, Eye, EyeOff, History } from 'lucide-vue-next';
 import { useAuthStore } from '@/stores/auth';
 import { useToastStore } from '@/stores/toast';
+import { useRouter } from 'vue-router';
 
 const activeTab = ref('users');
 const users = ref([]);
@@ -420,10 +423,13 @@ const isCreateUserModalOpen = ref(false);
 const isHistoryModalOpen = ref(false);
 const selectedUser = ref(null);
 const userSessions = ref([]);
+const userSessionsLimit = ref(5);
+const hasMoreSessions = ref(false);
 const editingUser = ref({});
 
 const authStore = useAuthStore();
 const toast = useToastStore();
+const router = useRouter();
 const statusTick = ref(0);
 
 setInterval(() => { statusTick.value++; }, 10000);
@@ -526,13 +532,29 @@ async function openSessionHistory(user) {
   selectedUser.value = user;
   isHistoryModalOpen.value = true;
   userSessions.value = [];
+  hasMoreSessions.value = false;
   
   try {
-    const res = await axios.get(`/auth/admin/user-sessions/${user.id}`);
+    const res = await axios.get(`/auth/admin/user-sessions/${user.id}`, {
+      params: { limit: userSessionsLimit.value }
+    });
     userSessions.value = res.data.data;
+    hasMoreSessions.value = Boolean(res.data.has_more);
   } catch (e) {
     console.error('Failed to load session history', e);
   }
+}
+
+async function loadAllSessionHistory() {
+  if (!selectedUser.value) return;
+  isHistoryModalOpen.value = false;
+  router.push({
+    path: '/dashboard/activity-log',
+    query: {
+      tab: 'history',
+      user_id: selectedUser.value.id,
+    },
+  });
 }
 
 function formatDate(date) {
@@ -541,6 +563,32 @@ function formatDate(date) {
     year: 'numeric', month: 'short', day: 'numeric',
     hour: '2-digit', minute: '2-digit',
   });
+}
+
+function formatSessionDuration(session) {
+  if (session.duration_human) {
+    return session.duration_human;
+  }
+
+  const start = session.login_at ? new Date(session.login_at) : null;
+  const end = session.logout_at ? new Date(session.logout_at) : new Date();
+  if (!start || isNaN(start.getTime())) return '—';
+
+  let diff = Math.floor((end.getTime() - start.getTime()) / 1000);
+  if (diff < 0) diff = 0;
+
+  if (diff < 60) {
+    return `${diff}s`;
+  }
+
+  const minutes = Math.floor(diff / 60);
+  if (minutes < 60) {
+    return `${minutes}m`;
+  }
+
+  const hours = Math.floor(minutes / 60);
+  const remainingMinutes = minutes % 60;
+  return `${hours}h:${remainingMinutes}m`;
 }
 
 const editUser = (user) => {

@@ -239,6 +239,15 @@ class AuthController extends Controller
 
         $user->update(['last_seen_at' => now()]);
 
+        // Close any prior open sessions originating from the same device
+        // (same IP + user agent) to avoid showing duplicate "Still Active"
+        // entries when a user re-authenticates from the same browser.
+        \App\Models\UserSession::where('user_id', $user->id)
+            ->whereNull('logout_at')
+            ->where('ip_address', $request->ip())
+            ->where('user_agent', $request->userAgent())
+            ->update(['logout_at' => now()]);
+
         \App\Models\UserSession::create([
             'user_id' => $user->id,
             'login_at' => now(),
@@ -304,6 +313,14 @@ class AuthController extends Controller
 
         $user->update(['last_seen_at' => now()]);
 
+        // Close any prior open sessions from the same device before creating
+        // a new one for students as well.
+        \App\Models\UserSession::where('user_id', $user->id)
+            ->whereNull('logout_at')
+            ->where('ip_address', $request->ip())
+            ->where('user_agent', $request->userAgent())
+            ->update(['logout_at' => now()]);
+
         \App\Models\UserSession::create([
             'user_id' => $user->id,
             'login_at' => now(),
@@ -364,11 +381,12 @@ class AuthController extends Controller
         $user?->update(['last_seen_at' => null]);
 
         if ($user) {
+            // Close any open sessions for this user. Use update() to ensure we
+            // mark all sessions without logout_at as closed (handles edge cases
+            // where multiple sessions were left open).
             \App\Models\UserSession::where('user_id', $user->id)
                 ->whereNull('logout_at')
-                ->orderByDesc('login_at')
-                ->first()
-                ?->update(['logout_at' => now()]);
+                ->update(['logout_at' => now()]);
 
             ActivityLog::create([
                 'user_id' => $user->id,
@@ -391,17 +409,79 @@ class AuthController extends Controller
     }
 
     /**
+     * Get the session history for all users, optionally filtered by search/user.
+     */
+    public function getAllUserSessions(Request $request)
+    {
+        $perPage = (int) $request->query('per_page', 15);
+        $search = trim((string) $request->query('search', ''));
+        $userId = $request->query('user_id');
+        $from = $request->query('from');
+        $to = $request->query('to');
+
+        $query = \App\Models\UserSession::with('user')->orderByDesc('login_at');
+
+        if ($userId) {
+            $query->where('user_id', $userId);
+        }
+
+        if ($from) {
+            $query->where('login_at', '>=', $from . ' 00:00:00');
+        }
+
+        if ($to) {
+            $query->where('login_at', '<=', $to . ' 23:59:59');
+        }
+
+        if ($search !== '') {
+            $query->where(function ($query) use ($search) {
+                $query->where('ip_address', 'like', "%{$search}%")
+                    ->orWhere('user_agent', 'like', "%{$search}%")
+                    ->orWhereHas('user', function ($userQuery) use ($search) {
+                        $userQuery->where('full_name', 'like', "%{$search}%")
+                            ->orWhere('email', 'like', "%{$search}%");
+                    });
+            });
+        }
+
+        $sessions = $query->paginate($perPage);
+
+        return response()->json([
+            'success' => true,
+            'data' => $sessions->items(),
+            'meta' => [
+                'current_page' => $sessions->currentPage(),
+                'last_page' => $sessions->lastPage(),
+                'per_page' => $sessions->perPage(),
+                'total' => $sessions->total(),
+                'from' => $sessions->firstItem(),
+                'to' => $sessions->lastItem(),
+            ],
+        ]);
+    }
+
+    /**
      * Get the session history for a specific user.
      */
     public function getUserSessions($id)
     {
-        $sessions = \App\Models\UserSession::where('user_id', $id)
-            ->orderByDesc('login_at')
-            ->get();
+        $limit = (int) request()->query('limit', 0);
+        $query = \App\Models\UserSession::with('user')->where('user_id', $id)
+            ->orderByDesc('login_at');
+
+        $sessions = $query->when($limit > 0, fn($q) => $q->limit($limit + 1))->get();
+        $hasMore = false;
+
+        if ($limit > 0 && $sessions->count() > $limit) {
+            $hasMore = true;
+            $sessions = $sessions->slice(0, $limit)->values();
+        }
 
         return response()->json([
             'success' => true,
-            'data' => $sessions
+            'data' => $sessions,
+            'has_more' => $hasMore,
+            'limit' => $limit,
         ]);
     }
 

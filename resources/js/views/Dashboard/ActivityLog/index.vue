@@ -1,7 +1,7 @@
 <template>
   <MainLayout>
-    <div class="max-w-7xl mx-auto">
-      <div class="flex flex-col sm:flex-row sm:items-center sm:justify-between gap-4 mb-6">
+    <div class="space-y-8">
+      <div class="flex flex-col sm:flex-row sm:items-center sm:justify-between gap-4">
         <div>
           <h1 class="text-2xl font-bold text-gray-900 dark:text-white">Activity Log</h1>
           <nav class="flex items-center gap-2 text-sm text-gray-500 dark:text-gray-400 mt-1">
@@ -10,16 +10,34 @@
             <span class="text-gray-900 dark:text-white">Activity Log</span>
           </nav>
         </div>
+
+        <div class="bg-gray-100 dark:bg-gray-800 p-1 rounded-xl flex gap-1 self-start">
+          <button
+            @click="activeTab = 'logs'"
+            class="px-4 py-2 rounded-lg text-sm font-bold transition-all"
+            :class="activeTab === 'logs' ? 'bg-white dark:bg-gray-700 text-primary shadow-sm' : 'text-gray-500 hover:text-gray-700 dark:hover:text-gray-300'"
+          >
+            Activity Log
+          </button>
+          <button
+            @click="activeTab = 'history'"
+            class="px-4 py-2 rounded-lg text-sm font-bold transition-all"
+            :class="activeTab === 'history' ? 'bg-white dark:bg-gray-700 text-primary shadow-sm' : 'text-gray-500 hover:text-gray-700 dark:hover:text-gray-300'"
+          >
+            Session History
+          </button>
+        </div>
       </div>
 
-      <DataTable
-        :columns="columns"
-        :data="logs"
-        :loading="loading"
-        :pagination="pagination"
-        @page-change="fetchLogs"
-        @per-page-change="handlePerPageChange"
-      >
+      <div v-if="activeTab === 'logs'">
+        <DataTable
+          :columns="columns"
+          :data="logs"
+          :loading="loading"
+          :pagination="pagination"
+          @page-change="fetchLogs"
+          @per-page-change="handlePerPageChange"
+        >
         <template #toolbar>
           <div class="flex flex-col sm:flex-row items-center gap-4 w-full">
             <div class="flex-1 relative w-full">
@@ -106,11 +124,144 @@
         <template #cell(ip)="{ item }">
           <code class="text-xs bg-gray-100 dark:bg-gray-800 px-2 py-1 rounded text-gray-600 dark:text-gray-400 whitespace-nowrap">{{ item.ip_address || '—' }}</code>
         </template>
-      </DataTable>
+            </DataTable>
+          </div>
+
+      <div v-else class="space-y-6">
+        <div>
+          <h2 class="text-xl font-bold text-gray-900 dark:text-white">Session History</h2>
+          <p class="text-sm text-gray-500 dark:text-gray-400 mt-1">Latest user sessions. Use filters to search by user, email, IP, or date range.</p>
+        </div>
+        <div class="bg-paper-light dark:bg-paper-dark rounded-3xl border border-gray-100 dark:border-gray-800 shadow-card dark:shadow-card-dark overflow-hidden transition-all duration-300">
+          <!-- Session Filter Toolbar -->
+          <div class="p-4 border-b border-gray-100 dark:border-gray-800 flex flex-col sm:flex-row items-center gap-4">
+            <div class="flex-1 relative w-full">
+              <Search class="absolute left-3 top-1/2 -translate-y-1/2 w-5 h-5 text-gray-400" />
+              <input
+                v-model="sessionFilters.search"
+                type="text"
+                placeholder="Search user, email or IP..."
+                class="w-full h-12 bg-gray-50 dark:bg-[#141A21] border border-gray-200 dark:border-gray-700 rounded-xl pl-10 pr-4 text-gray-900 dark:text-white placeholder-gray-400 focus:outline-none focus:ring-2 focus:ring-primary/20 focus:border-primary transition-all"
+              />
+            </div>
+            <input
+              v-model="sessionFilters.from"
+              type="date"
+              class="w-full sm:w-40 h-12 bg-gray-50 dark:bg-[#141A21] border border-gray-200 dark:border-gray-700 rounded-xl px-4 text-gray-900 dark:text-white focus:outline-none focus:ring-2 focus:ring-primary/20 focus:border-primary transition-all"
+            />
+            <input
+              v-model="sessionFilters.to"
+              type="date"
+              class="w-full sm:w-40 h-12 bg-gray-50 dark:bg-[#141A21] border border-gray-200 dark:border-gray-700 rounded-xl px-4 text-gray-900 dark:text-white focus:outline-none focus:ring-2 focus:ring-primary/20 focus:border-primary transition-all"
+            />
+            <button
+              v-if="hasSessionFilters"
+              @click="clearSessionFilters"
+              class="px-4 py-2 text-gray-600 dark:text-gray-400 hover:text-gray-900 dark:hover:text-white transition-colors h-12 flex items-center justify-center shrink-0"
+            >
+              Clear
+            </button>
+          </div>
+          <div class="overflow-x-auto">
+            <table class="w-full text-left">
+              <thead class="bg-gray-50 dark:bg-[#141A21]/50 border-b border-gray-100 dark:border-gray-800 text-gray-500 dark:text-gray-400 text-xs font-semibold uppercase tracking-wider">
+                <tr>
+                  <th class="px-6 py-4">User</th>
+                  <th class="px-6 py-4">Login At</th>
+                  <th class="px-6 py-4">Logout At</th>
+                  <th class="px-6 py-4">Duration</th>
+                  <th class="px-6 py-4">IP Address</th>
+                </tr>
+              </thead>
+              <tbody class="divide-y divide-gray-100 dark:divide-gray-800">
+                <tr v-for="session in sessions" :key="session.id" class="text-sm text-gray-900 dark:text-white hover:bg-gray-50 dark:hover:bg-[#141A21]/80 transition-colors group">
+                  <td class="px-6 py-4">
+                    <div class="flex items-center gap-3">
+                      <div class="w-8 h-8 rounded-full bg-primary/10 text-primary flex items-center justify-center font-semibold">{{ getInitials(session.user?.full_name || session.user?.email || 'NA') }}</div>
+                      <div>
+                        <p class="font-medium text-gray-900 dark:text-white">{{ session.user?.full_name || 'Unknown User' }}</p>
+                        <p class="text-xs text-gray-500 dark:text-gray-400">{{ session.user?.email || '—' }}</p>
+                      </div>
+                    </div>
+                  </td>
+                  <td class="px-6 py-4">{{ formatDate(session.login_at) }}</td>
+                  <td class="px-6 py-4">{{ session.logout_at ? formatDate(session.logout_at) : 'Still Active' }}</td>
+                  <td class="px-6 py-4 font-medium text-primary">{{ formatSessionDuration(session) }}</td>
+                  <td class="px-6 py-4 text-xs text-gray-500 dark:text-gray-400">{{ session.ip_address || '—' }}</td>
+                </tr>
+                <tr v-if="!sessionLoading && sessions.length === 0">
+                  <td colspan="5" class="px-6 py-10 text-center text-gray-500 dark:text-gray-400 italic">No session history found.</td>
+                </tr>
+              </tbody>
+            </table>
+          </div>
+          <div v-if="sessionLoading" class="py-8 text-center text-gray-500">Loading session history...</div>
+
+          <!-- Session Pagination Footer -->
+          <div v-if="sessionPagination && sessionPagination.total > 0" class="px-6 py-4 border-t border-gray-100 dark:border-gray-800 flex flex-wrap items-center justify-between gap-4 text-sm text-gray-600 dark:text-gray-400">
+            <div class="flex items-center gap-2">
+              <span>Rows per page:</span>
+              <div data-session-dropdown class="relative">
+                <button
+                  @click="sessionDropdownOpen = !sessionDropdownOpen"
+                  class="flex items-center gap-1.5 text-gray-900 dark:text-white font-medium hover:bg-gray-100 dark:hover:bg-gray-800/60 px-2 py-1 rounded-lg transition-all duration-200 text-sm focus:outline-none select-none border border-transparent hover:border-gray-200 dark:hover:border-gray-700/50"
+                >
+                  <span>{{ sessionPerPage }}</span>
+                  <ChevronDown
+                    class="w-4 h-4 text-gray-500 transition-transform duration-200"
+                    :class="{ 'rotate-180 text-primary': sessionDropdownOpen }"
+                  />
+                </button>
+                <transition name="popover-fade">
+                  <div
+                    v-if="sessionDropdownOpen"
+                    class="absolute bottom-full left-0 mb-2 w-20 bg-white dark:bg-[#1C252E] border border-gray-200 dark:border-gray-700/60 rounded-xl shadow-xl z-50 overflow-hidden py-1.5 focus:outline-none"
+                  >
+                    <button
+                      v-for="size in [15, 50, 100]"
+                      :key="size"
+                      @click="sessionPerPage = size; sessionDropdownOpen = false; fetchSessions(1)"
+                      class="w-full text-left px-3 py-1.5 text-xs font-semibold transition-colors flex items-center justify-between focus:outline-none"
+                      :class="[
+                        sessionPerPage === size
+                          ? 'bg-blue-50 text-blue-600 dark:bg-blue-900/20 dark:text-blue-400'
+                          : 'text-gray-700 dark:text-gray-300 hover:bg-gray-50 dark:hover:bg-gray-800/40'
+                      ]"
+                    >
+                      <span>{{ size }}</span>
+                      <span v-if="sessionPerPage === size" class="text-blue-600 dark:text-blue-400 text-[10px]">✓</span>
+                    </button>
+                  </div>
+                </transition>
+              </div>
+            </div>
+
+            <div class="flex items-center gap-6">
+              <span class="font-medium text-gray-900 dark:text-white">{{ sessionPagination.from || 0 }}-{{ sessionPagination.to || 0 }} of {{ sessionPagination.total }}</span>
+              <div class="flex items-center gap-1">
+                <button
+                  @click="fetchSessions(sessionPage - 1)"
+                  :disabled="sessionPage === 1"
+                  class="p-1.5 rounded-lg hover:bg-gray-100 dark:hover:bg-gray-800 disabled:opacity-30 disabled:cursor-not-allowed transition-colors text-gray-700 dark:text-gray-300"
+                >
+                  <ChevronLeft class="w-5 h-5" />
+                </button>
+                <button
+                  @click="fetchSessions(sessionPage + 1)"
+                  :disabled="sessionPage === (sessionPagination?.last_page || 1)"
+                  class="p-1.5 rounded-lg hover:bg-gray-100 dark:hover:bg-gray-800 disabled:opacity-30 disabled:cursor-not-allowed transition-colors text-gray-700 dark:text-gray-300"
+                >
+                  <ChevronRight class="w-5 h-5" />
+                </button>
+              </div>
+            </div>
+          </div>
+        </div>
+      </div>
 
       <!-- Details Modal -->
       <div v-if="selectedLog" class="fixed inset-0 z-50 flex items-center justify-center p-4 bg-black/50 backdrop-blur-sm">
-        <div class="bg-white dark:bg-[#1A222B] rounded-2xl shadow-xl max-w-2xl w-full max-h-[80vh] overflow-hidden flex flex-col">
+        <div class="bg-paper-light dark:bg-paper-dark rounded-3xl shadow-card dark:shadow-card-dark max-w-2xl w-full max-h-[80vh] overflow-hidden flex flex-col border border-gray-100 dark:border-gray-800">
           <div class="px-6 py-4 border-b border-gray-100 dark:border-gray-800 flex items-center justify-between">
             <h3 class="text-lg font-bold text-gray-900 dark:text-white">Change Details</h3>
             <button @click="selectedLog = null" class="p-2 rounded-lg hover:bg-gray-100 dark:hover:bg-gray-800 text-gray-500">
@@ -118,14 +269,14 @@
             </button>
           </div>
           <div class="p-6 overflow-auto">
-            <div class="mb-4 p-3 bg-gray-50 dark:bg-gray-800/50 rounded-xl border border-gray-100 dark:border-gray-700">
+            <div class="mb-4 p-3 bg-gray-50 dark:bg-gray-800/50 rounded-xl border border-gray-100 dark:border-gray-800">
               <p class="text-sm text-gray-500 dark:text-gray-400">Event Description</p>
               <p class="text-sm font-medium text-gray-900 dark:text-white">{{ selectedLog.description }}</p>
             </div>
             
-            <div class="overflow-x-auto rounded-xl border border-gray-100 dark:border-gray-700">
+            <div class="overflow-x-auto rounded-xl border border-gray-100 dark:border-gray-800">
               <table class="w-full text-left text-sm">
-                <thead class="bg-gray-50 dark:bg-gray-800 text-gray-500 dark:text-gray-400">
+                <thead class="bg-gray-50 dark:bg-[#141A21]/50 text-gray-500 dark:text-gray-400">
                   <tr>
                     <th class="px-4 py-2 font-medium">Field</th>
                     <th class="px-4 py-2 font-medium">Old Value</th>
@@ -154,11 +305,13 @@
 
 <script setup>
 import { ref, reactive, computed, onMounted, onUnmounted, watch } from 'vue';
+import { useRoute } from 'vue-router';
 import axios from '@/plugins/axios';
 import MainLayout from '@/layouts/MainLayout.vue';
 import DataTable from '@/components/Table/DataTable.vue';
-import { ChevronRight, Search, Eye, X } from 'lucide-vue-next';
+import { ChevronRight, Search, Eye, X, ChevronLeft, ChevronDown } from 'lucide-vue-next';
 
+const route = useRoute();
 const logs = ref([]);
 const loading = ref(false);
 const pagination = ref(null);
@@ -166,6 +319,23 @@ const perPage = ref(50);
 const debounceTimer = ref(null);
 const refreshTimer = ref(null);
 const selectedLog = ref(null);
+const activeTab = ref(route.query.tab === 'history' ? 'history' : 'logs');
+const sessions = ref([]);
+const sessionLoading = ref(false);
+const sessionPage = ref(1);
+const sessionPerPage = ref(15);
+const sessionPagination = ref(null);
+const sessionUserId = ref(route.query.user_id ? String(route.query.user_id) : null);
+const sessionSearchTimer = ref(null);
+const sessionFilters = reactive({
+  search: '',
+  from: '',
+  to: '',
+});
+const hasSessionFilters = computed(() => sessionFilters.search || sessionFilters.from || sessionFilters.to);
+const sessionDropdownOpen = ref(false);
+const durationTick = ref(0);
+let durationTimer = null;
 
 const filters = reactive({
   search: '',
@@ -180,6 +350,24 @@ watch(filters, () => {
   clearTimeout(debounceTimer.value);
   debounceTimer.value = setTimeout(() => fetchLogs(1), 400);
 }, { deep: true });
+
+watch(sessionFilters, () => {
+  clearTimeout(sessionSearchTimer.value);
+  sessionSearchTimer.value = setTimeout(() => {
+    if (activeTab.value === 'history') {
+      fetchSessions(1);
+    }
+  }, 400);
+}, { deep: true });
+
+watch(activeTab, (tab) => {
+  if (tab === 'history') {
+    fetchSessions();
+    startDurationTimer();
+  } else {
+    stopDurationTimer();
+  }
+});
 
 const columns = [
   { key: 'time', label: 'Time' },
@@ -218,6 +406,56 @@ function startRefreshTimer() {
   refreshTimer.value = window.setInterval(() => fetchLogs(pagination.value?.current_page || 1, true), 10000);
 }
 
+async function fetchSessions(page = 1) {
+  sessionLoading.value = true;
+  sessionPage.value = page;
+  try {
+    const params = {
+      per_page: sessionPerPage.value,
+      page,
+      search: sessionFilters.search,
+    };
+
+    if (sessionFilters.from) params.from = sessionFilters.from;
+    if (sessionFilters.to) params.to = sessionFilters.to;
+    if (sessionUserId.value) params.user_id = sessionUserId.value;
+
+    const res = await axios.get('/auth/admin/user-sessions', { params });
+    sessions.value = res.data.data;
+    sessionPagination.value = res.data.meta;
+  } catch (e) {
+    console.error('Failed to load session history', e);
+  } finally {
+    sessionLoading.value = false;
+  }
+}
+
+function clearSessionFilters() {
+  sessionFilters.search = '';
+  sessionFilters.from = '';
+  sessionFilters.to = '';
+  fetchSessions(1);
+}
+
+function handleClickOutside(e) {
+  const el = document.querySelector('[data-session-dropdown]');
+  if (el && !el.contains(e.target)) {
+    sessionDropdownOpen.value = false;
+  }
+}
+
+function startDurationTimer() {
+  stopDurationTimer();
+  durationTimer = window.setInterval(() => { durationTick.value++; }, 1000);
+}
+
+function stopDurationTimer() {
+  if (durationTimer) {
+    window.clearInterval(durationTimer);
+    durationTimer = null;
+  }
+}
+
 function stopRefreshTimer() {
   if (refreshTimer.value) {
     window.clearInterval(refreshTimer.value);
@@ -249,8 +487,36 @@ function formatValue(val) {
   return val;
 }
 
+function formatSessionDuration(session) {
+  durationTick.value; // reactive dependency for live-updating active session durations
+
+  if (session.duration_human) {
+    return session.duration_human;
+  }
+
+  const start = session.login_at ? new Date(session.login_at) : null;
+  const end = session.logout_at ? new Date(session.logout_at) : new Date();
+  if (!start || isNaN(start.getTime())) return '—';
+
+  let diff = Math.max(0, Math.floor((end.getTime() - start.getTime()) / 1000));
+  if (diff < 60) {
+    return `${diff}s`;
+  }
+
+  const minutes = Math.floor(diff / 60);
+  if (minutes < 60) {
+    return `${minutes}m`;
+  }
+
+  const hours = Math.floor(minutes / 60);
+  const remainingMinutes = minutes % 60;
+  return `${hours}h:${remainingMinutes}m`;
+}
+
 onUnmounted(() => {
   stopRefreshTimer();
+  stopDurationTimer();
+  document.removeEventListener('click', handleClickOutside);
 });
 
 function formatDate(date) {
@@ -309,6 +575,11 @@ function getEventClass(event) {
 onMounted(() => {
   fetchLogs();
   startRefreshTimer();
+  document.addEventListener('click', handleClickOutside);
+  if (activeTab.value === 'history') {
+    fetchSessions();
+    startDurationTimer();
+  }
 });
 </script>
 
@@ -316,5 +587,14 @@ onMounted(() => {
 :deep(th), :deep(td) {
   padding-left: 1rem !important;
   padding-right: 1rem !important;
+}
+.popover-fade-enter-active,
+.popover-fade-leave-active {
+  transition: all 0.15s ease-out;
+}
+.popover-fade-enter-from,
+.popover-fade-leave-to {
+  opacity: 0;
+  transform: translateY(4px) scale(0.95);
 }
 </style>

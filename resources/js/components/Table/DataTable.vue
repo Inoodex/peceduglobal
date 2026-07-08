@@ -16,20 +16,20 @@
     <!-- Table Card Structure -->
     <div 
       v-else
-      class="bg-white dark:bg-[#1C252E] rounded-2xl border border-gray-200 dark:border-gray-700/50 overflow-hidden shadow-sm transition-all duration-300"
+      class="bg-paper-light dark:bg-paper-dark rounded-3xl border border-gray-100 dark:border-gray-800 shadow-card dark:shadow-card-dark overflow-hidden transition-all duration-300"
       :class="{ 'opacity-55 pointer-events-none select-none': loading }"
     >
       <!-- Toolbar Slot (For Search, Filters, Add Button) -->
-      <div v-if="$slots.toolbar" class="p-4 border-b border-gray-200 dark:border-gray-700/50 flex flex-wrap items-center justify-between gap-4">
+      <div v-if="$slots.toolbar" class="p-4 border-b border-gray-100 dark:border-gray-800 flex flex-wrap items-center justify-between gap-4">
         <slot name="toolbar"></slot>
       </div>
 
       <!-- Table Container -->
       <div class="overflow-x-auto">
         <table class="w-full text-left text-sm text-gray-500 dark:text-gray-400">
-          <thead class="text-xs text-gray-500 dark:text-gray-400 bg-gray-50/50 dark:bg-[#141A21]/50 border-b border-gray-200 dark:border-gray-700/50">
+          <thead class="text-xs text-gray-500 dark:text-gray-400 bg-gray-50 dark:bg-[#141A21]/50 border-b border-gray-100 dark:border-gray-800">
             <tr>
-              <th v-for="col in columns" :key="col.key" scope="col" class="px-6 py-4 font-semibold whitespace-nowrap" :class="[col.align === 'right' ? 'text-right' : (col.align === 'center' ? 'text-center' : 'text-left'), col.width || '']">
+              <th v-for="col in columns" :key="col.key" scope="col" class="px-6 py-4 font-semibold whitespace-nowrap uppercase tracking-wider" :class="[col.align === 'right' ? 'text-right' : (col.align === 'center' ? 'text-center' : 'text-left'), col.width || '']">
                 {{ col.label }}
               </th>
             </tr>
@@ -37,7 +37,7 @@
 
           <!-- Data Rows -->
           <tbody v-if="data.length > 0">
-            <tr v-for="(item, index) in data" :key="index" class="border-b border-gray-200 dark:border-gray-700/50 hover:bg-gray-50 dark:hover:bg-[#141A21]/80 transition-colors group">
+            <tr v-for="(item, index) in data" :key="index" class="border-b border-gray-100 dark:border-gray-800 hover:bg-gray-50 dark:hover:bg-[#141A21]/80 transition-colors group">
               <td v-for="col in columns" :key="col.key" class="px-6 py-4" :class="col.align === 'right' ? 'text-right' : (col.align === 'center' ? 'text-center' : 'text-left')">
                 
                 <!-- Dynamic Named Slots for Custom Cell Rendering -->
@@ -67,7 +67,7 @@
       </div>
 
       <!-- Pagination Footer -->
-      <div v-if="pagination && pagination.total > 0" class="px-6 py-4 border-t border-gray-200 dark:border-gray-700/50 flex flex-wrap items-center justify-between gap-4 text-sm text-gray-600 dark:text-gray-400 bg-white dark:bg-[#1C252E]">
+      <div v-if="pagination && pagination.total > 0" class="px-6 py-4 border-t border-gray-100 dark:border-gray-800 flex flex-wrap items-center justify-between gap-4 text-sm text-gray-600 dark:text-gray-400 bg-paper-light dark:bg-paper-dark">
         <div class="flex items-center gap-2">
           <span>Rows per page:</span>
           <div ref="dropdownContainer" class="relative">
