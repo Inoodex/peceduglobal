@@ -90,8 +90,16 @@
         </template>
 
         <template #cell(description)="{ item }">
-          <div class="min-w-0 max-w-xs">
+          <div class="min-w-0 max-w-xs flex items-center gap-2">
             <p class="text-sm text-gray-900 dark:text-white truncate" :title="item.description">{{ item.description }}</p>
+            <button 
+              v-if="item.new_values || item.old_values"
+              @click="openDetails(item)"
+              class="p-1 rounded-md bg-primary/10 text-primary hover:bg-primary/20 transition-colors"
+              title="View Changes"
+            >
+              <Eye class="w-3.5 h-3.5" />
+            </button>
           </div>
         </template>
 
@@ -99,6 +107,47 @@
           <code class="text-xs bg-gray-100 dark:bg-gray-800 px-2 py-1 rounded text-gray-600 dark:text-gray-400 whitespace-nowrap">{{ item.ip_address || '—' }}</code>
         </template>
       </DataTable>
+
+      <!-- Details Modal -->
+      <div v-if="selectedLog" class="fixed inset-0 z-50 flex items-center justify-center p-4 bg-black/50 backdrop-blur-sm">
+        <div class="bg-white dark:bg-[#1A222B] rounded-2xl shadow-xl max-w-2xl w-full max-h-[80vh] overflow-hidden flex flex-col">
+          <div class="px-6 py-4 border-b border-gray-100 dark:border-gray-800 flex items-center justify-between">
+            <h3 class="text-lg font-bold text-gray-900 dark:text-white">Change Details</h3>
+            <button @click="selectedLog = null" class="p-2 rounded-lg hover:bg-gray-100 dark:hover:bg-gray-800 text-gray-500">
+              <X class="w-5 h-5" />
+            </button>
+          </div>
+          <div class="p-6 overflow-auto">
+            <div class="mb-4 p-3 bg-gray-50 dark:bg-gray-800/50 rounded-xl border border-gray-100 dark:border-gray-700">
+              <p class="text-sm text-gray-500 dark:text-gray-400">Event Description</p>
+              <p class="text-sm font-medium text-gray-900 dark:text-white">{{ selectedLog.description }}</p>
+            </div>
+            
+            <div class="overflow-x-auto rounded-xl border border-gray-100 dark:border-gray-700">
+              <table class="w-full text-left text-sm">
+                <thead class="bg-gray-50 dark:bg-gray-800 text-gray-500 dark:text-gray-400">
+                  <tr>
+                    <th class="px-4 py-2 font-medium">Field</th>
+                    <th class="px-4 py-2 font-medium">Old Value</th>
+                    <th class="px-4 py-2 font-medium">New Value</th>
+                  </tr>
+                </thead>
+                <tbody class="divide-y divide-gray-100 dark:divide-gray-800">
+                  <tr v-for="(val, field) in selectedLog.new_values || selectedLog.old_values" :key="field" class="text-gray-900 dark:text-white">
+                    <td class="px-4 py-2 font-medium capitalize">{{ field.replace('_', ' ') }}</td>
+                    <td class="px-4 py-2 text-gray-500 dark:text-gray-400">
+                      {{ formatValue(selectedLog.old_values?.[field]) }}
+                    </td>
+                    <td class="px-4 py-2 text-primary font-medium">
+                      {{ formatValue(val) }}
+                    </td>
+                  </tr>
+                </tbody>
+              </table>
+            </div>
+          </div>
+        </div>
+      </div>
     </div>
   </MainLayout>
 </template>
@@ -108,7 +157,7 @@ import { ref, reactive, computed, onMounted, onUnmounted, watch } from 'vue';
 import axios from '@/plugins/axios';
 import MainLayout from '@/layouts/MainLayout.vue';
 import DataTable from '@/components/Table/DataTable.vue';
-import { ChevronRight, Search } from 'lucide-vue-next';
+import { ChevronRight, Search, Eye, X } from 'lucide-vue-next';
 
 const logs = ref([]);
 const loading = ref(false);
@@ -116,6 +165,7 @@ const pagination = ref(null);
 const perPage = ref(50);
 const debounceTimer = ref(null);
 const refreshTimer = ref(null);
+const selectedLog = ref(null);
 
 const filters = reactive({
   search: '',
@@ -186,6 +236,17 @@ function clearFilters() {
   filters.from = '';
   filters.to = '';
   fetchLogs(1);
+}
+
+function openDetails(log) {
+  selectedLog.value = log;
+}
+
+function formatValue(val) {
+  if (val === null || val === undefined) return '—';
+  if (typeof val === 'boolean') return val ? 'Yes' : 'No';
+  if (typeof val === 'object') return JSON.stringify(val);
+  return val;
 }
 
 onUnmounted(() => {

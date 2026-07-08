@@ -81,7 +81,13 @@
               </div>
               <div class="flex-1 min-w-0">
                 <h3 class="font-bold text-gray-900 dark:text-white text-base leading-tight break-words mb-1">{{ user.full_name }}</h3>
-                <p class="text-xs text-gray-500 break-words">{{ user.email }}</p>
+                <div class="flex items-center gap-2">
+                  <p class="text-xs text-gray-500 break-words">{{ user.email }}</p>
+                  <span v-if="onlineStatuses[user.id]" class="text-[10px] font-medium text-emerald-600 dark:text-emerald-400 flex items-center gap-1">
+                    <div class="w-1 h-1 rounded-full bg-emerald-500 animate-pulse"></div>
+                    {{ getSessionDuration(user) }}
+                  </span>
+                </div>
               </div>
             </div>
 
@@ -116,13 +122,23 @@
                   {{ user.is_active ? 'Active' : 'Inactive' }}
                 </span>
               </div>
-              <button
-                @click="editUser(user)"
-                class="flex items-center gap-2 text-sm font-semibold text-primary hover:bg-primary/10 px-3 py-1.5 rounded-lg transition-colors"
-              >
-                <ShieldCheck :size="16" />
-                Manage Access
-              </button>
+              <div class="flex items-center gap-2">
+                <button
+                  @click="openSessionHistory(user)"
+                  class="flex items-center gap-2 text-xs font-semibold text-gray-500 hover:text-primary px-2 py-1.5 rounded-lg transition-colors"
+                  title="View Login History"
+                >
+                  <History :size="14" />
+                  History
+                </button>
+                <button
+                  @click="editUser(user)"
+                  class="flex items-center gap-2 text-sm font-semibold text-primary hover:bg-primary/10 px-3 py-1.5 rounded-lg transition-colors"
+                >
+                  <ShieldCheck :size="16" />
+                  Manage Access
+                </button>
+              </div>
             </div>
           </div>
         </div>
@@ -342,18 +358,54 @@
         </form>
       </div>
     </div>
+
+    <!-- Session History Modal -->
+    <div v-if="isHistoryModalOpen" class="fixed inset-0 z-[110] flex items-center justify-center p-4 bg-black/50 backdrop-blur-sm">
+      <div class="bg-white dark:bg-[#1C252E] rounded-2xl w-full max-w-2xl shadow-2xl overflow-hidden animate-in fade-in zoom-in duration-200">
+        <div class="p-6 border-b border-gray-100 dark:border-gray-800 flex justify-between items-center">
+          <div>
+            <h2 class="text-xl font-bold text-gray-900 dark:text-white">Login History</h2>
+            <p class="text-sm text-gray-500">{{ selectedUser?.full_name }}</p>
+          </div>
+          <button @click="isHistoryModalOpen = false" class="text-gray-400 hover:text-gray-600 dark:hover:text-gray-200">
+            <X :size="24" />
+          </button>
+        </div>
+        <div class="p-6 overflow-x-auto">
+          <table class="w-full text-left">
+            <thead class="bg-gray-50 dark:bg-gray-800/50">
+              <tr class="text-xs font-bold uppercase tracking-wider text-gray-500">
+                <th class="px-4 py-3">Login At</th>
+                <th class="px-4 py-3">Logout At</th>
+                <th class="px-4 py-3">Duration</th>
+                <th class="px-4 py-3">IP Address</th>
+              </tr>
+            </thead>
+            <tbody class="divide-y divide-gray-100 dark:divide-gray-800">
+              <tr v-for="session in userSessions" :key="session.id" class="text-sm text-gray-900 dark:text-white">
+                <td class="px-4 py-3">{{ formatDate(session.login_at) }}</td>
+                <td class="px-4 py-3">{{ session.logout_at ? formatDate(session.logout_at) : 'Still Active' }}</td>
+                <td class="px-4 py-3 font-medium text-primary">{{ session.duration_human || 'Calculating...' }}</td>
+                <td class="px-4 py-3 text-xs text-gray-500">{{ session.ip_address || '—' }}</td>
+              </tr>
+              <tr v-if="userSessions.length === 0">
+                <td colspan="4" class="px-4 py-10 text-center text-gray-500 italic">No session history found.</td>
+              </tr>
+            </tbody>
+          </table>
+        </div>
+      </div>
+    </div>
   </MainLayout>
 </template>
 
 <script setup>
-import { ref, computed, onMounted } from 'vue';
-import { useToastStore } from '@/stores/toast';
+import { ref, reactive, computed, onMounted, onUnmounted, watch } from 'vue';
 import axios from '@/plugins/axios';
 import MainLayout from '@/layouts/MainLayout.vue';
+import { ChevronRight, Search, Plus, Loader2, ShieldCheck, Lock, Trash2, X, Eye, EyeOff, History } from 'lucide-vue-next';
 import { useAuthStore } from '@/stores/auth';
-import {
-  Search, Users, ShieldCheck, X, Loader2, Plus, Lock, Trash2, Eye, EyeOff
-} from 'lucide-vue-next';
+import { useToastStore } from '@/stores/toast';
 
 const activeTab = ref('users');
 const users = ref([]);
@@ -365,13 +417,14 @@ const searchQuery = ref('');
 const isModalOpen = ref(false);
 const isPermModalOpen = ref(false);
 const isCreateUserModalOpen = ref(false);
-const editingUser = ref(null);
-const newUser = ref({ first_name: '', last_name: '', email: '', password: '', role: 'consultant' });
-const newPerm = ref({ name: '', description: '' });
-const showPassword = ref(false);
-const statusTick = ref(0);
+const isHistoryModalOpen = ref(false);
+const selectedUser = ref(null);
+const userSessions = ref([]);
+const editingUser = ref({});
+
 const authStore = useAuthStore();
 const toast = useToastStore();
+const statusTick = ref(0);
 
 setInterval(() => { statusTick.value++; }, 10000);
 
@@ -443,13 +496,52 @@ const createUser = async () => {
   }
 };
 
-const getRoleClass = (role) => {
-  switch (role) {
-    case 'admin': return 'bg-red-100 text-red-600 dark:bg-red-500/10';
-    case 'consultant': return 'bg-blue-100 text-blue-600 dark:bg-blue-500/10';
-    default: return 'bg-gray-100 text-gray-600 dark:bg-gray-500/10';
+function getRoleClass(role) {
+  return {
+    'bg-purple-100 text-purple-600 dark:bg-purple-900/30 dark:text-purple-400': role === 'admin',
+    'bg-blue-100 text-blue-600 dark:bg-blue-900/30 dark:text-blue-400': role === 'consultant',
+    'bg-emerald-100 text-emerald-600 dark:bg-emerald-900/30 dark:text-emerald-400': role === 'student',
+  };
+}
+
+function getSessionDuration(user) {
+  if (!user.last_login_at) return '';
+  
+  const start = new Date(user.last_login_at);
+  const now = new Date();
+  const diff = Math.floor((now - start) / 1000);
+  
+  if (diff < 0) return '';
+  
+  const hours = Math.floor(diff / 3600);
+  const minutes = Math.floor((diff % 3600) / 60);
+  
+  if (hours > 0) {
+    return `Active for ${hours}h:${minutes}m`;
   }
-};
+  return `Active for ${minutes}m`;
+}
+
+async function openSessionHistory(user) {
+  selectedUser.value = user;
+  isHistoryModalOpen.value = true;
+  userSessions.value = [];
+  
+  try {
+    const res = await axios.get(`/auth/admin/user-sessions/${user.id}`);
+    userSessions.value = res.data.data;
+  } catch (e) {
+    console.error('Failed to load session history', e);
+  }
+}
+
+function formatDate(date) {
+  if (!date) return '—';
+  return new Date(date).toLocaleDateString('en-US', {
+    year: 'numeric', month: 'short', day: 'numeric',
+    hour: '2-digit', minute: '2-digit',
+  });
+}
 
 const editUser = (user) => {
   editingUser.value = JSON.parse(JSON.stringify(user));

@@ -18,6 +18,18 @@ class ActivityLogObserver
     {
         $user = auth()->user() ?? auth('api')->user() ?? request()->user() ?? request()->user('api');
         $description = $this->getDescription($model, $event);
+        
+        $oldValues = null;
+        $newValues = null;
+
+        if ($event === 'updated') {
+            $newValues = collect($model->getChanges())->except(['updated_at', 'remember_token', 'password'])->toArray();
+            $oldValues = collect($model->getOriginal())->only(array_keys($newValues))->toArray();
+        } elseif ($event === 'created') {
+            $newValues = $model->toArray();
+        } elseif ($event === 'deleted') {
+            $oldValues = $model->toArray();
+        }
 
         ActivityLog::create([
             'user_id' => $user?->id,
@@ -27,6 +39,8 @@ class ActivityLogObserver
             'description' => $description,
             'ip_address' => request()->ip(),
             'user_agent' => request()->userAgent(),
+            'old_values' => $oldValues,
+            'new_values' => $newValues,
         ]);
     }
 

@@ -239,6 +239,13 @@ class AuthController extends Controller
 
         $user->update(['last_seen_at' => now()]);
 
+        \App\Models\UserSession::create([
+            'user_id' => $user->id,
+            'login_at' => now(),
+            'ip_address' => $request->ip(),
+            'user_agent' => $request->userAgent(),
+        ]);
+
         ActivityLog::create([
             'user_id' => $user->id,
             'event' => 'login',
@@ -297,6 +304,13 @@ class AuthController extends Controller
 
         $user->update(['last_seen_at' => now()]);
 
+        \App\Models\UserSession::create([
+            'user_id' => $user->id,
+            'login_at' => now(),
+            'ip_address' => $request->ip(),
+            'user_agent' => $request->userAgent(),
+        ]);
+
         ActivityLog::create([
             'user_id' => $user->id,
             'event' => 'login',
@@ -350,6 +364,12 @@ class AuthController extends Controller
         $user?->update(['last_seen_at' => null]);
 
         if ($user) {
+            \App\Models\UserSession::where('user_id', $user->id)
+                ->whereNull('logout_at')
+                ->orderByDesc('login_at')
+                ->first()
+                ?->update(['logout_at' => now()]);
+
             ActivityLog::create([
                 'user_id' => $user->id,
                 'event' => 'logout',
@@ -367,6 +387,21 @@ class AuthController extends Controller
             'success' => true,
             'message' => 'Successfully logged out',
             'data' => null
+        ]);
+    }
+
+    /**
+     * Get the session history for a specific user.
+     */
+    public function getUserSessions($id)
+    {
+        $sessions = \App\Models\UserSession::where('user_id', $id)
+            ->orderByDesc('login_at')
+            ->get();
+
+        return response()->json([
+            'success' => true,
+            'data' => $sessions
         ]);
     }
 
