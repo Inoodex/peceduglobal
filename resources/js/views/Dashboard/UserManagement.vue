@@ -82,10 +82,10 @@
                 <h3 class="font-bold text-gray-900 dark:text-white text-base leading-tight break-words mb-1">{{ user.full_name }}</h3>
                 <div class="flex items-center gap-2">
                   <p class="text-xs text-gray-500 break-words">{{ user.email }}</p>
-                  <span v-if="onlineStatuses[user.id]" class="text-[10px] font-medium text-emerald-600 dark:text-emerald-400 flex items-center gap-1">
+                  <!-- <span v-if="onlineStatuses[user.id]" class="text-[10px] font-medium text-emerald-600 dark:text-emerald-400 flex items-center gap-1">
                     <div class="w-1 h-1 rounded-full bg-emerald-500 animate-pulse"></div>
                     {{ getSessionDuration(user) }}
-                  </span>
+                  </span> -->
                 </div>
               </div>
             </div>
