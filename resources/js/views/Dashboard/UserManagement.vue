@@ -237,6 +237,7 @@
             <label class="block text-xs font-bold text-gray-500 uppercase mb-2">Role</label>
             <select v-model="newUser.role" required class="w-full px-4 py-2.5 bg-gray-50 dark:bg-gray-800 border border-gray-200 dark:border-gray-700 rounded-xl outline-none focus:ring-2 focus:ring-primary text-sm">
               <option value="consultant">Consultant</option>
+              <option value="editor">Editor</option>
               <!-- <option value="student">Student</option>
               <option value="admin">Admin</option> -->
             </select>
@@ -271,7 +272,7 @@
             <label class="block text-sm font-bold text-gray-700 dark:text-gray-300 mb-3 uppercase tracking-wider">User Role</label>
             <div class="grid grid-cols-3 gap-3">
               <button
-                v-for="role in ['admin', 'consultant', 'student']"
+                v-for="role in ['admin', 'consultant', 'student', 'editor']"
                 :key="role"
                 @click="editingUser.role = role"
                 class="px-4 py-3 rounded-xl border-2 text-sm font-bold transition-all text-center capitalize"
@@ -509,6 +510,7 @@ function getRoleClass(role) {
     'bg-purple-100 text-purple-600 dark:bg-purple-900/30 dark:text-purple-400': role === 'admin',
     'bg-blue-100 text-blue-600 dark:bg-blue-900/30 dark:text-blue-400': role === 'consultant',
     'bg-emerald-100 text-emerald-600 dark:bg-emerald-900/30 dark:text-emerald-400': role === 'student',
+    'bg-amber-100 text-amber-600 dark:bg-amber-900/30 dark:text-amber-400': role === 'editor',
   };
 }
 

@@ -421,7 +421,7 @@ class AuthController extends Controller
         $to = $request->query('to');
 
         $query = \App\Models\UserSession::with('user')
-            ->whereHas('user', fn($q) => $q->whereIn('role', ['admin', 'consultant']));
+            ->whereHas('user', fn($q) => $q->where('role', '!=', 'student'));
 
         if ($userId) {
             $query->where('user_id', $userId);
@@ -453,7 +453,7 @@ class AuthController extends Controller
         $sessions = $query->paginate($perPage);
 
         // Calculate total online hours across all matching sessions
-        $baseQuery = \App\Models\UserSession::whereHas('user', fn($q) => $q->whereIn('role', ['admin', 'consultant']));
+        $baseQuery = \App\Models\UserSession::whereHas('user', fn($q) => $q->where('role', '!=', 'student'));
         if ($userId) $baseQuery->where('user_id', $userId);
         if ($role) $baseQuery->whereHas('user', fn($q) => $q->where('role', $role));
         if ($from) $baseQuery->where('login_at', '>=', $from . ' 00:00:00');

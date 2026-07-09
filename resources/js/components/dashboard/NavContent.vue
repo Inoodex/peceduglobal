@@ -84,14 +84,14 @@ const auth = useAuthStore();
 const navigationData = [
   {
     title: 'Overview',
-    roles: ['admin', 'consultant', 'student'],
+    roles: ['admin', 'consultant', 'student', 'editor'],
     items: [
       { name: 'Dashboard', icon: LayoutDashboard, path: '/dashboard' },
     ]
   },
   {
     title: 'Content',
-    roles: ['admin', 'consultant'],
+    roles: ['admin', 'consultant', 'editor'],
     items: [
       {
         name: 'Page Manager',
@@ -115,7 +115,7 @@ const navigationData = [
       {
         name: 'Team Manager',
         icon: Users,
-        permission: 'manage_pages',
+        permission: 'manage_team_members',
         children: [
           { name: 'Team Members', path: '/dashboard/team-members' },
           { name: 'Add Member', path: '/dashboard/team-members/create' }
@@ -141,11 +141,13 @@ const navigationData = [
       {
         name: 'Chat Inbox',
         icon: MessageSquare,
-        path: '/dashboard/chat'
+        path: '/dashboard/chat',
+        permission: 'manage_chat'
       },
       {
         name: 'Students',
         icon: Users,
+        permission: 'manage_students',
         children: [
           { name: 'Register Student', path: '/dashboard/students/register' },
           { name: 'Student List', path: '/dashboard/students' },
@@ -168,6 +170,7 @@ const navigationData = [
       {
         name: 'Applications',
         icon: FileText,
+        permission: 'view_applications',
         children: [
           { name: 'Application List', path: '/dashboard/applications' },
           { name: 'Add Application', path: '/dashboard/applications/create' }
@@ -222,12 +225,14 @@ const navigationData = [
       {
         name: 'User Management',
         icon: Users,
-        path: '/dashboard/user-management'
+        path: '/dashboard/user-management',
+        permission: 'manage_users'
       },
       {
         name: 'Activity Log',
         icon: Activity,
-        path: '/dashboard/activity-log'
+        path: '/dashboard/activity-log',
+        permission: 'view_activity_log'
       },
       {
         name: 'Settings',
@@ -248,7 +253,7 @@ const navigationData = [
   },
   {
     title: 'Blog',
-    roles: ['admin', 'consultant'],
+    roles: ['admin', 'consultant', 'editor'],
     items: [
       {
         name: 'Blog',

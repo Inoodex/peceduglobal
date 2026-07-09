@@ -19,7 +19,7 @@ class UserController extends Controller
             'last_name' => 'required|string|max:255',
             'email' => 'required|string|email|max:255|unique:users',
             'password' => 'required|string|min:6',
-            'role' => 'required|string|in:student,consultant,admin',
+            'role' => 'required|string|in:student,consultant,admin,editor',
         ]);
 
         if ($validator->fails()) {
@@ -52,7 +52,7 @@ class UserController extends Controller
     public function updateRole(Request $request, User $user)
     {
         $validator = Validator::make($request->all(), [
-            'role' => 'required|in:student,consultant,admin',
+            'role' => 'required|in:student,consultant,admin,editor',
         ]);
 
         if ($validator->fails()) {

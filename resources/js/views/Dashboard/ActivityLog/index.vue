@@ -168,6 +168,7 @@
               <option value="">All Users</option>
               <option v-for="u in adminConsultantUsers" :key="u.id" :value="u.id">{{ u.full_name }} ({{ u.role }})</option>
             </select>
+
             <input
               v-model="sessionFilters.from"
               type="date"
@@ -609,7 +610,7 @@ async function fetchAdminConsultantUsers() {
   try {
     const res = await axios.get('/auth/admin/users');
     const data = res.data.data || res.data || [];
-    adminConsultantUsers.value = data.filter(u => u.role === 'admin' || u.role === 'consultant');
+    adminConsultantUsers.value = data.filter(u => u.role !== 'student');
   } catch (e) {
     console.error('Failed to load users for session filter', e);
   }

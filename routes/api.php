@@ -64,14 +64,14 @@ Route::group(['prefix' => 'auth'], function () {
         Route::get('dropdowns/course-levels', [CourseLevelController::class, 'index']);
 
         // Blog routes (permission-protected)
-        Route::middleware('auto-permission')->group(function () {
+        Route::middleware(['role:admin,consultant,editor', 'auto-permission'])->group(function () {
             Route::apiResource('blog-categories', BlogCategoryController::class);
             Route::apiResource('blog-posts', BlogPostController::class);
             Route::post('blog-posts/upload-image', [BlogPostController::class, 'uploadImage']);
         });
 
         // Admin & Shared Management Routes
-        Route::middleware(['role:admin,consultant', 'auto-permission'])->prefix('admin')->group(function () {
+        Route::middleware(['role:admin,consultant,editor', 'auto-permission'])->prefix('admin')->group(function () {
             // User Management
             Route::get('users', [UserController::class, 'index']);
             Route::post('users', [UserController::class, 'store']);
