@@ -17,7 +17,7 @@ class BlogPostController extends Controller
     public function index(): JsonResponse
     {
         $posts = BlogPost::with(['author', 'reviewer', 'category'])
-            ->orderBy('published_at', 'desc')
+            ->orderBy('created_at', 'desc')
             ->paginate(15);
 
         return response()->json([
@@ -28,6 +28,8 @@ class BlogPostController extends Controller
                 'last_page' => $posts->lastPage(),
                 'per_page' => $posts->perPage(),
                 'total' => $posts->total(),
+                'from' => $posts->firstItem(),
+                'to' => $posts->lastItem(),
             ],
             'message' => 'Posts retrieved successfully.'
         ], Response::HTTP_OK);

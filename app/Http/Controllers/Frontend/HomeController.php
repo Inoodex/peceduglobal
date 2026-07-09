@@ -44,7 +44,7 @@ class HomeController extends Controller
         // 4. Fetch Latest Blogs
         $latestBlogs = BlogPost::with(['category', 'author'])
             ->where('status', 'published')
-            ->latest('published_at')
+            ->latest('created_at')
             ->limit(3)
             ->get();
 
