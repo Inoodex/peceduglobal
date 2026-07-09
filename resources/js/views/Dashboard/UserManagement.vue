@@ -426,6 +426,8 @@ const userSessions = ref([]);
 const userSessionsLimit = ref(5);
 const hasMoreSessions = ref(false);
 const editingUser = ref({});
+const newUser = ref({ first_name: '', last_name: '', email: '', password: '', role: 'consultant' });
+const showPassword = ref(false);
 
 const authStore = useAuthStore();
 const toast = useToastStore();

@@ -416,13 +416,19 @@ class AuthController extends Controller
         $perPage = (int) $request->query('per_page', 15);
         $search = trim((string) $request->query('search', ''));
         $userId = $request->query('user_id');
+        $role = $request->query('role');
         $from = $request->query('from');
         $to = $request->query('to');
 
-        $query = \App\Models\UserSession::with('user')->orderByDesc('login_at');
+        $query = \App\Models\UserSession::with('user')
+            ->whereHas('user', fn($q) => $q->whereIn('role', ['admin', 'consultant']));
 
         if ($userId) {
             $query->where('user_id', $userId);
+        }
+
+        if ($role) {
+            $query->whereHas('user', fn($q) => $q->where('role', $role));
         }
 
         if ($from) {
@@ -446,6 +452,21 @@ class AuthController extends Controller
 
         $sessions = $query->paginate($perPage);
 
+        // Calculate total online hours across all matching sessions
+        $baseQuery = \App\Models\UserSession::whereHas('user', fn($q) => $q->whereIn('role', ['admin', 'consultant']));
+        if ($userId) $baseQuery->where('user_id', $userId);
+        if ($role) $baseQuery->whereHas('user', fn($q) => $q->where('role', $role));
+        if ($from) $baseQuery->where('login_at', '>=', $from . ' 00:00:00');
+        if ($to) $baseQuery->where('login_at', '<=', $to . ' 23:59:59');
+        if ($search) $baseQuery->where(fn($q) => $q->whereHas('user', fn($uq) => $uq->where('full_name', 'like', "%{$search}%")->orWhere('email', 'like', "%{$search}%")));
+
+        $allSessions = $baseQuery->get();
+        $totalSeconds = $allSessions->sum(function ($s) {
+            $end = $s->logout_at ?? now();
+            return (int) abs($end->diffInSeconds($s->login_at));
+        });
+        $totalHours = round($totalSeconds / 3600, 1);
+
         return response()->json([
             'success' => true,
             'data' => $sessions->items(),
@@ -456,6 +477,14 @@ class AuthController extends Controller
                 'total' => $sessions->total(),
                 'from' => $sessions->firstItem(),
                 'to' => $sessions->lastItem(),
+            ],
+            'stats' => [
+                'total_sessions' => $allSessions->count(),
+                'total_hours' => $totalHours,
+                'total_hours_display' => $totalHours >= 1
+                    ? $totalHours . ' hrs'
+                    : round($totalSeconds / 60, 1) . ' min',
+                'active_sessions' => $allSessions->whereNull('logout_at')->count(),
             ],
         ]);
     }

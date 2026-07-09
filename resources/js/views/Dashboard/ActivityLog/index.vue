@@ -132,6 +132,23 @@
           <h2 class="text-xl font-bold text-gray-900 dark:text-white">Session History</h2>
           <p class="text-sm text-gray-500 dark:text-gray-400 mt-1">Latest user sessions. Use filters to search by user, email, IP, or date range.</p>
         </div>
+
+        <!-- Stats Cards -->
+        <div class="grid grid-cols-1 sm:grid-cols-3 gap-4">
+          <div class="bg-paper-light dark:bg-paper-dark rounded-2xl border border-gray-100 dark:border-gray-800 p-5">
+            <p class="text-xs text-gray-500 dark:text-gray-400 font-semibold uppercase tracking-wider">Total Sessions</p>
+            <p class="text-2xl font-bold text-gray-900 dark:text-white mt-1">{{ sessionStats.total_sessions || 0 }}</p>
+          </div>
+          <div class="bg-paper-light dark:bg-paper-dark rounded-2xl border border-gray-100 dark:border-gray-800 p-5">
+            <p class="text-xs text-gray-500 dark:text-gray-400 font-semibold uppercase tracking-wider">Total Online Hours</p>
+            <p class="text-2xl font-bold text-primary mt-1">{{ sessionStats.total_hours_display || '0 hrs' }}</p>
+          </div>
+          <div class="bg-paper-light dark:bg-paper-dark rounded-2xl border border-gray-100 dark:border-gray-800 p-5">
+            <p class="text-xs text-gray-500 dark:text-gray-400 font-semibold uppercase tracking-wider">Active Sessions</p>
+            <p class="text-2xl font-bold text-emerald-500 mt-1">{{ sessionStats.active_sessions || 0 }}</p>
+          </div>
+        </div>
+
         <div class="bg-paper-light dark:bg-paper-dark rounded-3xl border border-gray-100 dark:border-gray-800 shadow-card dark:shadow-card-dark overflow-hidden transition-all duration-300">
           <!-- Session Filter Toolbar -->
           <div class="p-4 border-b border-gray-100 dark:border-gray-800 flex flex-col sm:flex-row items-center gap-4">
@@ -144,6 +161,13 @@
                 class="w-full h-12 bg-gray-50 dark:bg-[#141A21] border border-gray-200 dark:border-gray-700 rounded-xl pl-10 pr-4 text-gray-900 dark:text-white placeholder-gray-400 focus:outline-none focus:ring-2 focus:ring-primary/20 focus:border-primary transition-all"
               />
             </div>
+            <select
+              v-model="sessionFilters.user_id"
+              class="w-full sm:w-56 h-12 bg-gray-50 dark:bg-[#141A21] border border-gray-200 dark:border-gray-700 rounded-xl px-4 text-gray-900 dark:text-white focus:outline-none focus:ring-2 focus:ring-primary/20 focus:border-primary transition-all cursor-pointer"
+            >
+              <option value="">All Users</option>
+              <option v-for="u in adminConsultantUsers" :key="u.id" :value="u.id">{{ u.full_name }} ({{ u.role }})</option>
+            </select>
             <input
               v-model="sessionFilters.from"
               type="date"
@@ -327,12 +351,16 @@ const sessionPerPage = ref(15);
 const sessionPagination = ref(null);
 const sessionUserId = ref(route.query.user_id ? String(route.query.user_id) : null);
 const sessionSearchTimer = ref(null);
+const sessionStats = ref({});
+const adminConsultantUsers = ref([]);
 const sessionFilters = reactive({
   search: '',
+  user_id: '',
+  role: '',
   from: '',
   to: '',
 });
-const hasSessionFilters = computed(() => sessionFilters.search || sessionFilters.from || sessionFilters.to);
+const hasSessionFilters = computed(() => sessionFilters.search || sessionFilters.user_id || sessionFilters.role || sessionFilters.from || sessionFilters.to);
 const sessionDropdownOpen = ref(false);
 const durationTick = ref(0);
 let durationTimer = null;
@@ -410,19 +438,22 @@ async function fetchSessions(page = 1) {
   sessionLoading.value = true;
   sessionPage.value = page;
   try {
-    const params = {
+    const userId = sessionFilters.user_id || sessionUserId.value;
+const params = {
       per_page: sessionPerPage.value,
       page,
       search: sessionFilters.search,
     };
 
+    if (sessionFilters.role) params.role = sessionFilters.role;
+    if (userId) params.user_id = userId;
     if (sessionFilters.from) params.from = sessionFilters.from;
     if (sessionFilters.to) params.to = sessionFilters.to;
-    if (sessionUserId.value) params.user_id = sessionUserId.value;
 
     const res = await axios.get('/auth/admin/user-sessions', { params });
     sessions.value = res.data.data;
     sessionPagination.value = res.data.meta;
+    sessionStats.value = res.data.stats || {};
   } catch (e) {
     console.error('Failed to load session history', e);
   } finally {
@@ -432,6 +463,8 @@ async function fetchSessions(page = 1) {
 
 function clearSessionFilters() {
   sessionFilters.search = '';
+  sessionFilters.user_id = '';
+  sessionFilters.role = '';
   sessionFilters.from = '';
   sessionFilters.to = '';
   fetchSessions(1);
@@ -572,8 +605,19 @@ function getEventClass(event) {
   return classes[event] || 'bg-gray-100 dark:bg-gray-800 text-gray-700 dark:text-gray-300';
 }
 
+async function fetchAdminConsultantUsers() {
+  try {
+    const res = await axios.get('/auth/admin/users');
+    const data = res.data.data || res.data || [];
+    adminConsultantUsers.value = data.filter(u => u.role === 'admin' || u.role === 'consultant');
+  } catch (e) {
+    console.error('Failed to load users for session filter', e);
+  }
+}
+
 onMounted(() => {
   fetchLogs();
+  fetchAdminConsultantUsers();
   startRefreshTimer();
   document.addEventListener('click', handleClickOutside);
   if (activeTab.value === 'history') {
