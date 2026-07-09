@@ -187,6 +187,19 @@ class ActivityLogObserver
         };
     }
 
+    private function slotDescription(ConsultantSchedule $slot, string $event): string
+    {
+        $consultant = $slot->consultant?->full_name ?? 'N/A';
+        $date = $slot->slot_date ?? 'N/A';
+        $time = ($slot->start_time ?? '') . ' - ' . ($slot->end_time ?? '');
+
+        return match ($event) {
+            'created' => "Created appointment slot for {$consultant} on {$date} ({$time})",
+            'updated' => "Updated appointment slot for {$consultant} on {$date}" . $this->updateDetails($slot),
+            'deleted' => "Deleted appointment slot for {$consultant} on {$date}",
+        };
+    }
+
     private function elementDescription(BlockElement $element, string $event): string
     {
         return match ($event) {

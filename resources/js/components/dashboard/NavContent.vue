@@ -170,7 +170,7 @@ const navigationData = [
       {
         name: 'Applications',
         icon: FileText,
-        permission: 'view_applications',
+        permission: 'manage_applications',
         children: [
           { name: 'Application List', path: '/dashboard/applications' },
           { name: 'Add Application', path: '/dashboard/applications/create' }

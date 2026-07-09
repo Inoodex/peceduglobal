@@ -285,19 +285,19 @@ const routes = [
         path: '/dashboard/applications',
         name: 'application-list',
         component: () => import('../views/Dashboard/Consultancy/Application/index.vue'),
-        meta: { auth: true, permission: 'view_applications' }
+        meta: { auth: true, permission: 'manage_applications' }
     },
     {
         path: '/dashboard/applications/create',
         name: 'application-create',
         component: () => import('../views/Dashboard/Consultancy/Application/create.vue'),
-        meta: { auth: true, permission: 'view_applications' }
+        meta: { auth: true, permission: 'manage_applications' }
     },
     {
         path: '/dashboard/applications/:id/edit',
         name: 'application-edit',
         component: () => import('../views/Dashboard/Consultancy/Application/edit.vue'),
-        meta: { auth: true, permission: 'view_applications' }
+        meta: { auth: true, permission: 'manage_applications' }
     },
     {
         path: '/dashboard/user-management',

@@ -24,7 +24,7 @@ class PermissionSeeder extends Seeder
             ['name' => 'Edit Student Info', 'slug' => 'edit_student', 'description' => 'Can update student profiles'],
             ['name' => 'Manage Inquiries', 'slug' => 'manage_inquiries', 'description' => 'Can manage student inquiries'],
             ['name' => 'Manage Bookings', 'slug' => 'manage_bookings', 'description' => 'Can manage appointment bookings'],
-            ['name' => 'View Applications', 'slug' => 'view_applications', 'description' => 'Can view student applications'],
+            ['name' => 'Manage Applications', 'slug' => 'manage_applications', 'description' => 'Can view, create, edit and delete student applications'],
 
             // Management
             ['name' => 'Manage Users', 'slug' => 'manage_users', 'description' => 'Can create, edit and delete users'],

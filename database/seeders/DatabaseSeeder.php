@@ -50,7 +50,7 @@ class DatabaseSeeder extends Seeder
         );
 
         // Assign some permissions to Consultant
-        $consultantPerms = \App\Models\Permission::whereIn('slug', ['view_applications', 'edit_student'])->pluck('id');
+        $consultantPerms = \App\Models\Permission::whereIn('slug', ['manage_applications', 'edit_student'])->pluck('id');
         $consultant->permissions()->sync($consultantPerms);
 
         // 4. Create a Test Student

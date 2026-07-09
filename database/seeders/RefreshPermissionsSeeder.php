@@ -2,6 +2,7 @@
 
 namespace Database\Seeders;
 
+use App\Models\User;
 use Illuminate\Database\Seeder;
 use Illuminate\Support\Facades\DB;
 
@@ -21,9 +22,25 @@ class RefreshPermissionsSeeder extends Seeder
         // Re-enable foreign key checks
         DB::statement('SET FOREIGN_KEY_CHECKS=1');
 
-        // Re-seed from PermissionSeeder
+        // Re-seed fresh 15 permissions
         $this->call(PermissionSeeder::class);
 
-        $this->command->info('Permissions refreshed successfully: old permissions removed, fresh 15 permissions seeded.');
+        // Re-assign default permissions to all consultant users
+        $consultantSlugs = ['manage_chat', 'manage_students', 'manage_applications', 'manage_inquiries', 'edit_student'];
+        $consultantPermIds = \App\Models\Permission::whereIn('slug', $consultantSlugs)->pluck('id');
+
+        User::where('role', 'consultant')->each(function ($user) use ($consultantPermIds) {
+            $user->permissions()->sync($consultantPermIds);
+        });
+
+        // Re-assign default permissions to all editor users (content management)
+        $editorSlugs = ['manage_pages', 'manage_countries', 'manage_team_members', 'manage_education', 'manage_blogs'];
+        $editorPermIds = \App\Models\Permission::whereIn('slug', $editorSlugs)->pluck('id');
+
+        User::where('role', 'editor')->each(function ($user) use ($editorPermIds) {
+            $user->permissions()->sync($editorPermIds);
+        });
+
+        $this->command->info('Permissions refreshed successfully. Default permissions re-assigned to all consultants and editors.');
     }
 }

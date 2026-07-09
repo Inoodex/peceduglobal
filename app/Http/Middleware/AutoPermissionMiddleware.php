@@ -66,7 +66,7 @@ class AutoPermissionMiddleware
             'App\Http\Controllers\Api\Admin\AppointmentController' => 'manage_bookings',
 
             // Consultancy — Applications
-            'App\Http\Controllers\Api\Admin\Education\ApplicationController' => 'view_applications',
+            'App\Http\Controllers\Api\Admin\Education\ApplicationController' => 'manage_applications',
 
             // Management — Users
             'App\Http\Controllers\Api\Admin\UserController' => 'manage_users',
@@ -95,6 +95,7 @@ class AutoPermissionMiddleware
                 'App\Http\Controllers\Api\Admin\Education\UniversityController',
                 'App\Http\Controllers\Api\Admin\Education\CourseController',
                 'App\Http\Controllers\Api\Admin\Education\CourseLevelController',
+                'App\Http\Controllers\Api\CourseIntakeController',
                 'App\Http\Controllers\Api\Admin\CountryController',
             ];
             if (in_array($controllerClass, $allowedGetControllers)) {
