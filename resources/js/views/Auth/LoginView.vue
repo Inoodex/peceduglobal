@@ -25,6 +25,13 @@ const handleSubmit = async () => {
     }
 };
 
+const clearError = () => {
+    if (authStore.error) {
+        authStore.error = null;
+        clearTimeout(errorTimer);
+    }
+};
+
 onBeforeUnmount(() => clearTimeout(errorTimer));
 </script>
 
@@ -93,11 +100,6 @@ onBeforeUnmount(() => clearTimeout(errorTimer));
                     </p>
                 </div>
 
-                <!-- Error message -->
-                <div v-if="authStore.error" class="bg-red-50 text-red-600 p-3 rounded-lg text-xs mb-5">
-                    {{ authStore.error }}
-                </div>
-
                 <form class="space-y-4" @submit.prevent="handleSubmit">
                     <!-- Email field -->
                     <div>
@@ -110,9 +112,18 @@ onBeforeUnmount(() => clearTimeout(errorTimer));
                             name="email"
                             type="email"
                             required
-                            class="w-full px-3.5 py-2.5 border border-gray-200 rounded-lg focus:outline-none focus:ring-2 focus:ring-slate-900 focus:border-transparent text-gray-900 placeholder-gray-400 text-sm"
+                            @input="clearError"
+                            :class="[
+                                'w-full px-3.5 py-2.5 border rounded-lg focus:outline-none focus:ring-2 text-sm transition-colors',
+                                authStore.error
+                                    ? 'border-red-400 focus:ring-red-500 focus:border-red-500 text-gray-900'
+                                    : 'border-gray-200 focus:ring-slate-900 focus:border-transparent text-gray-900 placeholder-gray-400'
+                            ]"
                             placeholder="demo@gmail.com"
                         >
+                        <p v-if="authStore.error" class="mt-1.5 text-xs text-red-600">
+                            {{ authStore.error }}
+                        </p>
                     </div>
 
                     <!-- Password field -->
@@ -132,7 +143,13 @@ onBeforeUnmount(() => clearTimeout(errorTimer));
                                 name="password"
                                 :type="showPassword ? 'text' : 'password'"
                                 required
-                                class="w-full px-3.5 py-2.5 border border-gray-200 rounded-lg focus:outline-none focus:ring-2 focus:ring-slate-900 focus:border-transparent text-gray-900 placeholder-gray-400 pr-10 text-sm"
+                                @input="clearError"
+                                :class="[
+                                    'w-full px-3.5 py-2.5 border rounded-lg focus:outline-none focus:ring-2 pr-10 text-sm transition-colors',
+                                    authStore.error
+                                        ? 'border-red-400 focus:ring-red-500 focus:border-red-500 text-gray-900'
+                                        : 'border-gray-200 focus:ring-slate-900 focus:border-transparent text-gray-900 placeholder-gray-400'
+                                ]"
                                 placeholder="••••••••"
                             >
                             <button

@@ -56,10 +56,19 @@ axiosInstance.interceptors.response.use(
         }
 
         if (error.response && error.response.status === 401 && originalRequest) {
-            // Avoid infinite loops if login or refresh itself fails
-            if (originalRequest.url.includes('/auth/login') || originalRequest.url.includes('/auth/refresh')) {
+            // If the login request itself fails (e.g. invalid credentials), let the form catch the error without refreshing
+            if (originalRequest.url?.includes('/auth/login') || originalRequest.url?.includes('/auth/student-login')) {
+                return Promise.reject(error);
+            }
+
+            // Avoid infinite loops if refresh itself fails
+            if (originalRequest.url?.includes('/auth/refresh')) {
                 localStorage.removeItem('token');
-                window.location.href = '/login';
+                Cookies.remove('auth_token');
+                Cookies.remove('token');
+                if (window.location.pathname !== '/login') {
+                    window.location.href = '/login';
+                }
                 return Promise.reject(error);
             }
 
@@ -99,7 +108,11 @@ axiosInstance.interceptors.response.use(
                     .catch((err) => {
                         processQueue(err, null);
                         localStorage.removeItem('token');
-                        window.location.href = '/login';
+                        Cookies.remove('auth_token');
+                        Cookies.remove('token');
+                        if (window.location.pathname !== '/login') {
+                            window.location.href = '/login';
+                        }
                         reject(err);
                     })
                     .finally(() => {

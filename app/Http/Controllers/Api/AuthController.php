@@ -221,7 +221,7 @@ class AuthController extends Controller
 
             return response()->json([
                 'success' => false,
-                'message' => 'Unauthorized',
+                'message' => 'Invalid credentials',
                 'data' => null
             ], 401);
         }
