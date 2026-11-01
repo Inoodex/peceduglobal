@@ -51,6 +51,9 @@ Route::prefix('public')->group(function () {
     Route::get('/consultants/global-availability', [FrontendConsultantController::class, 'getGlobalAvailability']);
     Route::post('/consultants/book-appointment', [FrontendConsultantController::class, 'bookAppointment']);
 
+    // Dedicated CEO & Founder Availability
+    Route::get('/ceo/availability', [FrontendConsultantController::class, 'getCeoAvailability']);
+
     Route::get('/pages', [FrontendPageController::class, 'index']);
     Route::get('/pages/about', [FrontendPageController::class, 'about']);
     Route::get('/pages/about-the-company', [FrontendPageController::class, 'getAboutCompany']);

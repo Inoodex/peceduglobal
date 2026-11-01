@@ -17,7 +17,7 @@
               <Calendar :size="24" />
             </div>
             <div>
-              <div class="text-2xl font-bold">{{ appointments.length }}</div>
+              <div class="text-2xl font-bold">{{ pagination?.total ?? appointments.length }}</div>
               <div class="text-xs text-gray-500 uppercase font-bold tracking-wider">Total Sessions</div>
             </div>
           </div>

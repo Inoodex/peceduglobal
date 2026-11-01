@@ -177,8 +177,8 @@ Route::group(['prefix' => 'auth'], function () {
         // Booking & Appointment Management (Clean Prefix)
         Route::prefix('booking')->group(function () {
 
-            // Consultant Booking Routes
-            Route::middleware('role:consultant')->prefix('consultant')->group(function () {
+            // Consultant & Admin Booking Routes
+            Route::middleware('role:consultant,admin')->prefix('consultant')->group(function () {
                 Route::post('available-slots', [AvailabilityController::class, 'store']);
                 Route::delete('release-slot', [AvailabilityController::class, 'releaseSlot']);
                 Route::get('my-claimed-slots', [AvailabilityController::class, 'getMyClaimedSlots']);

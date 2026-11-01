@@ -91,6 +91,9 @@ class ConsultantController extends Controller
         try {
             $slots = ConsultantSchedule::where('slot_date', $request->date)
                 ->where('status', 'available')
+                ->whereHas('consultant', function ($query) {
+                    $query->where('role', 'consultant')->where('is_active', true);
+                })
                 ->orderBy('start_time')
                 ->get()
                 ->map(function ($slot) {
@@ -270,6 +273,61 @@ class ConsultantController extends Controller
             });
         } catch (\Exception $e) {
             return response()->json(['success' => false, 'message' => 'Booking failed. Please try again.'], 500);
+        }
+    }
+
+    /**
+     * Dedicated endpoint for CEO & Founder Counseling Availability.
+     * Strictly used by https://peceduglobal.com/about/officials
+     */
+    public function getCeoAvailability(Request $request)
+    {
+        try {
+            $ceo = User::where('role', 'admin')->where('is_active', true)->first();
+
+            if (!$ceo) {
+                return response()->json([
+                    'success' => false,
+                    'message' => 'CEO profile not found or inactive.'
+                ], 404);
+            }
+
+            $today = now()->toDateString();
+
+            $slots = ConsultantSchedule::where('consultant_id', $ceo->id)
+                ->where('status', 'available')
+                ->where('slot_date', '>=', $today)
+                ->orderBy('slot_date', 'asc')
+                ->orderBy('start_time', 'asc')
+                ->get()
+                ->map(function ($slot) {
+                    return [
+                        'id'          => $slot->id,
+                        'slot_date'   => $slot->slot_date,
+                        'start_time'  => $slot->start_time,
+                        'end_time'    => $slot->end_time,
+                        'day_of_week' => $slot->day_of_week,
+                        'status'      => $slot->status,
+                    ];
+                });
+
+            $availableDates = $slots->pluck('slot_date')->unique()->values();
+
+            return response()->json([
+                'success' => true,
+                'data' => [
+                    'official' => [
+                        'id'                => $ceo->id,
+                        'full_name'         => $ceo->full_name,
+                        'designation'       => 'Founder & CEO',
+                        'profile_photo_url' => $ceo->profile_photo_url,
+                    ],
+                    'available_dates' => $availableDates,
+                    'slots'           => $slots,
+                ]
+            ], 200);
+        } catch (\Exception $e) {
+            return response()->json(['success' => false, 'message' => $e->getMessage()], 500);
         }
     }
 }

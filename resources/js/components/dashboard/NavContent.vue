@@ -180,7 +180,7 @@ const navigationData = [
   },
   {
     title: 'Consultant Services',
-    roles: ['consultant'],
+    roles: ['consultant', 'admin'],
     items: [
       {
         name: 'Counselling',
